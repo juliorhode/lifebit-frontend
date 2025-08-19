@@ -1,0 +1,178 @@
+# Roadmap de Desarrollo Frontend para "LifeBit" (React)
+
+## Epopeya F0: Configuración del Proyecto y Arquitectura Frontend (CORE-FE)
+*******************************************************************************
+
+*   `[ ]` **CORE-FE-01:** Configurar un nuevo proyecto de React usando `Vite` (herramienta de construcción moderna y rápida).
+*   `[ ]` **CORE-FE-02:** Estructurar las carpetas del proyecto (componentes, páginas, servicios, hooks, etc.).
+*   `[ ]` **CORE-FE-03:** Configurar un sistema de enrutamiento con `React Router DOM` para manejar la navegación entre páginas.
+*   `[ ]` **CORE-FE-04:** Implementar una librería de componentes de UI (ej. `Material-UI`, `Chakra UI`, o `Tailwind CSS`) para un desarrollo visual rápido y consistente.
+*   `[ ]` **CORE-FE-05:** Configurar un gestor de estado global (ej. `Zustand` o `Redux Toolkit`) para manejar el estado de la autenticación y los datos compartidos.
+*   `[ ]` **CORE-FE-06:** Crear un servicio `apiService` (usando `axios`) para centralizar todas las llamadas a nuestra API del backend.
+
+---
+
+## Epopeya F1: Flujo de Autenticación y Vistas Públicas (AUTH-FE)
+*******************************************************************************
+
+*   `[ ]` **AUTH-FE-01:** Construir la Landing Page pública con sus secciones (basado en el CMS del backend).
+*   `[ ]` **AUTH-FE-02:** Construir la página de Login con los formularios para inicio de sesión tradicional y el botón de "Iniciar sesión con Google".
+*   `[ ]` **AUTH-FE-03:** Implementar la lógica de login que llama a la API, guarda el JWT y el Refresh Token de forma segura (usando cookies HttpOnly).
+*   `[ ]` **AUTH-FE-04:** Construir la página "Finalizar Registro" para usuarios invitados por token.
+*   `[ ]` **AUTH-FE-05:** Crear "Rutas Protegidas" que solo sean accesibles para usuarios autenticados.
+*   `[ ]` **AUTH-FE-06:** Implementar la lógica de "logout".
+
+---
+
+## Epopeya F2: Panel de Dueños (DUEÑO-FE)
+*******************************************************************************
+
+*   `[ ]` **DUEÑO-FE-01:** Construir el Layout principal del Dashboard del Dueño (sidebar, header).
+*   `[ ]` **DUEÑO-FE-02:** **[Módulo Edificios]** - Crear la vista de tabla para listar edificios, con filtros y paginación.
+*   `[ ]` **DUEÑO-FE-03:** **[Módulo Edificios]** - Crear los formularios (en modales o páginas separadas) para crear y editar un edificio.
+*   `[ ]` **DUEÑO-FE-04:** **[Dashboard Principal]** - Construir los componentes de las tarjetas de notificación y la tabla de "Contratos Próximos a Vencer".
+*   `[ ]` **DUEÑO-FE-05:** **[Dashboard Financiero]** - Integrar una librería de gráficos (ej. `Chart.js` o `Recharts`) y conectarla a los endpoints de la API para mostrar las métricas.
+*   `[ ]` **DUEÑO-FE-06:** **[Módulo CMS]** - Crear la interfaz para gestionar el contenido de la Landing Page, incluyendo la funcionalidad de drag-and-drop para reordenar secciones.
+
+---
+
+## Epopeya F3: Panel de Administradores (ADMIN-FE)
+*******************************************************************************
+
+*   `[ ]` **ADMIN-FE-01:** Construir el Layout principal del Dashboard del Administrador.
+*   `[ ]` **ADMIN-FE-02:** **[Registro de Residentes]** - Implementar el formulario para el registro manual y el componente de subida de archivos para la carga masiva.
+*   `[ ]` **ADMIN-FE-03:** **[Recursos]** - Construir la interfaz visual de cuadrícula para la asignación de puestos de estacionamiento.
+*   `[ ]` **ADMIN-FE-04:** **[Finanzas]** - Construir los componentes de gráficos y tablas para la vista financiera del administrador.
+*   `[ ]` **ADMIN-FE-05:** **[Motor de Reglas]** - Diseñar e implementar la interfaz de usuario de "drag-and-drop" para la creación de reglas (esta es una tarea de alta complejidad).
+*   `[ ]` **ADMIN-FE-06:** **[Noticias]** - Integrar un editor de texto enriquecido (CKEditor) en un formulario para crear/editar noticias.
+
+---
+
+## Epopeya F4: Panel de Residentes (RESIDENTE-FE)
+*******************************************************************************
+
+*   `[ ]` **RESIDENTE-FE-01:** Construir el Layout y el Dashboard principal del Residente.
+*   `[ ]` **RESIDENTE-FE-02:** **[Recibos y Pagos]** - Crear la vista para mostrar los recibos de condominio y el formulario para reportar un pago (incluyendo la subida del comprobante).
+*   `[ ]` **RESIDENTE-FE-03:** **[Reservas]** - Implementar el componente de calendario y el formulario para solicitar reservas.
+*   `[ ]` **RESIDENTE-FE-04:** **[Votaciones y Elecciones]** - Construir las interfaces para participar en encuestas y votar por candidatos.
+*   `[ ]` **RESIDENTE-FE-05:** **[Discusiones]** - Crear la interfaz del foro con su estructura de hilos y respuestas anidadas.
+
+
+# Roadmap Frontend para "LifeBit" (React)
+
+## Epopeya F0: Fundación del Proyecto (CORE-FE) `[PRÓXIMA A INICIAR]`
+*   `[~]` **CORE-FE-01 a CORE-FE-06:** Configuración de Vite, carpetas, `React Router`, librería de UI, gestor de estado (`Zustand`) y `apiService` (`axios`).
+
+## Epopeya F1: Acceso y Vistas Públicas (AUTH-FE)
+*   `[ ]` **AUTH-FE-01: [Página]** - Construir la Landing Page pública (renderizada desde el CMS).
+*   `[ ]` **AUTH-FE-02: [Componente]** - Construir el formulario de "Solicitud de Servicio".
+*   `[ ]` **AUTH-FE-03: [Página]** - Construir la página de Login con sus componentes (login tradicional y con Google).
+*   `[ ]` **AUTH-FE-04: [Lógica]** - Implementar la lógica de login, guardado seguro de tokens y redirección basada en rol.
+*   `[ ]` **AUTH-FE-05: [Componente]** - Crear el HOC (High-Order Component) o Hook de "Ruta Protegida".
+*   `[ ]` **AUTH-FE-06: [Página]** - Construir la página "Finalizar Registro" para usuarios invitados.
+*   `[ ]` **AUTH-FE-07: [Componente]** - Construir el Layout principal (Sidebar, Header) que se adapta al rol del usuario.
+
+## Epopeya F2: Vistas de Módulos Fundamentales
+*   `[ ]` **VISTA-01: [Edificios]** - Construir la página de gestión de edificios (tabla, filtros, modales de creación/edición) para el Dueño.
+*   `[ ]` **VISTA-02: [Usuarios]** - Construir la página de gestión de residentes para el Admin (tabla, formulario manual, componente de subida masiva).
+*   `[ ]` **VISTA-03: [Cuentas]** - Construir la página de gestión de Cuentas Bancarias para el Admin.
+*   `[ ]` **VISTA-04: [Recursos]** - Construir la interfaz de gestión de Recursos para el Admin.
+
+## Epopeya F3: Vistas de Flujos Financieros
+*   `[ ]` **VISTA-F-01: [Gastos]** - Construir la interfaz para que el Admin registre los gastos mensuales.
+*   `[ ]` **VISTA-F-02: [Recibos]** - Construir la vista que muestra el desglose de un recibo para el Residente.
+*   `[ ]` **VISTA-F-03: [Reporte de Pagos]** - Construir el formulario para que el Residente y el Admin reporten un pago.
+*   `[ ]` **VISTA-F-04: [Conciliación]** - Construir la interfaz para que el Admin/Dueño suba el estado de cuenta y vea los resultados del "matching".
+*   `[ ]` **VISTA-F-05: [Dashboards Financieros]** - Integrar una librería de gráficos para crear los dashboards del Dueño y del Admin.
+
+## Epopeya F4: Vistas de Comunidad e Interacción
+*   `[ ]` **VISTA-C-01: [Noticias]** - Construir la vista para leer noticias y el formulario con CKEditor para crearlas.
+*   `[ ]` **VISTA-C-02: [Foro]** - Construir la interfaz del foro con su vista de hilos y respuestas anidadas.
+*   `[ ]` **VISTA-C-03: [Encuestas/Votaciones]** - Construir la interfaz para crear y para participar en encuestas.
+*   `[ ]` **VISTA-C-04: [Elecciones]** - Construir las vistas para el registro de candidaturas y la emisión de votos.
+*   `[ ]` **VISTA-C-05: [Reservas]** - Construir el componente de calendario y el flujo de solicitud de reservas.
+*   `[ ]` **VISTA-C-06: [Motor de Reglas]** - (La más compleja) Construir la interfaz drag-and-drop para la creación de reglas.
+
+
+
+Roadmap Maestro del Frontend de LifeBit (v2.0 - Consolidado)
+Nuestra Estrella Polar: "Construir la plataforma SaaS más intuitiva, potente y adictiva para la gestión de condominios, transformando tareas complejas en experiencias simples y gratificantes."
+Documento Fundacional: Este roadmap se rige por nuestro Manifiesto de Diseño y Experiencia de LifeBit, que prioriza el modo oscuro, la psicología del comportamiento, el benchmarking de aplicaciones de clase mundial y la internacionalización (i18n).
+Leyenda de Tareas:
+[CORE]: Tarea de Arquitectura o Fundación.
+[UI/UX]: Tarea centrada en la Interfaz o Experiencia de Usuario.
+[LÓGICA]: Tarea centrada en la gestión de estado y comunicación con la API.
+[PÁGINA]: Creación de una vista principal.
+[COMPONENTE]: Creación de un bloque de UI reutilizable.
+
+Leyenda de Estado:
+[x]: Tarea Completada
+[~]: Tarea en Progreso o Parcialmente Completada
+[ ]: Tarea Pendiente
+
+Epopeya F0: La Plataforma de Lanzamiento (Fundación y Arquitectura)
+Objetivo: Forjar el esqueleto de nuestra aplicación. La base invisible pero indestructible sobre la que construiremos todo lo demás.
+[ ] F0-01 [CORE]: Definir el Manifiesto de Diseño y Experiencia de LifeBit.
+[ ] Paleta de colores (Modo Oscuro y Claro).
+[ ] Escala tipográfica y de espaciado.
+[ ] Set de iconografía y tono de voz.
+[ ] F0-02 [CORE]: Configurar la librería de internacionalización (i18next) para soporte es/en.
+[ ] F0-03 [LÓGICA]: Crear el apiService definitivo con axios, incluyendo withCredentials: true y el interceptor de accessToken.
+[ ] F0-04 [UI/UX]: Construir el LayoutPrincipal adaptable (Header/Sidebar) que cambia según el rol del usuario (dueño, admin, residente).
+[ ] F0-05 [UI/UX]: Refactorizar y perfeccionar el componente ThemeToggle para el cambio de tema.
+[ ] F0-06 [CORE]: Configurar el App.jsx con el BrowserRouter y la estructura de rutas principal.
+
+Epopeya F1: La Puerta de Entrada (Autenticación y Vistas Públicas)
+Objetivo: Crear un flujo de acceso y onboarding impecable, seguro y persistente para todos los roles.
+[~] F1-01 [LÓGICA]: Construir el authStore de Zustand con toda la lógica de estado (login, logout, refreshToken, getProfile).
+[ ] F1-02 [COMPONENTE]: Construir el SessionVerifier para restaurar la sesión del usuario al recargar la página.
+[ ] F1-03 [CORE]: Implementar el componente RutaProtegida para blindar las vistas privadas.
+[~] F1-04 [PÁGINA]: Conectar y finalizar la LoginPage (lógica de estado, errores, carga).
+[ ] F1-05 [PÁGINA]: Construir la FinalizarRegistroPage para usuarios invitados por token.
+[ ] F1-06 [PÁGINA]: Construir el flujo de recuperación de cuenta (ForgotPasswordPage y ResetPasswordPage).
+[ ] F1-07 [PÁGINA]: Construir la AuthCallbackPage para el login con Google.
+[ ] F1-08 [PÁGINA]: Construir y conectar la LandingPage con su SolicitudForm.
+
+Epopeya F2: El Centro de Comando (Panel del Dueño)
+Objetivo: Empoderarte, Julio, con las herramientas para dirigir tu negocio con total control y visibilidad.
+[ ] F2-01 [PÁGINA]: Construir el DashboardPrincipal del Dueño (Notificaciones, Resumen de Edificios, Contratos a Vencer).
+[ ] F2-02 [PÁGINA]: Construir el DashboardFinanciero del Dueño con gráficos interactivos.
+[ ] F2-03 [PÁGINA]: Módulo de Gestión de Solicitudes (Tabla para listar, Modal para aprobar/rechazar).
+[ ] F2-04 [PÁGINA]: Módulo de Gestión de Contratos (Tabla, filtros, vista de detalle).
+[ ] F2-04a [COMPONENTE]: Formulario de "Registro de Edificio" para clientes VIP.
+[ ] F2-05 [PÁGINA]: Módulo CMS para la Landing Page con drag and drop para reordenar secciones.
+[ ] F2-06 [PÁGINA]: Herramienta de Soporte de Base de Datos (SQL Runner).
+
+Epopeya F3: El Primer Vuelo (Onboarding del Administrador)
+Objetivo: Crear una experiencia de configuración inicial tan guiada y gratificante que los nuevos administradores se sientan empoderados desde el primer minuto.
+[ ] F3-01 [COMPONENTE]: Construir el orquestador SetupWizard que guiará todo el proceso.
+[ ] F3-02 [PÁGINA]: Paso 1: Interfaz de Creación de Unidades (usando el generador flexible).
+[ ] F3-03 [PÁGINA]: Paso 2: Módulo de Gestión de Recursos.
+[ ] F3-03a [UI/UX]: CRUD para Tipos de Recurso.
+[ ] F3-03b [UI/UX]: Interfaces para la creación de inventario (secuencial y carga masiva por Excel).
+[ ] F3-04 [PÁGINA]: Paso 3: Módulo de Invitación de Residentes (individual y carga masiva por Excel).
+
+Epopeya F4: La Comunidad Viva (Paneles de Admin y Residente)
+Objetivo: Construir las herramientas del día a día que hacen de LifeBit el centro neurálgico de la comunidad.
+[ ] F4-01 [PÁGINA]: Construir el DashboardPrincipal del Administrador.
+[ ] F4-02 [PÁGINA]: Construir el DashboardPrincipal del Residente.
+[ ] F4-03 [PÁGINA]: Módulo de Discusiones (Foro Social v1).
+[ ] F4-03a [UI/UX]: Vista de hilos y respuestas anidadas.
+[ ] F4-03b [LÓGICA]: Implementación de Reacciones (likes).
+[ ] F4-03c [LÓGICA]: Sistema de notificaciones multicanal para respuestas.
+[ ] F4-04 [PÁGINA]: Módulo de Elecciones v1.
+[ ] F4-04a [UI/UX]: Interfaz para postulación de candidatos.
+[ ] F4-04b [UI/UX]: Interfaz de votación.
+[ ] F4-04c [UI/UX]: Vista de resultados.
+[ ] F4-05 [PÁGINA]: Módulo de Gestión Visual de Recursos (Vista de "Puestos").
+[ ] F4-06 [PÁGINA]: Sistema de Reportes/Ticketing (vistas para Residente, Admin y Dueño).
+[ ] F4-07 [PÁGINA]: Flujo de Pagos y Conciliación (vistas para Residente, Admin y Dueño).
+
+Epopeya F5: El Corazón de LifeBit (Motor de Reglas Visual)
+Objetivo: Implementar nuestra killer feature. La herramienta que nos define y nos diferencia de forma radical.
+[ ] F5-01 [LÓGICA]: (Fase 1 - MVP Funcional) Implementar las reglas más comunes a través de formularios simples para entregar valor rápidamente.
+[ ] F5-02 [UI/UX]: (Fase 2 - La Revolución Visual) Construir la interfaz drag and drop.
+[ ] F5-02a [COMPONENTE]: Paleta de bloques de Condiciones y Acciones.
+[ ] F5-02b [COMPONENTE]: Lienzo para la construcción de reglas.
+[ ] F5-02c [LÓGICA]: Motor de Simulación para previsualizar el impacto de una regla.
+[ ] F5-02d [UI/UX]: Asistente guiado (tour interactivo) para la creación de la primera regla.

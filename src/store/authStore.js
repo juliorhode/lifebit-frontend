@@ -9,7 +9,7 @@ import apiService from '../services/apiService';
  *
  * El parámetro 'set' es la función que usamos para actualizar el estado de forma inmutable.
  */
-export const useAuthStore = create((set) => ({
+export const useAuthStore = create((set, get) => ({
 	estado: 'loggedOut', // Posibles valores: 'loggedOut', 'loading', 'loggedIn', 'error'
 	accessToken: null,
 	usuario: null,
@@ -58,8 +58,46 @@ export const useAuthStore = create((set) => ({
 		}
 	},
 	/**
+	 * @description Guarda un accessToken directamente en el estado.
+	 * Útil para flujos como el callback de OAuth.
+	 * @param {string} token - El accessToken JWT.
+	 */
+	setToken: (token) => {
+		set({ accessToken: token, estado: 'loading' }); // Ponemos 'loading' mientras buscamos el perfil
+	},
+	/**
+	 * @description Obtiene el perfil del usuario autenticado usando el token
+	 * que ya está en el estado y actualiza la información del usuario.
+	 */
+	getProfile: async () => {
+		// getState() o get() nos permite leer el estado actual dentro de una acción
+		const token = get().accessToken;
+		if (!token) return; // No hacer nada si no hay token
+
+		try {
+			const response = await apiService.get('/auth/perfil');
+			// La respuesta de tu backend es { success: true, data: { user: {...} } }
+			const usuario = response.data.data.user;
+
+			set({
+				usuario: usuario,
+				estado: 'loggedIn', // ¡Login completado exitosamente!
+				error: null,
+			});
+		} catch (error) {
+			const errorMessage = error.response?.data?.message || 'Error al obtener el perfil.';
+			set({
+				estado: 'error',
+				error: errorMessage,
+				accessToken: null,
+				usuario: null,
+			});
+		}
+	},
+	/**
 	 * @description Cierra la sesión del usuario.
 	 */
+
 	logout: () => {
 		// Simplemente reseteamos el estado a sus valores iniciales.
 		set({

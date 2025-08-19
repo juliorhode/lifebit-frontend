@@ -1,0 +1,27 @@
+Manifiesto de Diseño de LifeBit (Parte 1: Paleta de Colores)
+Nuestro Principio Rector: Dark Mode First. Diseñaremos pensando primero en la experiencia oscura, que es elegante, moderna y reduce la fatiga visual. Nuestro modo claro será una adaptación luminosa y profesional de esta base.
+Nuestra Inspiración: El LoginPage.jsx que definiste y los dashboards de alta calidad que compartiste.
+Propuesta de Paleta de Colores
+He traducido esa inspiración a un sistema de colores profesional usando la paleta estándar de Tailwind CSS. Esto nos da consistencia y acceso a una gama de tonos probada.
+1. El Color Primario (El Alma de LifeBit):
+Color: Azul (Blue). Transmite confianza, tecnología y profesionalismo.
+Propuesta: Usaremos blue-600 como nuestro azul principal para botones, enlaces y elementos activos. Es vibrante pero no agresivo. Para los hover (cuando el mouse pasa por encima), usaremos blue-700 para dar una respuesta visual clara.
+Ejemplo: className="bg-blue-600 hover:bg-blue-700"
+2. Los Grises (La Estructura Invisible):
+Propósito: Son el 90% de nuestra interfaz. Su correcta aplicación crea profundidad, jerarquía y legibilidad.
+Propuesta (Modo Oscuro):
+Fondo Principal: Un negro casi puro para la inmersión total: bg-gray-950 o bg-black.
+Fondo de Tarjetas/Secciones: Un gris muy oscuro para que las "tarjetas" floten sobre el fondo: bg-gray-900.
+Bordes y Separadores: Un gris ligeramente más claro para líneas sutiles: border-gray-800.
+Texto Principal (Títulos): Un blanco casi puro para máximo contraste: text-gray-100.
+Texto Secundario (Párrafos): Un gris claro para que sea legible sin cansar la vista: text-gray-300.
+Texto Desactivado/Placeholder: Un gris más oscuro: text-gray-500.
+3. Los Colores Semánticos (El Lenguaje Universal de la UI):
+Propósito: Dar feedback instantáneo al usuario sobre el resultado de sus acciones.
+Propuesta (Consistente en ambos modos):
+Éxito: Verde (Green). Usaremos green-500.
+Error / Peligro: Rojo (Red). Usaremos red-500.
+Advertencia: Amarillo (Amber). Usaremos amber-500.
+Información: Azul (Blue). Usaremos nuestro azul primario.
+¿Cómo se traduce esto al Modo Claro?
+Es simple: invertimos los grises. El fondo principal sería bg-white o bg-gray-50, las tarjetas bg-white con una sombra, los bordes border-gray-200, el texto principal text-gray-900 y el texto secundario text-gray-600. Los colores primario y semánticos permanecen iguales, garantizando la consistencia de la marca.

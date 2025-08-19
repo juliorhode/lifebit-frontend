@@ -8,7 +8,7 @@ import { useAuthStore } from '../store/authStore';
  * Esto evita tener que escribir la URL completa en cada llamada.
  */
 const apiService = axios.create({
-	baseURL: 'http://localhost:3000/api', // La URL base de tu API backend.
+	baseURL: '/api', // La URL base de tu API backend.
 	headers: {
 		'Content-Type': 'application/json',
 	},
