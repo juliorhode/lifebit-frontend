@@ -95,17 +95,27 @@ export const useAuthStore = create((set, get) => ({
 		}
 	},
 	/**
-	 * @description Cierra la sesión del usuario.
+	 * @description Cierra la sesión del usuario de forma segura.
+	 * Limpia el estado del cliente y llama al backend para invalidar la sesión.
 	 */
-
-	logout: () => {
-		// Simplemente reseteamos el estado a sus valores iniciales.
-		set({
-			accessToken: null,
-			usuario: null,
-			estado: 'loggedOut',
-			error: null,
-		});
+	logout: async () => {
+		try {
+			// 1. Llama al backend para que invalide el refreshToken (HttpOnly cookie)
+			// y realice cualquier otra limpieza de sesión en el lado del servidor.
+			await apiService.post('/auth/logout');
+		} catch (error) {
+			// Incluso si la llamada al backend falla (ej. por pérdida de conexión),
+			// debemos continuar con la limpieza del estado en el cliente.
+			console.error('Error al cerrar sesión en el servidor:', error);
+		} finally {
+			// Simplemente reseteamos el estado a sus valores iniciales.
+			set({
+				accessToken: null,
+				usuario: null,
+				estado: 'loggedOut',
+				error: null,
+			});
+		}
 		// Opcional: removemos el token de localStorage si lo hubiéramos guardado.
 	},
 }));

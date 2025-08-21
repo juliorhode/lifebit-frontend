@@ -2,18 +2,19 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { FiGrid, FiFileText, FiUsers, FiSettings, FiHelpCircle, FiLogOut } from 'react-icons/fi';
 import { FaFileContract } from "react-icons/fa";
+import { useAuthStore } from '../../store/authStore';
 
 // NOTA: Los datos de los enlaces son estáticos por ahora para construir la UI.
 // Más adelante, esta lista se generará dinámicamente según el rol del usuario.
 const navLinks = [
     { to: '/dashboard', icon: <FiGrid size={20} />, text: 'Dashboard' },
-    { to: '/contratos', icon: <FaFileContract size={20} />, text: 'Contratos' },
-    { to: '/residentes', icon: <FiUsers size={20} />, text: 'Residentes' },
+    { to: '/dashboard/contratos', icon: <FaFileContract size={20} />, text: 'Contratos' },
+    { to: '/dashboard/residentes', icon: <FiUsers size={20} />, text: 'Residentes' },
 ];
 const bottomLinks = [
-    { to: '/mi-cuenta', icon: <FiSettings size={20} />, text: 'Mi Cuenta' },
-    { to: '/ayuda', icon: <FiHelpCircle size={20} />, text: 'Ayuda' },
-    { to: '/logout', icon: <FiLogOut size={20} />, text: 'Salir' },
+    { to: '/dashboard/mi-cuenta', icon: <FiSettings size={20} />, text: 'Mi Cuenta' },
+    { to: '/dashboard/ayuda', icon: <FiHelpCircle size={20} />, text: 'Ayuda' },
+    { action: 'logout', icon: <FiLogOut size={20} />, text: 'Salir' },
 ];
 /**
  * @description Componente de la barra lateral de navegación.
@@ -23,6 +24,9 @@ const bottomLinks = [
  */
 
 const Sidebar = ({ isOpen, onLinkClick }) => {
+    // Obtenemos la acción de logout desde el store
+    const logout = useAuthStore((state) => state.logout);
+
     // Definimos un único estilo base que ya incluye las variantes dark:
     const linkStyle = "flex items-center space-x-4 px-4 py-3 rounded-lg transition-colors duration-200 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white";
     const activeLinkStyle = "bg-blue-600 text-white font-semibold dark:bg-blue-600 dark:text-white"; // El activo es igual en ambos modos
@@ -42,6 +46,9 @@ const Sidebar = ({ isOpen, onLinkClick }) => {
                 <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 <span className="text-xl font-bold text-gray-900 dark:text-white">LifeBit</span>
             </div>
+            <div className="px-4">
+                <div className="border-t border-gray-200 dark:border-gray-800"></div>
+            </div>
             {/* Contenedor principal de la navegación que ocupa el espacio restante */}
             <div className="flex-1 flex flex-col overflow-y-auto">
                 <nav className="flex-1 p-4 space-y-2">
@@ -49,6 +56,7 @@ const Sidebar = ({ isOpen, onLinkClick }) => {
                         <NavLink
                             key={link.to}
                             to={link.to}
+                            end={link.to === '/dashboard'}
                             // `NavLink` nos da `isActive` para saber si la ruta está activa.
                             className={({ isActive }) =>
                                 `${linkStyle} ${isActive && activeLinkStyle}`}
@@ -59,24 +67,49 @@ const Sidebar = ({ isOpen, onLinkClick }) => {
                         </NavLink>
                     ))}
                 </nav>
-
-                {/* Enlaces de la parte inferior */}
-                <div className="p-4 space-y-2">
-                    {bottomLinks.map(link => (
-                        // <NavLink> nos dice cuál es la URL actual.
-                        <NavLink
-                            key={link.to}
-                            to={link.to}
-                            className={({ isActive }) =>
-                                // isActive: true si la URL del navegador coincide con el to del enlace.
-                                `${linkStyle} ${isActive && activeLinkStyle}`}
-                            onClick={onLinkClick}
-                        >
-                            {link.icon}
-                            <span className="truncate">{link.text}</span>
-                        </NavLink>
-                    ))}
+                {/* ---  SEPARADOR --- 
+                <div className="px-4">: Creamos un contenedor exterior que tiene el mismo padding horizontal (px-4) que nuestros enlaces. Esto asegura que la línea del separador no llegue hasta los bordes de la Sidebar.
+                border-t: Le dice a Tailwind que cree un borde solo en la parte superior (top) del div.
+                border-gray-200: En modo claro, el borde será de un gris muy sutil.
+                dark:border-gray-800: En modo oscuro, el borde será de un gris oscuro.
+                */}
+                <div className="px-4">
+                    <div className="border-t border-gray-200 dark:border-gray-800"></div>
                 </div>
+                {/* Enlaces de la parte inferior (mi cuenta, ayuda, salir) */}
+                <div className="p-4 space-y-2">
+                    {bottomLinks.map(link => {
+                        // --- Renderizado condicional ---
+                        // Si el elemento que estamos renderizando es el de logout, devolvemos un <button> que llama a logout en el onClick. Si no, devolvemos el <NavLink> normal.
+                        if (link.action === 'logout') {
+                            return (
+                                <button
+                                    key={link.text}
+                                    onClick={logout}
+                                    // Usamos 'w-full' para que ocupe todo el ancho como los NavLink
+                                    className={`${linkStyle} w-full`}
+                                >
+                                    {link.icon}
+                                    <span className="truncate">{link.text}</span>
+                                </button>
+                            );
+                        }
+                        return (
+                            // <NavLink> nos dice cuál es la URL actual.
+                            <NavLink
+                                key={link.to}
+                                to={link.to}
+                                // isActive: true si la URL del navegador coincide con el to del enlace.
+                                className={({ isActive }) => `${linkStyle} ${isActive && activeLinkStyle}`}
+                                onClick={onLinkClick}
+                            >
+                                {link.icon}
+                                <span className="truncate">{link.text}</span>
+                            </NavLink>
+                        );
+                    })}
+                </div>
+                
             </div>
         </aside>
     );

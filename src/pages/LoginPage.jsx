@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 // Importamos componentes de react-router-dom para la navegación
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 // Importamos nuestro hook de Zustand para acceder al estado global
 import { useAuthStore } from '../store/authStore';
 
@@ -12,6 +12,7 @@ const LoginPage = () => {
     // Esto no necesita estar en Zustand porque solo esta página se preocupa por estos valores.
     const [email, setEmail] = useState('');
     const [contraseña, setContraseña] = useState('');
+    const [urlError, setUrlError] = useState(''); // Estado para el error de la URL
 
     // --- CONEXIÓN CON EL ESTADO GLOBAL (ZUSTAND) ---
     // Usamos el hook de nuestro store para "desestructurar" y obtener:
@@ -22,20 +23,41 @@ const LoginPage = () => {
     // Esto evita el bucle de renderizado infinito.
     const login = useAuthStore((state) => state.login);
     const estado = useAuthStore((state) => state.estado);
-    const error = useAuthStore((state) => state.error);
+    const authError = useAuthStore((state) => state.error);
 
     // --- MANEJO DE NAVEGACIÓN ---
     // Obtenemos la función 'navigate' para poder redirigir al usuario.
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
 
     // --- LÓGICA DE NEGOCIO DEL COMPONENTE ---
     const handleLogin = (e) => {
         // Prevenimos el comportamiento por defecto del formulario (recargar la página).
         e.preventDefault();
+        setUrlError(''); // para limpiar el error de la URL
         // Llamamos a la acción 'login' de nuestro store, pasándole los datos locales.
         // El componente delega TODA la lógica de autenticación al store.
         login(email, contraseña);
     };
+    const handleGoogleLoginClick = () => {
+        // 1. Limpiamos cualquier error de URL anterior
+        setUrlError('');
+        // 2. Navegamos a la URL de autenticación del backend.
+        // Usamos window.location.href para una redirección de página completa.
+        window.location.href = '/api/auth/google';
+    };
+    useEffect(() => {
+        const errorCode = searchParams.get('error');
+        if (errorCode) {
+            const errorMessages = {
+                'invitation-not-found': 'Tu cuenta de Google no está asociada a ninguna invitación. Por favor, contacta al administrador.',
+                'auth-failed': 'La autenticación con Google ha fallado. Por favor, inténtalo de nuevo.',
+                'server-error': 'Ocurrió un error en el servidor. Por favor, inténtalo más tarde.',
+            };
+            setUrlError(errorMessages[errorCode] || 'Ha ocurrido un error inesperado.');
+        }
+    }, [searchParams]);
+
     // --- EFECTOS SECUNDARIOS (REACCIONES A CAMBIOS DE ESTADO) ---
     // Este hook 'useEffect' se ejecutará CADA VEZ que el valor de 'estado' cambie.
     useEffect(() => {
@@ -43,11 +65,19 @@ const LoginPage = () => {
             // Redirigimos al usuario al dashboard.
             navigate('/dashboard');
         }
-    }, [estado]); // El array [estado] le dice a useEffect que solo se active cuando 'estado' cambie.
+    }, [estado, navigate]); // El array [estado] le dice a useEffect que solo se active cuando 'estado' cambie.
 
     // --- DEFINICIONES DE ESTILO (TAILWIND CSS) ---
     const inputStyle = "w-full p-3 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white";
     const labelStyle = "block text-left text-sm font-semibold mb-2 text-gray-300";
+
+    console.log('Estado de autenticación:', estado);
+    console.log('Error de autenticación:', authError);
+    console.log('Error de URL:', urlError);
+    console.log(searchParams.toString());
+
+
+
 
     // --- RENDERIZADO DEL COMPONENTE (JSX) ---
     return (
@@ -61,9 +91,17 @@ const LoginPage = () => {
                 <form onSubmit={handleLogin} className="space-y-6 bg-gray-800 p-8 rounded-lg shadow-2xl">
                     {/* --- INICIO: SECCIÓN DE ERROR --- */}
                     {/* Renderizado condicional: Este div solo se mostrará si el estado es 'error' y hay un mensaje. */}
+
+                    {/* Bloque para el error de la URL */}
+                    {urlError  && (
+                        <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-lg text-center">
+                            <span className="font-semibold">Error:</span> {urlError}
+                        </div>
+                    )}
+                    {/* Bloque existente para el error de login manual */}
                     {estado === 'error' && (
                         <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-lg text-center">
-                            <span className="font-semibold">Error:</span> {error}
+                            <span className="font-semibold">Error:</span> {authError}
                         </div>
                     )}
                     {/* --- FIN: SECCIÓN DE ERROR --- */}
@@ -83,7 +121,7 @@ const LoginPage = () => {
                         <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-600" /></div>
                         <div className="relative flex justify-center text-sm"><span className="px-2 bg-gray-800 text-gray-400">O continúa con</span></div>
                     </div>
-                    <a href="/api/auth/google" className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg transition-colors">
+                    <button type="button" onClick={handleGoogleLoginClick} className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg transition-colors">
                         <svg className="w-6 h-6" viewBox="0 0 48 48">
                             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
                             <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
@@ -92,7 +130,7 @@ const LoginPage = () => {
                             <path fill="none" d="M0 0h48v48H0z"></path>
                         </svg>
                         Iniciar sesión con Google
-                    </a>
+                    </button>
                 </form>
                 <div className="text-center mt-6">
                     <Link to="/" className="text-sm text-gray-400 hover:text-blue-500 transition-colors">← Volver a la página principal</Link>
