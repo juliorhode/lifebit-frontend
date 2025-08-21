@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage';
 import LayoutPrincipal from './components/layout/LayoutPrincipal';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import RutaProtegida from './components/RutaProtegida';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 // Componente placeholder para el dashboard
 const DashboardPlaceholder = () => <h1 className="text-3xl font-bold text-white">Dashboard Principal</h1>;
@@ -22,6 +23,7 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       {/* Grupo de Rutas Protegidas */}
       <Route element={<RutaProtegida />}>

@@ -3,12 +3,13 @@ import { FiXCircle, FiCheckCircle, FiSettings, FiZap, FiMessageSquare } from 're
 import { Link } from 'react-router-dom';
 import SolicitudForm from '../components/SolicitudForm';
 import nosotros from '../assets/nosotros.jpg';
+import Logo from '../components/ui/Logo';
 
 // Sub-componente para el Header
 const Header = () => (
     <header className="bg-gray-900 bg-opacity-80 backdrop-blur-sm text-white p-4 fixed top-0 left-0 right-0 z-50">
         <div className="container mx-auto flex justify-between items-center">
-            <Link to="/" className="text-2xl font-bold">LifeBit</Link>
+            <Logo />
             <nav>
                 <Link
                     to="/login"
@@ -28,7 +29,11 @@ const HeroSection = () => (
             style={{ backgroundImage: "url('https://picsum.photos/seed/lifebit-hero/1920/1080')" }}
         ></div>
         <div className="absolute inset-0 bg-black opacity-50"></div>
-        <div className="relative z-10 text-center p-4">
+        {/* 
+        pt-24: Esta es la clase clave. pt significa padding-top. El número 24 en Tailwind corresponde a 6rem o 96px. Esto "empujará" todo el contenido del Hero (el h1, el párrafo, el botón) 96 píxeles hacia abajo, dejando espacio más que suficiente para que el Header se vea sin tapar nada.
+        sm:pt-4: Este es un ajuste responsivo. sm significa "small screens" y superiores. Le decimos: "En pantallas pequeñas (móvil) aplica el padding-top de 24. Pero en pantallas un poco más grandes (sm y hacia arriba), donde el layout cambia, vuelve a un padding más normal (pt-4), porque el flex items-center ya se encarga de centrar el contenido verticalmente en la pantalla completa (h-screen).
+         */}
+        <div className="relative z-10 text-center p-4 pt-24 sm:pt-4">
             <h1 className="text-5xl md:text-7xl font-bold mb-4 leading-tight">
                 Menos Caos. Más Comunidad.
             </h1>

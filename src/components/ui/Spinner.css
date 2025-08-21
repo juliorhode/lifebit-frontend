@@ -1,0 +1,172 @@
+/* --- 1. Loader: Ring --- */
+
+.loader-ring {
+	width: 48px;
+	height: 48px;
+	border-radius: 50%;
+	position: relative;
+	animation: rotate 1s linear infinite;
+}
+.loader-ring::before,
+.loader-ring::after {
+	content: '';
+	box-sizing: border-box;
+	position: absolute;
+	inset: 0px;
+	border-radius: 50%;
+	border: 5px solid #fff;
+	animation: prixClipFix 2s linear infinite;
+}
+.loader-ring::after {
+	inset: 8px;
+	transform: rotate3d(90, 90, 0, 180deg);
+	border-color: #ff3d00;
+}
+
+@keyframes rotate {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes prixClipFix {
+	0% {
+		clip-path: polygon(50% 50%, 0 0, 0 0, 0 0, 0 0, 0 0);
+	}
+	50% {
+		clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 0, 100% 0, 100% 0);
+	}
+	75%,
+	100% {
+		clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 100% 100%, 100% 100%);
+	}
+}
+
+/* --- 2. Loader: Gears --- */
+.loader-gears {
+	width: 60px;
+	height: 40px;
+	position: relative;
+	display: inline-block;
+	--base-color: #193cb8; /* Color oscuro para contraste */
+}
+.loader-gears::before {
+	content: '';
+	left: 0;
+	top: 0;
+	position: absolute;
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	background-color: #fff;
+	background-image: radial-gradient(
+			circle 8px at 18px 18px,
+			var(--base-color) 100%,
+			transparent 0
+		),
+		radial-gradient(circle 4px at 18px 0px, var(--base-color) 100%, transparent 0),
+		radial-gradient(circle 4px at 0px 18px, var(--base-color) 100%, transparent 0),
+		radial-gradient(circle 4px at 36px 18px, var(--base-color) 100%, transparent 0),
+		radial-gradient(circle 4px at 18px 36px, var(--base-color) 100%, transparent 0),
+		radial-gradient(circle 4px at 30px 5px, var(--base-color) 100%, transparent 0),
+		radial-gradient(circle 4px at 30px 5px, var(--base-color) 100%, transparent 0),
+		radial-gradient(circle 4px at 30px 30px, var(--base-color) 100%, transparent 0),
+		radial-gradient(circle 4px at 5px 30px, var(--base-color) 100%, transparent 0),
+		radial-gradient(circle 4px at 5px 5px, var(--base-color) 100%, transparent 0);
+	background-repeat: no-repeat;
+	box-sizing: border-box;
+	animation: rotationBack-gears 3s linear infinite;
+}
+.loader-gears::after {
+	content: '';
+	left: 35px;
+	top: 15px;
+	position: absolute;
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	background-color: #fff;
+	background-image: radial-gradient(
+			circle 5px at 12px 12px,
+			var(--base-color) 100%,
+			transparent 0
+		),
+		radial-gradient(circle 2.5px at 12px 0px, var(--base-color) 100%, transparent 0),
+		radial-gradient(circle 2.5px at 0px 12px, var(--base-color) 100%, transparent 0),
+		radial-gradient(circle 2.5px at 24px 12px, var(--base-color) 100%, transparent 0),
+		radial-gradient(circle 2.5px at 12px 24px, var(--base-color) 100%, transparent 0),
+		radial-gradient(circle 2.5px at 20px 3px, var(--base-color) 100%, transparent 0),
+		radial-gradient(circle 2.5px at 20px 3px, var(--base-color) 100%, transparent 0),
+		radial-gradient(circle 2.5px at 20px 20px, var(--base-color) 100%, transparent 0),
+		radial-gradient(circle 2.5px at 3px 20px, var(--base-color) 100%, transparent 0),
+		radial-gradient(circle 2.5px at 3px 3px, var(--base-color) 100%, transparent 0);
+	background-repeat: no-repeat;
+	box-sizing: border-box;
+	animation: rotationBack-gears 4s linear infinite reverse;
+}
+@keyframes rotationBack-gears {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(-360deg);
+	}
+}
+
+/* --- 3. Loader: Dots Flash --- */
+.loader-dots-flash {
+	width: 8px;
+	height: 8px;
+	position: relative;
+	border-radius: 50%;
+	background-color: #fff;
+	box-shadow: 16px 0 #fff, -16px 0 #fff;
+	animation: flash-dots 0.5s ease-out infinite alternate;
+}
+@keyframes flash-dots {
+	0% {
+		background-color: rgba(255, 255, 255, 0.25);
+		box-shadow: 16px 0 rgba(255, 255, 255, 0.25), -16px 0 rgba(255, 255, 255, 1);
+	}
+	50% {
+		background-color: rgba(255, 255, 255, 1);
+		box-shadow: 16px 0 rgba(255, 255, 255, 0.25), -16px 0 rgba(255, 255, 255, 0.25);
+	}
+	100% {
+		background-color: rgba(255, 255, 255, 0.25);
+		box-shadow: 16px 0 rgba(255, 255, 255, 1), -16px 0 rgba(255, 255, 255, 0.25);
+	}
+}
+
+.loader-dots {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: block;
+  margin:15px auto;
+  position: relative;
+  color: #FFF;
+  box-sizing: border-box;
+  animation: animloader 2s linear infinite;
+}
+
+@keyframes animloader {
+  0% {
+    box-shadow: 14px 0 0 -2px,  38px 0 0 -2px,  -14px 0 0 -2px,  -38px 0 0 -2px;
+  }
+  25% {
+    box-shadow: 14px 0 0 -2px,  38px 0 0 -2px,  -14px 0 0 -2px,  -38px 0 0 2px;
+  }
+  50% {
+    box-shadow: 14px 0 0 -2px,  38px 0 0 -2px,  -14px 0 0 2px,  -38px 0 0 -2px;
+  }
+  75% {
+    box-shadow: 14px 0 0 2px,  38px 0 0 -2px,  -14px 0 0 -2px,  -38px 0 0 -2px;
+  }
+  100% {
+    box-shadow: 14px 0 0 -2px,  38px 0 0 2px,  -14px 0 0 -2px,  -38px 0 0 -2px;
+  }
+}

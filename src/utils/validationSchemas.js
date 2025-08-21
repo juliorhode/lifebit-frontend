@@ -26,9 +26,9 @@ const SUPPORTED_FORMATS_DOCUMENTO = ['application/pdf'];
 const solicitudSchema = yup.object().shape({
 	// Nombre del Solicitante: Requerido y se transforma a Title Case.
 	nombre_solicitante: yup
-		.string()
+		.string() 
 		.matches(/^[a-zA-Z\s]+$/, 'El nombre solo puede contener letras.')
-		.min(2, 'El nombre debe tener al menos 2 caracteres.')
+		.min(3, 'El nombre debe tener al menos 3 caracteres.')
 		.max(50, 'El nombre debe tener como máximo 50 caracteres.')
 		.transform(toTitleCase)
 		.required('El nombre es obligatorio.'),
@@ -37,7 +37,7 @@ const solicitudSchema = yup.object().shape({
 	apellido_solicitante: yup
 		.string()
 		.matches(/^[a-zA-Z\s]+$/, 'El nombre solo puede contener letras.')
-		.min(2, 'El nombre debe tener al menos 2 caracteres.')
+		.min(3, 'El nombre debe tener al menos 3 caracteres.')
 		.max(50, 'El nombre debe tener como máximo 50 caracteres.')
 		.transform(toTitleCase)
 		.required('El apellido es obligatorio.'),
@@ -114,5 +114,22 @@ const solicitudSchema = yup.object().shape({
 		),
 });
 
-export { solicitudSchema };
+const resetPasswordSchema = yup.object().shape({
+	// Nueva Contraseña: Requerida y con un mínimo de 8 caracteres.
+	// Podríamos añadir más reglas aquí en el futuro (ej. requerir mayúsculas, números, etc.)
+	// con el método .matches(). Por ahora, la longitud es una excelente primera defensa.
+	password: yup
+		.string()
+		.min(8, 'La contraseña debe tener al menos 8 caracteres.')
+		.required('La nueva contraseña es obligatoria.'),
+
+	// Confirmar Contraseña: Requerida y debe coincidir con el campo 'password'.
+	confirmPassword: yup
+		.string()
+		.oneOf([yup.ref('password'), null], 'Las contraseñas deben coincidir.')
+		.required('Debes confirmar la contraseña.'),
+	// El valor de este campo debe ser uno de (oneOf) los siguientes: el valor del campo que se llama 'password' (yup.ref('password')). Si no lo es, muestra el mensaje de error 'Las contraseñas no coinciden
+});
+
+export { solicitudSchema, resetPasswordSchema };
 

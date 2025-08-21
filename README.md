@@ -14,3 +14,9 @@ En lugar de poner las reglas de validación directamente dentro del componente d
 - register: Una función que "registra" cada input en el formulario. Le dice a React Hook Form: "Quiero que gestiones el estado de este campo".
 - handleSubmit: Una función que envuelve nuestro propio onSubmit. Su magia es que solo llamará a nuestra función si y solo si todas las validaciones del esquema de Yup han pasado.
 - formState: { errors }: Un objeto que contendrá todos los mensajes de error de validación.
+
+
+# NOTA IMPORTANTE
+- En src/components/auth/ForgotPasswordForm.jsx eliminar las siguientes lineas, al pasar a produccion
+  - Linea 46: const delay = new Promise(resolve => setTimeout(resolve, 2000));
+  - Linea 50: await delay 

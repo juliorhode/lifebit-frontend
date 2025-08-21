@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { FiGrid, FiFileText, FiUsers, FiSettings, FiHelpCircle, FiLogOut } from 'react-icons/fi';
 import { FaFileContract } from "react-icons/fa";
 import { useAuthStore } from '../../store/authStore';
+import Logo from '../ui/Logo';
 
 // NOTA: Los datos de los enlaces son estáticos por ahora para construir la UI.
 // Más adelante, esta lista se generará dinámicamente según el rol del usuario.
@@ -43,8 +44,9 @@ const Sidebar = ({ isOpen, onLinkClick }) => {
         <aside className={`transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:flex lg:flex-col fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-transform duration-300 ease-in-out`}>
             {/* Logo y Nombre de la App */}
             <div className="flex items-center space-x-2 p-4 h-16 border-b border-gray-200 dark:border-gray-800">
-                <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                <span className="text-xl font-bold text-gray-900 dark:text-white">LifeBit</span>
+                <div className="flex items-center justify-center h-16 border-b border-gray-200 dark:border-gray-800">
+                    <Logo />
+                </div>
             </div>
             <div className="px-4">
                 <div className="border-t border-gray-200 dark:border-gray-800"></div>
@@ -74,6 +76,7 @@ const Sidebar = ({ isOpen, onLinkClick }) => {
                 dark:border-gray-800: En modo oscuro, el borde será de un gris oscuro.
                 */}
                 <div className="px-4">
+                    {/* Separador */}
                     <div className="border-t border-gray-200 dark:border-gray-800"></div>
                 </div>
                 {/* Enlaces de la parte inferior (mi cuenta, ayuda, salir) */}
