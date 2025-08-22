@@ -37,7 +37,7 @@ const solicitudSchema = yup.object().shape({
 	apellido_solicitante: yup
 		.string()
 		.matches(/^[a-zA-Z\s]+$/, 'El nombre solo puede contener letras.')
-		.min(3, 'El nombre debe tener al menos 3 caracteres.')
+		.min(3, 'El apellido debe tener al menos 3 caracteres.')
 		.max(50, 'El nombre debe tener como máximo 50 caracteres.')
 		.transform(toTitleCase)
 		.required('El apellido es obligatorio.'),
@@ -46,7 +46,7 @@ const solicitudSchema = yup.object().shape({
 	email_solicitante: yup
 		.string()
 		.email('Por favor, introduce un correo electrónico válido.')
-		.min(6, 'El correo electrónico debe tener al menos 5 caracteres.')
+		.min(6, 'El correo electrónico debe tener al menos 6 caracteres.')
 		.max(254, 'El correo electrónico debe tener como máximo 100 caracteres.')
 		.required('El correo electrónico es obligatorio.'),
 
@@ -78,7 +78,7 @@ const solicitudSchema = yup.object().shape({
 	// Dirección del Edificio: Opcional, pero se transforma a Title Case si se introduce.
 	direccion_edificio: yup
 		.string()
-		.min(10, 'La dirección del edificio debe tener al menos 2 caracteres.')
+		.min(10, 'La dirección del edificio debe tener al menos 10 caracteres.')
 		.max(255, 'La dirección del edificio debe tener como máximo 100 caracteres.')
 		.transform(toTitleCase),
 
@@ -131,5 +131,16 @@ const resetPasswordSchema = yup.object().shape({
 	// El valor de este campo debe ser uno de (oneOf) los siguientes: el valor del campo que se llama 'password' (yup.ref('password')). Si no lo es, muestra el mensaje de error 'Las contraseñas no coinciden
 });
 
-export { solicitudSchema, resetPasswordSchema };
+// resetPasswordSchema.shape({ ... }) le indica a Yup que extienda de resetPasswordSchema y añada un nuevo campo que en nuestro caso es 'passwordActual'.
+const updatePasswordSchema = resetPasswordSchema.shape({
+	passwordActual: yup
+		.string()
+		.required('Debes ingresar tu contraseña actual.'),
+});
+
+export {
+	solicitudSchema,
+	resetPasswordSchema,
+	updatePasswordSchema,
+};
 

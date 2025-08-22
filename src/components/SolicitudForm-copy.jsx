@@ -2,18 +2,17 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { solicitudSchema } from '../utils/validationSchemas';
+import { solicitudSchema } from '../utils/validationSchemas.jsx';
+import { STYLES } from '../utils/styleConstants.jsx';
 import Spinner from './ui/Spinner';
-import { STYLES } from '../utils/styleConstants';
-import apiService from '../services/apiService';
 
-// Función de utilidad para capitalizar texto
 const toTitleCase = (str) => {
     if (!str) return str;
     return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
 };
 
 const SolicitudForm = ({ selectedPlan }) => {
+    // 1. Reintroducimos nuestro propio estado de carga. Este es el que controlará la UI.
     const [loading, setLoading] = useState(false);
     const [serverError, setServerError] = useState('');
     const [success, setSuccess] = useState('');
@@ -27,7 +26,6 @@ const SolicitudForm = ({ selectedPlan }) => {
     } = useForm({
         mode: 'onChange',
         resolver: yupResolver(solicitudSchema),
-        // Establecemos los valores por defecto del formulario
         defaultValues: {
             nombre_solicitante: '',
             apellido_solicitante: '',
@@ -40,30 +38,24 @@ const SolicitudForm = ({ selectedPlan }) => {
         },
     });
 
-    // Efecto para sincronizar el plan si cambia desde las props
     useEffect(() => {
         if (selectedPlan) {
             setValue('id_licencia_solicitada', selectedPlan);
         }
     }, [selectedPlan, setValue]);
 
-    // Función que se ejecuta cuando el formulario es válido
-    const onSubmit = async (data) => {
+    // 2. Esta es nuestra función de lógica de negocio pura.
+    const onFormSubmit = async (data) => {
+        setLoading(true); // Activamos la carga aquí.
         setSuccess('');
         setServerError('');
-        setLoading(true);
 
         const submissionData = new FormData();
-
-        // Adjuntamos todos los datos de texto
         Object.keys(data).forEach(key => {
-            // No adjuntamos los campos de archivo aquí
             if (key !== 'archivo_cedula' && key !== 'documento_condominio') {
                 submissionData.append(key, data[key]);
             }
         });
-
-        // Adjuntamos los archivos solo si existen
         if (data.archivo_cedula && data.archivo_cedula[0]) {
             submissionData.append('archivo_cedula', data.archivo_cedula[0]);
         }
@@ -76,36 +68,33 @@ const SolicitudForm = ({ selectedPlan }) => {
 
         try {
             await delay;
-
-            await apiService.post('/solicitudes', submissionData, {
+            await axios.post('/api/solicitudes', submissionData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             setSuccess('¡Solicitud enviada con éxito! Nuestro equipo te contactará pronto.');
-            reset(); // Resetea el formulario a sus valores por defecto
+            reset();
         } catch (err) {
             console.error('Error en la solicitud:', err);
             setServerError(err.response?.data?.error?.mensaje || 'Ocurrió un error al enviar la solicitud.');
         } finally {
-            setLoading(false);
+            setLoading(false); // Desactivamos la carga al final, pase lo que pase.
         }
     };
 
-    // Función de utilidad para capitalizar campos de texto mientras se escribe
     const handleCapitalize = (e) => {
         const { name, value } = e.target;
         setValue(name, toTitleCase(value), { shouldValidate: true });
     };
 
-    // Manejador específico para los campos de archivo
     const handleFileChange = (e) => {
         const { name, files } = e.target;
-        // Actualiza el valor en react-hook-form y dispara la validación
         setValue(name, files, { shouldValidate: true });
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 text-left bg-gray-900 p-8 rounded-lg shadow-2xl">
-
+        // 3. El onSubmit del formulario ahora llama a handleSubmit, que a su vez llama a onFormSubmit.
+        <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6 text-left bg-gray-900 p-8 rounded-lg shadow-2xl">
+            {/* Campos del formulario con React Hook Form */}
             <div className="grid md:grid-cols-2 gap-6">
                 <div>
                     <label htmlFor="nombre_solicitante" className={STYLES.label}>Nombre *</label>
@@ -119,6 +108,7 @@ const SolicitudForm = ({ selectedPlan }) => {
                 </div>
             </div>
 
+            {/* Teléfono y Email */}
             <div className="grid md:grid-cols-2 gap-6">
                 <div>
                     <label htmlFor="email_solicitante" className={STYLES.label}>Email *</label>
@@ -132,6 +122,7 @@ const SolicitudForm = ({ selectedPlan }) => {
                 </div>
             </div>
 
+            {/* Cédula */}
             <div>
                 <label htmlFor="cedula_solicitante" className={STYLES.label}>Cédula / RIF</label>
                 <input type="text" {...register("cedula_solicitante")} onChange={handleCapitalize} className={STYLES.input} placeholder="V12345678" />
@@ -140,6 +131,7 @@ const SolicitudForm = ({ selectedPlan }) => {
 
             <hr className="border-gray-700" />
 
+            {/* Edificio y Plan */}
             <div className="grid md:grid-cols-2 gap-6">
                 <div>
                     <label htmlFor="nombre_edificio" className={STYLES.label}>Nombre del Edificio *</label>
@@ -153,46 +145,35 @@ const SolicitudForm = ({ selectedPlan }) => {
                         <option value="2">Gold</option>
                         <option value="3">Premium</option>
                     </select>
-                    {errors.id_licencia_solicitada && <p className={STYLES.errorText}>{errors.id_licencia_solicitada.message}</p>}
                 </div>
             </div>
 
+            {/* Dirección */}
             <div>
                 <label htmlFor="direccion_edificio" className={STYLES.label}>Dirección del Edificio</label>
                 <textarea {...register("direccion_edificio")} onChange={handleCapitalize} className={STYLES.input} rows="3"></textarea>
                 {errors.direccion_edificio && <p className={STYLES.errorText}>{errors.direccion_edificio.message}</p>}
             </div>
 
+            {/* Archivos */}
             <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                    <label htmlFor="archivo_cedula" className={STYLES.label}>Cédula / RIF (Archivo: jpeg, jpg, png, pdf Opcional)</label>
-                    <input
-                        type="file"
-                        // Usamos un nombre diferente para el register para evitar conflictos
-
-                        onChange={handleFileChange}
-                        // Le damos un 'name' que coincida con nuestro schema
-                        name="archivo_cedula"
-                        className={`${STYLES.inputFile} `}
-                    />
+                    <label htmlFor="archivo_cedula" className={STYLES.label}>Cédula / RIF (Archivo, Opcional)</label>
+                    <input type="file" name="archivo_cedula" onChange={handleFileChange} className={`${STYLES.inputFile}`} />
                     {errors.archivo_cedula && <p className={STYLES.errorText}>{errors.archivo_cedula.message}</p>}
                 </div>
                 <div>
-                    <label htmlFor="documento_condominio" className={STYLES.label}>Documento de Condominio (Archivo: pdf Opcional)</label>
-                    <input
-                        type="file"
-
-                        onChange={handleFileChange}
-                        name="documento_condominio"
-                        className={`${STYLES.inputFile} `}
-                    />
+                    <label htmlFor="documento_condominio" className={STYLES.label}>Documento de Condominio (Opcional)</label>
+                    <input type="file" name="documento_condominio" onChange={handleFileChange} className={`${STYLES.inputFile}`} />
                     {errors.documento_condominio && <p className={STYLES.errorText}>{errors.documento_condominio.message}</p>}
                 </div>
             </div>
 
+            {/* 4. El botón ahora usa nuestro estado 'loading'. */}
             <button type="submit" disabled={loading} className={STYLES.buttonPrimary}>
-                {loading ? <Spinner type="balls" /> : 'Enviar Solicitud de Prueba'}
+                {loading ? <Spinner type="dots" /> : 'Enviar Solicitud de Prueba'}
             </button>
+
             <div className="text-center h-4">
                 {serverError && <p className={`${STYLES.errorText} text-base`}>{serverError}</p>}
                 {success && <p className={STYLES.successText}>{success}</p>}

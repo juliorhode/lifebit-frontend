@@ -3,12 +3,13 @@ import { FiXCircle, FiCheckCircle, FiSettings, FiZap, FiMessageSquare } from 're
 import { Link } from 'react-router-dom';
 import SolicitudForm from '../components/SolicitudForm';
 import nosotros from '../assets/nosotros.jpg';
+import inicio from '../assets/inicio.jpg';
 import Logo from '../components/ui/Logo';
 
 // Sub-componente para el Header
 const Header = () => (
     <header className="bg-gray-900 bg-opacity-80 backdrop-blur-sm text-white p-4 fixed top-0 left-0 right-0 z-50">
-        <div className="container mx-auto flex justify-between items-center">
+        <div className="container max-w-full mx-auto flex justify-between items-center">
             <Logo />
             <nav>
                 <Link
@@ -26,8 +27,13 @@ const HeroSection = () => (
     <section className="relative h-screen flex items-center justify-center text-white">
         <div
             className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: "url('https://picsum.photos/seed/lifebit-hero/1920/1080')" }}
-        ></div>
+            style={{ backgroundImage: `url(${inicio})` }}
+            alt="Equipo LifeBit">
+        </div>
+
+
+
+
         <div className="absolute inset-0 bg-black opacity-50"></div>
         {/* 
         pt-24: Esta es la clase clave. pt significa padding-top. El número 24 en Tailwind corresponde a 6rem o 96px. Esto "empujará" todo el contenido del Hero (el h1, el párrafo, el botón) 96 píxeles hacia abajo, dejando espacio más que suficiente para que el Header se vea sin tapar nada.

@@ -108,7 +108,7 @@ const ForgotPasswordForm = ({ onProcessingChange }) => {
                 className={STYLES.buttonPrimary} // Aplica los estilos del botón primario
             >
                 {/* El texto del botón cambia según el estado. Mostramos un Spinner si está cargando. */}
-                {loading ? <Spinner type="ring" /> : 'Restablecer'}
+                {loading ? <Spinner type="ring3" /> : 'Restablecer'}
             </button>
         </form>
     );

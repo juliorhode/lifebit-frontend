@@ -6,10 +6,12 @@ import './Spinner.css'; // Importamos nuestro nuevo archivo de estilos
  * Esto nos permite cambiar de spinner fácilmente a través de una prop.
  */
 const loaderTypes = {
-    ring: 'loader-ring',
+    ring1: 'loader-ring1',
+    ring2: 'loader-ring2',
+    ring3: 'loader-ring3',
     gears: 'loader-gears',
-    dots: 'loader-dots',
     dots_flash: 'loader-dots-flash',
+    balls: 'loader-balls',
     // Aquí añadiremos los demás tipos...
 };
 
@@ -17,10 +19,10 @@ const loaderTypes = {
  * Componente reutilizable para mostrar animaciones de carga (spinners).
  * 
  * @param {object} props - Las propiedades del componente.
- * @param {string} [props.type='ring'] - El tipo de spinner a mostrar. 'ring' es el por defecto.
+ * @param {string} [props.type='ring3'] - El tipo de spinner a mostrar. 'ring3' es el por defecto.
  * @returns {JSX.Element} Un elemento span con la clase del loader correspondiente.
  */
-const Spinner = ({ type = 'ring' }) => {
+const Spinner = ({ type = 'ring3' }) => {
     // Prop 'type' con valor por defecto 'ring'
     // Validamos el tipo de spinner recibido y asignamos la clase correspondiente.
     // Si el tipo no está en nuestro mapeo, usamos 'ring' por defecto
