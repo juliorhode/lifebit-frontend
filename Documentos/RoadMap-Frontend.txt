@@ -15,12 +15,12 @@
 ## Epopeya F1: Flujo de Autenticación y Vistas Públicas (AUTH-FE)
 *******************************************************************************
 
-*   `[ ]` **AUTH-FE-01:** Construir la Landing Page pública con sus secciones (basado en el CMS del backend).
-*   `[ ]` **AUTH-FE-02:** Construir la página de Login con los formularios para inicio de sesión tradicional y el botón de "Iniciar sesión con Google".
-*   `[ ]` **AUTH-FE-03:** Implementar la lógica de login que llama a la API, guarda el JWT y el Refresh Token de forma segura (usando cookies HttpOnly).
-*   `[ ]` **AUTH-FE-04:** Construir la página "Finalizar Registro" para usuarios invitados por token.
-*   `[ ]` **AUTH-FE-05:** Crear "Rutas Protegidas" que solo sean accesibles para usuarios autenticados.
-*   `[ ]` **AUTH-FE-06:** Implementar la lógica de "logout".
+*   `[~]` **AUTH-FE-01:** Construir la Landing Page pública con sus secciones (basado en el CMS del backend).
+*   `[x]` **AUTH-FE-02:** Construir la página de Login con los formularios para inicio de sesión tradicional y el botón de "Iniciar sesión con Google".
+*   `[x]` **AUTH-FE-03:** Implementar la lógica de login que llama a la API, guarda el JWT y el Refresh Token de forma segura (usando cookies HttpOnly).
+*   `[x]` **AUTH-FE-04:** Construir la página "Finalizar Registro" para usuarios invitados por token.
+*   `[x]` **AUTH-FE-05:** Crear "Rutas Protegidas" que solo sean accesibles para usuarios autenticados.
+*   `[x]` **AUTH-FE-06:** Implementar la lógica de "logout".
 
 ---
 
@@ -124,14 +124,14 @@ Objetivo: Forjar el esqueleto de nuestra aplicación. La base invisible pero ind
 
 Epopeya F1: La Puerta de Entrada (Autenticación y Vistas Públicas)
 Objetivo: Crear un flujo de acceso y onboarding impecable, seguro y persistente para todos los roles.
-[~] F1-01 [LÓGICA]: Construir el authStore de Zustand con toda la lógica de estado (login, logout, refreshToken, getProfile).
-[ ] F1-02 [COMPONENTE]: Construir el SessionVerifier para restaurar la sesión del usuario al recargar la página.
-[ ] F1-03 [CORE]: Implementar el componente RutaProtegida para blindar las vistas privadas.
-[~] F1-04 [PÁGINA]: Conectar y finalizar la LoginPage (lógica de estado, errores, carga).
-[ ] F1-05 [PÁGINA]: Construir la FinalizarRegistroPage para usuarios invitados por token.
-[ ] F1-06 [PÁGINA]: Construir el flujo de recuperación de cuenta (ForgotPasswordPage y ResetPasswordPage).
-[ ] F1-07 [PÁGINA]: Construir la AuthCallbackPage para el login con Google.
-[ ] F1-08 [PÁGINA]: Construir y conectar la LandingPage con su SolicitudForm.
+[x] F1-01 [LÓGICA]: Construir el authStore de Zustand con toda la lógica de estado (login, logout, refreshToken, getProfile).
+[x] F1-02 [COMPONENTE]: Construir el SessionVerifier para restaurar la sesión del usuario al recargar la página.
+[x] F1-03 [CORE]: Implementar el componente RutaProtegida para blindar las vistas privadas.
+[x] F1-04 [PÁGINA]: Conectar y finalizar la LoginPage (lógica de estado, errores, carga).
+[x] F1-05 [PÁGINA]: Construir la FinalizarRegistroPage para usuarios invitados por token.
+[x] F1-06 [PÁGINA]: Construir el flujo de recuperación de cuenta (ForgotPasswordPage y ResetPasswordPage).
+[x] F1-07 [PÁGINA]: Construir la AuthCallbackPage para el login con Google.
+[x] F1-08 [PÁGINA]: Construir y conectar la LandingPage con su SolicitudForm.
 
 Epopeya F2: El Centro de Comando (Panel del Dueño)
 Objetivo: Empoderarte, Julio, con las herramientas para dirigir tu negocio con total control y visibilidad.

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
@@ -6,18 +6,19 @@ import Header from './Header';
 /**
  * @description Componente principal del layout de la aplicación autenticada.
  * Organiza la estructura visual con una barra lateral (Sidebar), una cabecera (Header)
- * y un área de contenido principal donde se renderizarán las páginas.
+ * y un área de contenido principal donde se renderizarán las páginas. Ahora también gestiona
+ * el flujo del asistente de configuración para administradores
  * 
  * @returns {JSX.Element} El layout completo de la aplicación.
  */
 const LayoutPrincipal = () => {
+  // --- ESTADO DEL LAYOUT ---
   // 1. Asignamos el estado inicial en false. Este es el interruptor.
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-
   // 2. Esta es la función que le pasaremos al Header.
-  const toggleSidebar = () => {
-    setSidebarOpen(!isSidebarOpen);
-  };
+  const toggleSidebar = () => { setSidebarOpen(!isSidebarOpen); };
+  
+  
   return (
     <div className="min-h-screen flex bg-gray-100 dark:bg-gray-950 text-gray-800 dark:text-gray-300">
       {/* 3. Le pasamos el estado `isOpen` a la Sidebar */}

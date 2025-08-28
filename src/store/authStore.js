@@ -10,7 +10,8 @@ import apiService from '../services/apiService';
  * El parámetro 'set' es la función que usamos para actualizar el estado de forma inmutable.
  */
 export const useAuthStore = create((set, get) => ({
-	estado: 'loggedOut', // Posibles valores: 'loggedOut', 'loading', 'loggedIn', 'error'
+	// La app empieza aquí
+	estado: 'initial', // initial -> loading -> (loggedIn | loggedOut | error)
 	accessToken: null,
 	usuario: null,
 	error: null,
@@ -78,6 +79,7 @@ export const useAuthStore = create((set, get) => ({
 			const response = await apiService.get('/auth/perfil');
 			// La respuesta de tu backend es { success: true, data: { user: {...} } }
 			const usuario = response.data.data.user;
+			
 
 			set({
 				usuario: usuario,
@@ -117,5 +119,42 @@ export const useAuthStore = create((set, get) => ({
 			});
 		}
 		// Opcional: removemos el token de localStorage si lo hubiéramos guardado.
+	},
+
+	// --- ACCIÓN DE PERSISTENCIA ---
+	/**
+	 * @description Intenta refrescar el token de sesión al cargar la aplicación.
+	 * Es el corazón de la persistencia de la sesión.
+	 */
+	refreshToken: async () => {
+		// Ponemos el estado en 'loading' para indicar que estamos verificando.
+		set({ estado: 'loading' });
+
+		try {
+			// Hacemos la petición al backend. El navegador enviará la cookie HttpOnly.
+			const response = await apiService.post('/auth/refresh-token');
+			const { accessToken } = response.data;
+
+			if (accessToken) {
+				// Si tenemos un nuevo accessToken, lo guardamos...
+				get().setToken(accessToken);
+				// ...y obtenemos el perfil del usuario para completar el login.
+				await get().getProfile();
+				// `getProfile` se encargará de poner el estado en 'loggedIn'.
+			} else {
+				// Si la respuesta no trae un token (caso improbable), forzamos el logout.
+				throw new Error('Respuesta de refresh-token inválida.');
+			}
+		} catch (error) {
+			// Si la petición falla (ej. 401, no hay cookie o expiró),
+			// significa que no hay una sesión válida. Limpiamos todo.
+			console.log('No se pudo refrescar la sesión:', error.message);
+			set({
+				accessToken: null,
+				usuario: null,
+				estado: 'loggedOut',
+				error: null,
+			});
+		}
 	},
 }));

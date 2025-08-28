@@ -41,6 +41,7 @@ export const STYLES = {
 	// --- BOTONES ---
 	buttonPrimary:
 		'w-full h-[54px] flex justify-center items-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition-colors disabled:bg-blue-800 disabled:cursor-not-allowed',
+	buttonPrimaryAuto: 'h-[52px] flex justify-center items-center bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-lg transition-colors disabled:bg-blue-800 disabled:cursor-not-allowed',
 	buttonGoogle:
 		'w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg transition-colors',
 	buttonLink: 'text-sm text-blue-500 hover:underline focus:outline-none',
@@ -52,7 +53,22 @@ export const STYLES = {
 	titlePage: 'text-3xl font-bold text-gray-900 dark:text-white',
 	lifeBit: 'text-3xl font-bold text-blue-500 hover:text-blue-400 transition-colors',
 	titleSection: 'text-2xl font-bold text-gray-800 dark:text-white',
+
+	// --- COMPONENTES DRAG-AND-DROP ---
+	dnd: {
+		paletteContainer: 'p-4 bg-gray-800 rounded-lg space-y-3',
+		paletteTitle: 'font-semibold text-white',
+		block: 'p-2 px-4 rounded-md cursor-grab bg-blue-900 text-blue-100 border border-blue-700',
+
+		canvasBase: 'p-4 rounded-lg border-2 border-dashed transition-all duration-200',
+		canvasDefault: 'bg-gray-800 border-gray-600',
+		canvasHover: 'bg-blue-900/50 border-blue-500 scale-[1.02]',
+		canvasContent: 'flex flex-wrap gap-2 min-h-[60px] items-center',
+		canvasPlaceholder: 'w-full flex flex-col items-center justify-center text-gray-500 py-4',
+	},
 };
+
+
 
 // SVG del icono de Google
 export const ASSETS = {
@@ -83,4 +99,6 @@ export const ASSETS = {
 			></path>
 		</svg>
 	),
+
+
 };

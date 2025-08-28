@@ -12,6 +12,9 @@ const apiService = axios.create({
 	headers: {
 		'Content-Type': 'application/json',
 	},
+	// Esta opción le dice a Axios que debe enviar cookies (como nuestro
+	// refreshToken HttpOnly) en las peticiones al backend.
+	withCredentials: true,
 });
 /**
  * @description Interceptor de peticiones de Axios.
