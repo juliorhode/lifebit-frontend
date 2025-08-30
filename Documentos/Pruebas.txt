@@ -1,0 +1,34 @@
+Plan de Pruebas para la UnidadesPage
+Objetivo: Validar la interfaz, la interactividad, la lógica de negocio y la integración con el backend de la página de creación de unidades.
+1. Pruebas de Configuración Semántica
+[x] Prueba 1.1: Carga la página. Cambia el texto del campo "Piso" a "Torre" y el de "Unidad" a "Apto".
+Resultado Esperado: Todas las etiquetas en la interfaz (títulos de paleta, bloques, previsualización, formulario inferior) deben actualizarse instantáneamente para reflejar los nuevos términos "Torre" y "Apto".
+2. Pruebas de Drag-and-Drop y Lógica del Lienzo
+[x] Prueba 2.1 (Añadir): Arrastra un bloque (ej. "Torre (A)") de la paleta al lienzo.
+Resultado Esperado: El bloque debe desaparecer de la paleta y aparecer en el lienzo. La previsualización debe actualizarse.
+[x] Prueba 2.2 (Devolver): Arrastra el bloque del lienzo de vuelta a la paleta.
+Resultado Esperado: El bloque debe desaparecer del lienzo y reaparecer en su grupo original en la paleta. La previsualización debe vaciarse.
+[x] Prueba 2.3 (Reordenar): Arrastra varios bloques al lienzo. Luego, arrastra el primer bloque y suéltalo después del segundo.
+Resultado Esperado: El orden de los bloques en el lienzo debe cambiar. La previsualización debe actualizarse para reflejar el nuevo patrón.
+[x] Prueba 2.4 (Limpiar): Con varios bloques en el lienzo, haz clic en el icono de papelera.
+Resultado Esperado: Todos los bloques deben desaparecer del lienzo y reaparecer en la paleta. La previsualización debe vaciarse.
+3. Pruebas del Bloque "Texto Libre"
+[x] Prueba 3.1: Arrastra el bloque "Texto Libre" al lienzo.
+Resultado Esperado: Debe aparecer un prompt() pidiendo el texto.
+[x] Prueba 3.2: Escribe " - " (con espacios) en el prompt y acepta.
+Resultado Esperado: El texto del bloque en el lienzo debe ser " - ". La previsualización debe incluir el guion. El bloque "Texto Libre" debe seguir estando disponible en la paleta para ser usado de nuevo.
+[x] Prueba 3.3 (Capitalización): Escribe "torre b" en el prompt.
+Resultado Esperado: El texto del bloque en el lienzo debe ser "Torre B".
+4. Pruebas de Formulario y Validación
+[x] Prueba 4.1 (Campos Requeridos): Deja los campos "Total de Torres" o "Aptos por Torre" vacíos e intenta enviar.
+Resultado Esperado: El envío debe fallar y deben aparecer los mensajes de error correspondientes.
+[x] Prueba 4.2 (Excepciones Dinámicas): Haz clic en "+ Añadir excepción".
+Resultado Esperado: Debe aparecer una nueva fila para la excepción.
+[x] Prueba 4.3: Haz clic en el icono de basura de la fila de excepción.
+Resultado Esperado: La fila debe desaparecer.
+5. Prueba de Integración Final (End-to-End)
+[x] Prueba 5.1:
+Construye un patrón válido (ej. Torre {L} - {U}).
+Rellena los campos del formulario de configuración general.
+Haz clic en "Guardar y Continuar".
+Resultado Esperado: El spinner debe aparecer en el botón. Después de un momento, la página debe cambiar y mostrar el texto del placeholder que creamos: "Página de Configuración de Recursos (Paso 2)". Esto confirma que la llamada a la API fue exitosa y que el getProfile() actualizó el estado.

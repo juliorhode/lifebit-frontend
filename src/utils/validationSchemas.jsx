@@ -138,9 +138,21 @@ const updatePasswordSchema = resetPasswordSchema.shape({
 		.required('Debes ingresar tu contraseña actual.'),
 });
 
+// --- Esquema de Validación para el Formulario de Configuración de Unidades ---
+const unidadesFormSchema = yup.object().shape({
+	totalPisos: yup.number().typeError('Debe ser un número').min(1, 'Debe haber al menos 1 nivel.').required('Campo requerido.'),
+	unidadesPorDefecto: yup.number().typeError('Debe ser un número').min(1, 'Debe haber al menos 1 unidad.').required('Campo requerido.'),
+	alicuotaPorDefecto: yup.number().typeError('Debe ser un número').min(0, 'No puede ser negativo.').max(100, 'No puede ser mayor a 100.'),
+	excepciones: yup.array().of(yup.object().shape({
+		piso: yup.number().typeError('Debe ser un número').required(),
+		cantidad: yup.number().typeError('Debe ser un número').required(),
+	})),
+});
+
 export {
 	solicitudSchema,
 	resetPasswordSchema,
 	updatePasswordSchema,
+	unidadesFormSchema,
 };
 

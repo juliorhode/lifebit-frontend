@@ -145,8 +145,8 @@ Objetivo: Empoderarte, Julio, con las herramientas para dirigir tu negocio con t
 
 Epopeya F3: El Primer Vuelo (Onboarding del Administrador)
 Objetivo: Crear una experiencia de configuración inicial tan guiada y gratificante que los nuevos administradores se sientan empoderados desde el primer minuto.
-[ ] F3-01 [COMPONENTE]: Construir el orquestador SetupWizard que guiará todo el proceso.
-[ ] F3-02 [PÁGINA]: Paso 1: Interfaz de Creación de Unidades (usando el generador flexible).
+[~] F3-01 [COMPONENTE]: Construir el orquestador SetupWizard que guiará todo el proceso.
+[x] F3-02 [PÁGINA]: Paso 1: Interfaz de Creación de Unidades (usando el generador flexible).
 [ ] F3-03 [PÁGINA]: Paso 2: Módulo de Gestión de Recursos.
 [ ] F3-03a [UI/UX]: CRUD para Tipos de Recurso.
 [ ] F3-03b [UI/UX]: Interfaces para la creación de inventario (secuencial y carga masiva por Excel).
