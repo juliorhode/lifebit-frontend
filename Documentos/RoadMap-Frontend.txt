@@ -176,3 +176,10 @@ Objetivo: Implementar nuestra killer feature. La herramienta que nos define y no
 [ ] F5-02b [COMPONENTE]: Lienzo para la construcción de reglas.
 [ ] F5-02c [LÓGICA]: Motor de Simulación para previsualizar el impacto de una regla.
 [ ] F5-02d [UI/UX]: Asistente guiado (tour interactivo) para la creación de la primera regla.
+
+
+Propuesta para la UnidadesPage v2 (Post-Onboarding):
+Cuando un administrador con la configuración completada acceda a esta página, la vista principal no será el generador drag-and-drop.
+La vista principal será una tabla o lista de todas las unidades existentes.
+Esta tabla tendrá acciones para Editar y Eliminar cada unidad.
+Habrá un botón + Añadir Unidad (para la creación manual individual) y un botón [ Herramienta de Generación Masiva ] que abrirá nuestro constructor drag-and-drop en un modal o sub-página.

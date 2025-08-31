@@ -31,7 +31,7 @@ export const STYLES = {
 	backgroundCard: 'bg-gray-800 text-gray-200',
 
 	// --- INPUTS Y FORMULARIOS ---
-	input: 'w-full p-3 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white',
+	input: 'w-full p-3 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:border-blue-500 text-gray-900 dark:text-white',
 	label: 'block text-left text-sm font-semibold mb-2 text-gray-700 dark:text-gray-200',
 	// errorText: 'text-red-500 dark:text-red-400 text-xs mt-1',
 	errorText: 'bg-red-500/20 border border-red-500 text-red-300 p-3 rounded-md',
@@ -53,6 +53,13 @@ export const STYLES = {
 	titlePage: 'text-3xl font-bold text-gray-900 dark:text-white',
 	lifeBit: 'text-3xl font-bold text-blue-500 hover:text-blue-400 transition-colors',
 	titleSection: 'text-2xl font-bold text-gray-800 dark:text-white',
+
+	// --- LISTAS ---
+	selectableListItem: {
+		base: 'w-full text-left p-3 rounded-md transition-colors duration-150 text-lg',
+		active: 'bg-blue-600 text-white font-semibold',
+		inactive: 'text-gray-300 hover:bg-gray-700',
+	},
 
 	// --- COMPONENTES DRAG-AND-DROP ---
 	dnd: {

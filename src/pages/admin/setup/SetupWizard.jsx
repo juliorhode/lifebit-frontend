@@ -2,9 +2,9 @@ import React from 'react';
 import { useAuthStore } from '../../../store/authStore.js';
 import { SETUP_STATES } from '../../../config/constants.js';
 import UnidadesPage from './UnidadesPage.jsx';
+import RecursosPage from '../recursos/RecursosPage.jsx';
 
 // Creamos placeholders para los pasos futuros
-const RecursosPage = () => <div className="text-white">Página de Configuración de Recursos (Paso 2)</div>;
 const ResidentesPage = () => <div className="text-white">Página de Configuración de Residentes (Paso 3)</div>;
 
 /**

@@ -149,10 +149,23 @@ const unidadesFormSchema = yup.object().shape({
 	})),
 });
 
+// --- Esquema para el formulario de creación de Tipos de Recurso ---
+const tipoRecursoSchema = yup.object().shape({
+	// Usamos .array().of() para validar una lista de objetos
+	tipos: yup.array().of(
+		yup.object().shape({
+			nombre: yup.string().required('El nombre es requerido.'),
+			tipo: yup.string().oneOf(['asignable', 'inventario']).required('Debes seleccionar un tipo.'),
+		})
+	).min(1, 'Debes añadir al menos un tipo de recurso.'),
+});
+
+
 export {
 	solicitudSchema,
 	resetPasswordSchema,
 	updatePasswordSchema,
 	unidadesFormSchema,
+	tipoRecursoSchema,
 };
 

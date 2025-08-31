@@ -20,7 +20,7 @@ const LayoutPrincipal = () => {
   
   
   return (
-    <div className="min-h-screen flex bg-gray-100 dark:bg-gray-950 text-gray-800 dark:text-gray-300">
+    <div className="h-screen flex bg-gray-100 dark:bg-gray-950 text-gray-800 dark:text-gray-300">
       {/* 3. Le pasamos el estado `isOpen` a la Sidebar */}
       <Sidebar isOpen={isSidebarOpen} onLinkClick={toggleSidebar} />
 

@@ -46,9 +46,9 @@ const Modal = ({ isOpen, onClose, title, children, isProcessing = false }) => {
             {/* El contenedor del modal en sí. */}
             {/* `onClick` con `e.stopPropagation()` previene que un clic DENTRO del modal lo cierre. */}
             <div
-                // className="relative w-full max-w-lg ..." w-full: En pantallas muy pequeñas (móviles en vertical) el modal ocupa todo el ancho disponible. max-w-lg: En pantallas más grandes, el modal no se expandirá más allá de un ancho máximo (en este caso, lg o 32rem).
+                // className="relative w-full max-w-lg ..." w-full: En pantallas muy pequeñas (móviles en vertical) el modal ocupa todo el ancho disponible. max-w-xl: En pantallas más grandes, el modal no se expandirá más allá de un ancho máximo (en este caso, lg o 36rem).
                 // rounded-lg: Bordes redondeados para un aspecto más moderno.
-                className="relative w-full max-w-lg rounded-lg bg-white dark:bg-gray-900 shadow-xl"
+                className="relative w-full max-w-xl rounded-lg bg-white dark:bg-gray-900 shadow-xl"
                 onClick={(e) => e.stopPropagation()} // Evita que un clic dentro del modal cierre el modal.
             >
                 {/* Cabecera del Modal */}
