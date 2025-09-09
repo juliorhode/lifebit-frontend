@@ -71,7 +71,9 @@ const Modal = ({ isOpen, onClose, title, children, isProcessing = false }) => {
                 </div>
 
                 {/* Contenido del Modal (renderiza lo que sea que le pasen como 'children') */}
-                <div className="p-6">
+                {/* max-h-[80vh]: Le damos al contenido una altura máxima del 80% de la altura de la ventana (viewport height).
+                overflow-y-auto: Si el contenido (nuestro formulario) supera esa altura, aparecerá una barra de scroll vertical DENTRO del modal, sin afectar al resto de la página. */}
+                <div className="p-6 max-h-[80vh] overflow-y-auto">
                     {/* Aquí se renderiza el contenido del modal, que puede ser cualquier JSX que le pase el componente padre. */}
                     {children}
                 </div>

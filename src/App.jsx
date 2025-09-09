@@ -9,7 +9,7 @@ import FinalizarRegistroPage from './pages/FinalizarRegistroPage';
 import SessionVerifier from './components/SessionVerifier';
 import DashboardRouter from './pages/DashboardRouter';
 import SetupWizard from './pages/admin/setup/SetupWizard';
-
+import { Toaster } from 'react-hot-toast';
 
 // Componente placeholder para el dashboard
 const DashboardPlaceholder = () => <h1 className="text-3xl font-bold text-white">Dashboard Principal</h1>;
@@ -25,6 +25,45 @@ const AdminMainDashboard = () => <h1 className="text-3xl font-bold text-white">D
 function App() {
   return (
     <SessionVerifier>
+
+      {/* --- COMPONENTE TOASTER --- */}
+      {/* 
+        Este componente es invisible por defecto. Actúa como un "portal"
+        que renderizará las notificaciones toast en la parte superior de la pantalla,
+        por encima de todo lo demás.
+        Lo configuramos para que coincida con nuestro tema oscuro.
+      */}
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        toastOptions={{
+          // Definimos los estilos por defecto para todos los toasts
+          className: '',
+          style: {
+            background: '#333',
+            color: '#fff',
+            border: '1px solid #555',
+          },
+          // Estilos específicos para los toasts de éxito
+          success: {
+            theme: 'dark',
+            iconTheme: {
+              primary: '#10B981', // Verde
+              secondary: 'white',
+            },
+          },
+          // Estilos específicos para los toasts de error
+          error: {
+            theme: 'dark',
+            iconTheme: {
+              primary: '#EF4444', // Rojo
+              secondary: 'white',
+            },
+          },
+        }}
+      />
+
+
       {/* El componente <Routes> envuelve todas nuestras rutas. */}
       <Routes>
         <Route path="/" element={<LandingPage />} />

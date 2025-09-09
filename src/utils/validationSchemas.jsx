@@ -160,6 +160,21 @@ const tipoRecursoSchema = yup.object().shape({
 	).min(1, 'Debes añadir al menos un tipo de recurso.'),
 });
 
+// --- Esquema para el formulario del Generador de Inventario Secuencial ---
+const generadorInventarioSchema = yup.object().shape({
+	cantidad: yup.number()
+		.typeError('La cantidad debe ser un número.')
+		.integer('Debe ser un número entero.')
+		.min(1, 'Debes generar al menos 1 item.')
+		.required('La cantidad es obligatoria.'),
+
+	numeroInicio: yup.number()
+		.typeError('El número de inicio debe ser un número.')
+		.integer('Debe ser un número entero.')
+		.min(1, 'El número de inicio no puede ser menor que 1.')
+		.required('El número de inicio es obligatorio.'),
+});
+
 
 export {
 	solicitudSchema,
@@ -167,5 +182,6 @@ export {
 	updatePasswordSchema,
 	unidadesFormSchema,
 	tipoRecursoSchema,
+	generadorInventarioSchema,
 };
 

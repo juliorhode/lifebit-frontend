@@ -42,6 +42,10 @@ export const STYLES = {
 	buttonPrimary:
 		'w-full h-[54px] flex justify-center items-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition-colors disabled:bg-blue-800 disabled:cursor-not-allowed',
 	buttonPrimaryAuto: 'h-[52px] flex justify-center items-center bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-lg transition-colors disabled:bg-blue-800 disabled:cursor-not-allowed',
+	
+	buttonSecondary:'px-4 py-2 text-sm text-red-400 hover:bg-red-900/50 rounded-md whitespace-nowrap',
+
+	buttonCancel: 'w-[95px] h-[50px] flex justify-center items-center bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-lg text- transition-colors disabled:bg-red-800 disabled:cursor-not-allowed',
 	buttonGoogle:
 		'w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg transition-colors',
 	buttonLink: 'text-sm text-blue-500 hover:underline focus:outline-none',

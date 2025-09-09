@@ -35,3 +35,9 @@ El "Porqué" de dnd-kit:
 - \<Block />: Será el componente más simple, pero el más fundamental. Representará una "pieza" individual, arrastrable. Será un componente "tonto", que solo mostrará el texto y el estilo que le pasemos.
 - \<DraggablePalette />: La "caja de herramientas". Su única misión será renderizar una lista de componentes <Block /> haciéndolos arrastrables.
 - \<DroppableCanvas />: El "lienzo de construcción". Será el área donde el usuario podrá soltar los bloques de la paleta.
+
+# Libreria react Toast Notification
+Es un sistema de notificaciones no intrusivo. "Toast Notification" (también llamado "Snackbar") es un pequeño mensaje que aparece en una esquina de la pantalla (generalmente la superior derecha) durante unos segundos y luego desaparece automáticamente.
+
+## Instalacion
+`npm install react-hot-toast`

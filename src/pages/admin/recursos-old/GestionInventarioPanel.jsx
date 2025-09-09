@@ -33,9 +33,10 @@ const GestionInventarioPanel = ({ tipoSeleccionado, onGenerarClick, onCargarClic
      * y cargar el inventario correspondiente al nuevo tipo seleccionado.
      */
     useEffect(() => {
-        // Si no hay ningún tipo seleccionado (ej. al cargar la página),
-        // reseteamos el panel y no hacemos ninguna llamada a la API.
-        if (!tipoSeleccionado) {
+        // Extraemos el ID, que es un valor primitivo (número).
+        const tipoId = tipoSeleccionado?.id;
+
+        if (!tipoId) {
             setInventario([]);
             setError('');
             return;
@@ -45,10 +46,11 @@ const GestionInventarioPanel = ({ tipoSeleccionado, onGenerarClick, onCargarClic
             setIsLoading(true);
             setError('');
             try {
-                const response = await apiService.get(`/admin/recursos/por-tipo/${tipoSeleccionado.id}`);
+                // Usamos el ID para la llamada a la API.
+                const response = await apiService.get(`/admin/recursos/por-tipo/${tipoId}`);
                 setInventario(response.data.data.recursos);
             } catch (err) {
-                console.error(`Error al obtener inventario para el recurso ${tipoSeleccionado.id}:`, err);
+                console.error(`Error al obtener inventario para el recurso ${tipoId}:`, err);
                 setError('No se pudo cargar el inventario.');
             } finally {
                 setIsLoading(false);
@@ -56,8 +58,7 @@ const GestionInventarioPanel = ({ tipoSeleccionado, onGenerarClick, onCargarClic
         };
 
         fetchInventario();
-    }, [tipoSeleccionado]); // La dependencia `[tipoSeleccionado]` asegura que esto se re-ejecute
-    // solo cuando el usuario selecciona un tipo diferente.
+    }, [tipoSeleccionado?.id]);
 
     // --- RENDERIZADO DEL COMPONENTE ---
 

@@ -4,6 +4,7 @@ import TiposRecursoPanel from './TiposRecursoPanel';
 import GestionInventarioPanel from './GestionInventarioPanel';
 import Modal from '../../../components/ui/Modal';
 import CrearTipoRecursoModal from './CrearTipoRecursoModal';
+import GeneradorInventarioModal from './GeneradorInventarioModal';
 /* 
 Lógica de Estado:
 tiposDeRecurso: Un array que contendrá la lista de tipos de recurso, obtenida de la API.
@@ -48,6 +49,9 @@ const RecursosPage = () => {
 
     // `isCreateModalOpen`: Un simple booleano para abrir o cerrar el modal de creación.
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+    // `isGeneradorModalOpen`: Controla la visibilidad del modal del Generador de Inventario Secuencial
+    const [isGeneradorModalOpen, setIsGeneradorModalOpen] = useState(false);
 
     // --- LÓGICA DE DATOS (EFECTOS) ---
 
@@ -96,8 +100,6 @@ const RecursosPage = () => {
                 Layout de la página:
                 - En móvil (por defecto): una sola columna (grid-cols-1), los paneles se apilan.
                 - En pantallas grandes (lg y superior): una cuadrícula de 3 columnas (grid-cols-3).
-                - `h-[calc(100vh-120px)]`: Un truco de CSS para que el contenedor ocupe casi toda la altura
-                  de la pantalla, restando la altura aproximada del Header, para que el scroll interno funcione bien.
             */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 ">
                 {/* --- COLUMNA IZQUIERDA: Panel de Tipos --- */}
@@ -108,12 +110,18 @@ const RecursosPage = () => {
                         onSelectTipo={setTipoSeleccionadoId}
                         onCrearTipo={() => setIsCreateModalOpen(true)}
                         isLoading={isLoadingTipos}
+                       
                     />
                 </div>
 
                 {/* --- COLUMNA DERECHA: Panel de Gestión de Inventario --- */}
                 <div className="lg:col-span-2 h-full">
-                    <GestionInventarioPanel tipoSeleccionado={tipoSeleccionado} />
+                    <GestionInventarioPanel
+                        tipoSeleccionado={tipoSeleccionado}
+                        onGenerarClick={() => setIsGeneradorModalOpen(true)}
+                        onCargarClick={() => alert('Funcionalidad de Carga de Archivo pendiente.')}
+                        onAsignarClick={() => alert('Funcionalidad de Asignación Visual pendiente.')}
+                    />
                 </div>
             </div>
 
@@ -129,6 +137,25 @@ const RecursosPage = () => {
                     onRecursosCreados={handleRecursosCreados}
                 />
             </Modal>
+
+            {/* --- 4. RENDERIZADO DEL NUEVO MODAL DEL GENERADOR --- */}
+            {/* Solo renderizamos el modal si hay un tipo seleccionado, para poder pasarle la info */}
+            {tipoSeleccionado && (
+                <Modal
+                    isOpen={isGeneradorModalOpen}
+                    onClose={() => setIsGeneradorModalOpen(false)}
+                    title="Generador de Inventario Secuencial"
+                    // Usamos una clase de ancho más grande para este modal
+                    maxWidthClass="max-w-4xl"
+                >
+                    <GeneradorInventarioModal
+                        onClose={() => setIsGeneradorModalOpen(false)}
+                        tipoRecurso={tipoSeleccionado}
+                        // TODO: Añadir onSuccess
+                        onSuccess={() => { }}
+                    />
+                </Modal>
+            )}
         </>
     );
 };
