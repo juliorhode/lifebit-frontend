@@ -6,6 +6,8 @@ import AsignacionToolbar from './AsignacionToolbar';
 import { STYLES } from '../../../utils/styleConstants.jsx';
 import Modal from '../../../components/ui/Modal.jsx';
 import AsignacionSimpleModal from './AsignacionSimpleModal.jsx';
+import { FiSearch } from 'react-icons/fi';
+import SearchBar from '../../../components/ui/SearchBar.jsx';
 
 /**
  * @description Componente principal que orquesta la interfaz de asignación visual de recursos.
@@ -25,6 +27,8 @@ const AsignacionVisualPanel = ({ tipoRecurso, onGoBack, onSuccess }) => {
 
     const [unidades, setUnidades] = useState([]);
     const [itemParaAsignar, setItemParaAsignar] = useState(null);
+    /** @type {[string, function]} terminoBusqueda - Almacena el texto actual del campo de búsqueda para filtrar los items. */
+    const [terminoBusqueda, setTerminoBusqueda] = useState('');
 
     useEffect(() => {
         const fetchUnidades = async () => {
@@ -56,6 +60,11 @@ const AsignacionVisualPanel = ({ tipoRecurso, onGoBack, onSuccess }) => {
         });
     };
 
+    // Filtra los items basado en el término de búsqueda para facilitar la localización.
+    const itemsFiltrados = items.filter(item =>
+        item.identificador_unico.toLowerCase().includes(terminoBusqueda.toLowerCase())
+    );
+
     if (isLoading) {
         return <p className="text-center text-gray-400 p-8">Cargando inventario...</p>;
     }
@@ -79,17 +88,30 @@ const AsignacionVisualPanel = ({ tipoRecurso, onGoBack, onSuccess }) => {
                     </div>
                 </div>
 
-                <div className="flex-grow overflow-y-auto pr-2 -mr-2">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                        {items.map(item => (
-                            <RecursoCard
-                                key={item.id}
-                                item={item}
-                                modo={modo}
-                                onClick={modo === 'masivo' ? toggleSelection : handleSimpleClick}
-                            />
-                        ))}
-                    </div>
+                {/* Barra de Búsqueda */}
+                <SearchBar
+                    value={terminoBusqueda}
+                    onChange={(e) => setTerminoBusqueda(e.target.value)} // Actualiza el estado del término de búsqueda
+                    placeholder='Buscar por identificador...' // Texto del placeholder
+                />
+
+                <div className="flex-grow overflow-y-auto pr-2 -mr-2 mt-4">
+                    {itemsFiltrados.length > 0 ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mt-2">
+                            {itemsFiltrados.map(item => (
+                                <RecursoCard
+                                    key={item.id}
+                                    item={item}
+                                    modo={modo}
+                                    onClick={modo === 'masivo' ? toggleSelection : handleSimpleClick}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-10 text-gray-500">
+                            <p>No se encontraron resultados para "{terminoBusqueda}".</p>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex-shrink-0 pt-4 mt-4 border-t border-gray-700">

@@ -27,8 +27,8 @@ const LayoutPrincipal = () => {
       {/* Contenedor principal que se expande para llenar el espacio restante */}
       <div className="flex-1 flex flex-col lg:pl-64">
         {/* 4. Le pasamos la función `onMenuClick` al Header */}
-        <Header onMenuClick={toggleSidebar} />
-
+        {/* <Header onMenuClick={toggleSidebar} /> */}
+        <Header onMenuClick={toggleSidebar} className='relative z-10'/> 
         {/* 
           Área de contenido principal. El componente <Outlet> de react-router-dom
           es el marcador de posición donde se renderizarán las rutas hijas.

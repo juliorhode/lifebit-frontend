@@ -8,7 +8,7 @@ import Modal from '../ui/Modal';
 import UpdatePasswordForm from '../auth/UpdatePasswordForm';
 
 // Recibimos `onMenuClick` como una prop desde LayoutPrincipal
-const Header = ({ onMenuClick }) => {
+const Header = ({ onMenuClick, className='' }) => {
     // --- Leemos el estado del usuario directamente desde Zustand ---
     const usuario = useAuthStore((state) => state.usuario);
     const logout = useAuthStore((state) => state.logout);
@@ -63,7 +63,7 @@ const Header = ({ onMenuClick }) => {
         <>
 
         {/* // --- Clases para ambos modos --- */}
-            <header className="flex h-16 flex-shrink-0 items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 sm:px-6">
+            <header className={`flex h-16 flex-shrink-0 items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 sm:px-6 ${className}`}>
                 <button
                     type="button"
                     // --- Clases para ambos modos ---

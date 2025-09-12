@@ -18,6 +18,18 @@ const SUPPORTED_FORMATS_EXCEL = [
 ];
 
 /**
+ * @description Convierte un string a formato "Title Case".
+ * Ej: "hola mundo" -> "Hola Mundo"
+ */
+export const toTitleCase = (str) => {
+	if (!str) return str;
+	return str.replace(
+		/\w\S*/g,
+		(txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+	);
+};
+
+/**
  * @description Esquema de validación para el formulario de creación en lote de Tipos de Recurso (`CrearTipoRecursoModal`).
  * Valida un array de objetos, donde cada objeto debe tener un nombre y un tipo válidos.
  */
@@ -28,7 +40,11 @@ export const tipoRecursoSchema = yup.object().shape({
 		.of(
 			// Cada objeto dentro del array debe cumplir con esta forma.
 			yup.object().shape({
-				nombre: yup.string().trim().required('El nombre es requerido.'),
+				nombre: yup
+					.string()
+					.trim()
+					.required('El nombre es requerido.')
+					.transform(toTitleCase),
 				tipo: yup
 					.string()
 					.oneOf(['asignable', 'inventario'], 'El tipo no es válido.') // Solo permite estos dos valores.
@@ -82,3 +98,22 @@ export const cargaInventarioSchema = yup.object().shape({
 			(value) => value && value[0] && SUPPORTED_FORMATS_EXCEL.includes(value[0].type)
 		),
 });
+
+/**
+ * @description Esquema de validación para el formulario de edición de un único Tipo de Recurso.
+ * Valida un objeto simple con 'nombre' y 'tipo'.
+ */
+export const editarTipoRecursoSchema = yup.object().shape({
+	nombre: yup
+		.string()
+		.trim()
+		.min(3, 'El nombre debe tener al menos 3 caracteres.')
+		.required('El nombre es requerido.')
+		.transform(toTitleCase),
+	tipo: yup
+		.string()
+		.oneOf(['asignable', 'inventario'], 'El tipo seleccionado no es válido.')
+		.required('Debes seleccionar un tipo.'),
+});
+
+

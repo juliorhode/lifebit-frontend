@@ -28,6 +28,7 @@ const Item = ({ id, text }) => {
         // Hacemos el ítem semi-transparente mientras se arrastra. El 'DragOverlay'
         // mostrará la versión 100% opaca, creando un efecto de "fantasma" limpio.
         opacity: isDragging ? 0.5 : 1,
+        touchAction: 'none', // Previene el desplazamiento en dispositivos táctiles mientras se arrastra.
     };
 
     return (

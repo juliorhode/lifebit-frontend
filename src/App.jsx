@@ -10,6 +10,7 @@ import SessionVerifier from './components/SessionVerifier';
 import DashboardRouter from './pages/DashboardRouter';
 import SetupWizard from './pages/admin/setup/SetupWizard';
 import { Toaster } from 'react-hot-toast';
+import RecursosPage from './modules/recursos/pages/RecursosPage';
 
 // Componente placeholder para el dashboard
 const DashboardPlaceholder = () => <h1 className="text-3xl font-bold text-white">Dashboard Principal</h1>;
@@ -91,6 +92,7 @@ function App() {
             <Route path="residentes" element={<ResidentesPlaceholder />} />
             <Route path="mi-cuenta" element={<MiCuentaPlaceholder />} />
             <Route path="ayuda" element={<AyudaPlaceholder />} />
+            <Route path="recursos" element={<RecursosPage />} />
             {/* Aquí añadiremos el resto de rutas protegidas */}
           </Route>
         </Route>

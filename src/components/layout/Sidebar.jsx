@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { FiGrid, FiFileText, FiUsers, FiSettings, FiHelpCircle, FiLogOut } from 'react-icons/fi';
+import { FiGrid, FiFileText, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiCpu } from 'react-icons/fi';
 import { FaFileContract } from "react-icons/fa";
 import { useAuthStore } from '../../store/authStore';
 import Logo from '../ui/Logo';
@@ -11,6 +11,7 @@ const navLinks = [
     { to: '/dashboard', icon: <FiGrid size={20} />, text: 'Dashboard' },
     { to: '/dashboard/contratos', icon: <FaFileContract size={20} />, text: 'Contratos' },
     { to: '/dashboard/residentes', icon: <FiUsers size={20} />, text: 'Residentes' },
+    { to: '/dashboard/recursos', icon: <FiCpu size={20} />, text: 'Recursos' },
 ];
 const bottomLinks = [
     { to: '/dashboard/mi-cuenta', icon: <FiSettings size={20} />, text: 'Mi Cuenta' },

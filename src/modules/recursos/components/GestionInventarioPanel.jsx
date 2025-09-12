@@ -3,6 +3,7 @@ import apiService from '../../../services/apiService';
 import { STYLES } from '../../../utils/styleConstants.jsx';
 import { FiCpu, FiUpload, FiEye, FiSearch } from 'react-icons/fi';
 import AsignacionVisualPanel from './AsignacionVisualPanel';
+import SearchBar from '../../../components/ui/SearchBar';
 
 /**
  * @description Panel para gestionar el inventario de un tipo de recurso seleccionado.
@@ -110,16 +111,12 @@ const GestionInventarioPanel = forwardRef(({ tipoSeleccionado, onGenerarClick, o
             <h2 className={STYLES.titleSection}>Inventario de: <span className="text-blue-400">{tipoSeleccionado.nombre}</span></h2>
 
             {/* Barra de Búsqueda */}
-            <div className="my-4 relative">
-                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                    type="text"
-                    placeholder="Buscar por identificador..."
-                    value={terminoBusqueda}
-                    onChange={(e) => setTerminoBusqueda(e.target.value)}
-                    className={`${STYLES.input} pl-10`} // Usamos el estilo de input global y añadimos padding izquierdo para el icono.
-                />
-            </div>
+            <SearchBar
+                value={terminoBusqueda}
+                onChange={(e) => setTerminoBusqueda(e.target.value)} // Actualiza el estado del término de búsqueda
+                placeholder='Buscar por identificador...' // Texto del placeholder
+                className="flex-shrink-0"
+            />
 
             {/* Botones de acción principales */}
             <div className="flex flex-col sm:flex-row gap-4 my-6">

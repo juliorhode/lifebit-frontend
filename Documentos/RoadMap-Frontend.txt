@@ -112,15 +112,15 @@ Leyenda de Estado:
 
 Epopeya F0: La Plataforma de Lanzamiento (Fundación y Arquitectura)
 Objetivo: Forjar el esqueleto de nuestra aplicación. La base invisible pero indestructible sobre la que construiremos todo lo demás.
-[ ] F0-01 [CORE]: Definir el Manifiesto de Diseño y Experiencia de LifeBit.
-[ ] Paleta de colores (Modo Oscuro y Claro).
-[ ] Escala tipográfica y de espaciado.
-[ ] Set de iconografía y tono de voz.
+[x] F0-01 [CORE]: Definir el Manifiesto de Diseño y Experiencia de LifeBit.
+[~] Paleta de colores (Modo Oscuro y Claro).
+[x] Escala tipográfica y de espaciado.
+[~] Set de iconografía y tono de voz.
 [ ] F0-02 [CORE]: Configurar la librería de internacionalización (i18next) para soporte es/en.
-[ ] F0-03 [LÓGICA]: Crear el apiService definitivo con axios, incluyendo withCredentials: true y el interceptor de accessToken.
-[ ] F0-04 [UI/UX]: Construir el LayoutPrincipal adaptable (Header/Sidebar) que cambia según el rol del usuario (dueño, admin, residente).
+[x] F0-03 [LÓGICA]: Crear el apiService definitivo con axios, incluyendo withCredentials: true y el interceptor de accessToken.
+[~] F0-04 [UI/UX]: Construir el LayoutPrincipal adaptable (Header/Sidebar) que cambia según el rol del usuario (dueño, admin, residente).
 [ ] F0-05 [UI/UX]: Refactorizar y perfeccionar el componente ThemeToggle para el cambio de tema.
-[ ] F0-06 [CORE]: Configurar el App.jsx con el BrowserRouter y la estructura de rutas principal.
+[x] F0-06 [CORE]: Configurar el App.jsx con el BrowserRouter y la estructura de rutas principal.
 
 Epopeya F1: La Puerta de Entrada (Autenticación y Vistas Públicas)
 Objetivo: Crear un flujo de acceso y onboarding impecable, seguro y persistente para todos los roles.
@@ -147,9 +147,9 @@ Epopeya F3: El Primer Vuelo (Onboarding del Administrador)
 Objetivo: Crear una experiencia de configuración inicial tan guiada y gratificante que los nuevos administradores se sientan empoderados desde el primer minuto.
 [~] F3-01 [COMPONENTE]: Construir el orquestador SetupWizard que guiará todo el proceso.
 [x] F3-02 [PÁGINA]: Paso 1: Interfaz de Creación de Unidades (usando el generador flexible).
-[ ] F3-03 [PÁGINA]: Paso 2: Módulo de Gestión de Recursos.
-[ ] F3-03a [UI/UX]: CRUD para Tipos de Recurso.
-[ ] F3-03b [UI/UX]: Interfaces para la creación de inventario (secuencial y carga masiva por Excel).
+[x] F3-03 [PÁGINA]: Paso 2: Módulo de Gestión de Recursos.
+[~] F3-03a [UI/UX]: CRUD para Tipos de Recurso.
+[x] F3-03b [UI/UX]: Interfaces para la creación de inventario (secuencial y carga masiva por Excel).
 [ ] F3-04 [PÁGINA]: Paso 3: Módulo de Invitación de Residentes (individual y carga masiva por Excel).
 
 Epopeya F4: La Comunidad Viva (Paneles de Admin y Residente)

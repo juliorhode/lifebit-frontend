@@ -29,13 +29,6 @@ const Container = ({ id, items, children }) => {
         </div>
     );
 };
-            // <div className="flex justify-between items-center mb-3">
-            //     <h3 className={STYLES.dnd.paletteTitle}>{title}</h3>
-            //     {onClear && items.length > 0 && (
-            //         <button onClick={onClear} className="...">
-            //             <FiTrash2 size={16} />
-            //         </button>
-            //     )}
-            // </div>
+
 
 export default Container;

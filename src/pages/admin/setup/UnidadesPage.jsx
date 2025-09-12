@@ -230,7 +230,7 @@ const UnidadesPage = () => {
             <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={pointerWithin}>
                 <div className="flex flex-col md:flex-row gap-6">
                     {/* UI DINÁMICA: La Paleta */}
-                    <div className="w-full md:w-[320px] md:flex-shrink-0">
+                    <div className="w-full md:w-[320px] md:flex-shrink-0 ">
                         <Container id="palette" items={paletteItems} title="Paleta de Bloques">
                             <h3 className={STYLES.dnd.paletteTitle}>Paleta de Bloques</h3>
                             {/* Grupo de Pisos */}

@@ -34,13 +34,17 @@ export const useAsignacionVisual = (tipoRecurso) => {
 		setIsLoading(true);
 		try {
 			const response = await apiService.get(`/admin/recursos/por-tipo/${tipoId}`);
-			const itemsConEstado = response.data.data.recursos.map((item) => ({
-				id: item.id,
-				identificador_unico: item.identificador_unico,
-				propietario_id: item.id_unidad,
-				propietario_nombre: item.nombre_unidad_propietaria,
-				estado: item.nombre_unidad_propietaria ? 'ocupado' : 'disponible',
-			}));
+			const itemsConEstado = response.data.data.recursos
+				.map((item) => ({
+					id: item.id,
+					identificador_unico: item.identificador_unico,
+					propietario_id: item.id_unidad,
+					propietario_nombre: item.nombre_unidad_propietaria,
+					estado: item.nombre_unidad_propietaria ? 'ocupado' : 'disponible',
+				}))
+				.sort((a, b) =>
+					a.identificador_unico.localeCompare(b.identificador_unico, undefined, { numeric: true })
+				);
 			setWorkingItems(itemsConEstado);
 			setOriginalItems(JSON.parse(JSON.stringify(itemsConEstado)));
 		} catch (err) {

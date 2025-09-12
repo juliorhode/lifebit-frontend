@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { DndContext, closestCenter, DragOverlay, pointerWithin } from '@dnd-kit/core';
-import { arrayMove } from '@dnd-kit/sortable';
+import { DndContext, pointerWithin, DragOverlay, useSensor, useSensors, PointerSensor, TouchSensor, useDraggable } from '@dnd-kit/core';
+import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 
 import Container from '../../../components/dnd/Container';
 import Item from '../../../components/dnd/Item';
@@ -12,6 +12,20 @@ import { generadorInventarioSchema } from '../utils/recursos.schemas.js';
 import { FiMove } from 'react-icons/fi';
 import Spinner from '../../../components/ui/Spinner';
 import apiService from '../../../services/apiService.js';
+
+// NOTA: Para que un <Item> sea arrastrable desde la paleta (que no es un SortableContext),
+// debemos crear una versión "Draggable" simple de él.
+
+const DraggableItem = ({ id, text }) => {
+    const { attributes, listeners, setNodeRef } = useDraggable({ id });
+
+    return (
+        <button type="button" ref={setNodeRef} {...listeners} {...attributes} className={`${STYLES.dnd.block} text-left w-full`} // w-full para que ocupe todo el espacio
+            style={{ touchAction: 'none' }}>
+            {text}
+        </button>
+    );
+};
 
 // --- DEFINICIÓN DE BLOQUES DISPONIBLES ---
 
@@ -57,6 +71,27 @@ const GeneradorInventarioModal = ({ onClose, onSuccess, tipoRecurso }) => {
     const cantidad = watch('cantidad');
     const numeroInicio = watch('numeroInicio');
 
+
+    // --- Configuramos los sensores para una experiencia multimodal ---
+    const sensors = useSensors(
+        // Sensor para el ratón: solo se activa si el ratón se mueve más de 8px.
+        // Esto previene que un simple clic sea interpretado como un intento de arrastre.
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
+        // Sensor táctil: se activa después de mantener pulsado 250ms.
+        // Esto permite al usuario hacer scroll en la página sin iniciar un arrastre accidentalmente.
+        useSensor(TouchSensor, {
+            activationConstraint: {
+                delay: 250,
+                tolerance: 5,
+            },
+        }),
+        
+    );
+
     // --- LÓGICA DE PREVISUALIZACIÓN ---
     /**
      * @description Efecto que se ejecuta cada vez que cambia el patrón (canvasItems) o los parámetros (cantidad, numeroInicio).
@@ -75,6 +110,10 @@ const GeneradorInventarioModal = ({ onClose, onSuccess, tipoRecurso }) => {
         const { active } = event;
         const allItems = [...paletteItems, ...canvasItems];
         let item = allItems.find(i => i.id === active.id);
+        // Si no se encuentra, puede ser un item del canvas (cuyo ID ha sido modificado)
+        if (!item) {
+            item = canvasItems.find(i => i.id === active.id);
+        }
         if (item) {
             // Si el texto es una función (como en la paleta), la ejecutamos para obtener el string.
             if (typeof item.text === 'function') {
@@ -107,20 +146,21 @@ const GeneradorInventarioModal = ({ onClose, onSuccess, tipoRecurso }) => {
                 setCanvasItems(prev => [...prev, { ...itemToMove, text: materializedText, id: `custom_text-${Date.now()}` }]);
             } else {
                 // Si es un contador, lo movemos de la paleta al canvas.
-                setPaletteItems(prev => prev.filter(i => i.id !== activeId));
+                setPaletteItems(prev => prev.filter(i => i.id !== active.id));
                 setCanvasItems(prev => [...prev, { ...itemToMove, text: materializedText, id: `${itemToMove.id}-${Date.now()}` }]);
             }
-        // CASO 2: Devolver un item desde el CANVAS a la PALETA.
+            // CASO 2: Devolver un item desde el CANVAS a la PALETA.
         } else if (isFromCanvas && over.id === 'palette') {
-            const itemToMove = canvasItems.find(i => i.id === activeId);
-            setCanvasItems(prev => prev.filter(i => i.id !== activeId));
+            const itemToMove = canvasItems.find(i => i.id === active.id);
+            setCanvasItems(prev => prev.filter(i => i.id !== active.id));
             const originalId = itemToMove.id.split('-')[0];
             const originalItem = listaCompletaDeBloques.find(b => b.id === originalId);
-            // Solo devolvemos a la paleta si no es un texto custom (esos se pueden recrear).
-            if (originalItem && originalItem.id !== 'custom_text') {
+
+            // Se añade la comprobación para no duplicar un item que ya existe en la paleta.
+            if (originalItem && originalItem.id !== 'custom_text' && !paletteItems.some(p => p.id === originalId)) {
                 setPaletteItems(prev => [...prev, originalItem]);
             }
-        // CASO 3: Reordenar items DENTRO del CANVAS.
+            // CASO 3: Reordenar items DENTRO del CANVAS.
         } else if (isFromCanvas && canvasItems.some(i => i.id === over.id)) {
             if (active.id !== over.id) {
                 setCanvasItems((items) => {
@@ -167,22 +207,25 @@ const GeneradorInventarioModal = ({ onClose, onSuccess, tipoRecurso }) => {
             <h2 className={STYLES.titleSection}>Generador Secuencial: <span className="text-blue-400">{tipoRecurso.nombre}</span></h2>
             <p className="text-gray-400 mt-1 mb-6">Construye el patrón, define la cantidad y previsualiza el resultado.</p>
 
-            <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={pointerWithin}>
+            <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={pointerWithin} sensors={sensors}>
                 <div className="flex flex-col md:flex-row gap-6">
                     {/* Columna Izquierda: Paleta de bloques disponibles */}
-                    <div className="w-full md:w-[280px] md:flex-shrink-0">
+                    <div className="w-full md:w-[280px] md:flex-shrink-0 ">
                         <Container id="palette" items={paletteItems} title="Paleta de Bloques">
-                            <div className="mt-4 space-y-3">
+                            {/* Se añade `min-h-[255px]` para asegurar que el contenedor de la paleta no se encoja. */}
+                            <div className="mt-4 space-y-3 min-h-[255px]">
                                 <div>
                                     <p className="text-sm font-semibold text-gray-400 mb-2">Contadores</p>
                                     <div className="grid grid-cols-2 gap-2">
-                                        {bloquesContador.map(item => paletteItems.some(p => p.id === item.id) && <Item key={item.id} id={item.id} text={item.text()} />)}
+                                        {bloquesContador.map(item => paletteItems.some(p => p.id === item.id) &&
+                                            <DraggableItem key={item.id} id={item.id} text={item.text()} />
+                                        )}
                                     </div>
                                 </div>
                                 <div>
                                     <p className="text-sm font-semibold text-gray-400 mb-2">Personalizado</p>
                                     <div className="grid grid-cols-1 gap-2">
-                                        {bloquesTexto.map(item => <Item key={item.id} id={item.id} text={item.text()} />)}
+                                        {bloquesTexto.map(item => <DraggableItem key={item.id} id={item.id} text={item.text()} />)}
                                     </div>
                                 </div>
                             </div>

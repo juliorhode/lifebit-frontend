@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { tipoRecursoSchema } from '../utils/recursos.schemas.js';
+import { tipoRecursoSchema, toTitleCase } from '../utils/recursos.schemas.js';
 import apiService from '../../../services/apiService.js';
 import { STYLES } from '../../../utils/styleConstants.jsx';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
 import Spinner from '../../../components/ui/Spinner';
+import { toast } from 'react-hot-toast'; // Importamos toast
 
 /**
  * @description Componente visual simple para mostrar una barra de progreso.
@@ -54,12 +55,13 @@ const CrearTipoRecursoModal = ({ onClose, onRecursosCreados }) => {
         register, // Función para registrar los inputs en el formulario.
         control,    // Objeto para conectar componentes de UI controlados (como `useFieldArray`).
         handleSubmit, // Envuelve el `onSubmit` para gestionar la validación.
-        formState: { errors }, // Contiene los errores de validación.
+        formState: { errors, isValid, isSubmitting }, // Contiene los errores de validación. isValid indica si el formulario es válido. isSubmitting indica si el formulario se está enviando.
         getValues,  // Función para obtener los valores actuales del formulario.
         setValue,   // Función para establecer valores en el formulario.
     } = useForm({
         resolver: yupResolver(tipoRecursoSchema), // Usa el esquema de Yup para la validación.
         defaultValues: { tipos: [{ nombre: '', tipo: 'asignable' }] }, // Inicia con un campo por defecto.
+        mode: 'onChange' // Valida en cada cambio para feedback inmediato.
     });
 
     // `useFieldArray` proporciona la lógica para manipular campos de formulario dinámicos.
@@ -74,21 +76,38 @@ const CrearTipoRecursoModal = ({ onClose, onRecursosCreados }) => {
         setIsProcessing(true);
         const tiposACrear = data.tipos;
         let localResults = [];
-
+        let huboErrores = false; // Flag para saber si mostramos un toast final de éxito o error
+        
+        // Itera sobre cada tipo y lo envía a la API.
         for (let i = 0; i < tiposACrear.length; i++) {
             const tipo = tiposACrear[i];
             try {
                 await apiService.post('/admin/recursos/tipos', tipo);
                 localResults.push({ name: tipo.nombre, status: 'success', message: 'Creado' });
             } catch (err) {
-                localResults.push({ name: tipo.nombre, status: 'error', message: err.response?.data?.error?.mensaje || 'Error desconocido' });
+                huboErrores = true;
+                const errorMessage = err.response?.data?.error?.mensaje || 'Error desconocido';
+                if (errorMessage.includes('llave duplicada') || errorMessage.includes('unique constraint')) {
+                    localResults.push({ name: tipo.nombre, status: 'error', message: 'Ya existe' });
+                } else {
+                    localResults.push({ name: tipo.nombre, status: 'error', message: 'Error' });
+                }
+                // localResults.push({ name: tipo.nombre, status: 'error', message: err.response?.data?.error?.mensaje || 'Error desconocido' });
             }
             // Actualiza el progreso y los resultados después de cada intento.
             setProgress(((i + 1) / tiposACrear.length) * 100);
             setResults([...localResults]);
         }
-        // Notifica al componente padre que el proceso ha terminado.
-        onRecursosCreados();
+        // Muestra un toast final basado en si hubo errores o no.
+        if (huboErrores) {
+            toast.error("Algunos tipos no se pudieron crear.");
+        } else {
+            toast.success("Todos los tipos se crearon con éxito.");
+        }
+
+        // Llamamos a onRecursosCreados independientemente de si hubo errores,
+        // para que la lista se refresque y el usuario vea lo que sí se creó.
+        // onRecursosCreados();
     };
 
     /**
@@ -109,6 +128,18 @@ const CrearTipoRecursoModal = ({ onClose, onRecursosCreados }) => {
         }
     };
 
+    
+
+    /**
+     * @description Se ejecuta cuando el usuario hace clic en el botón "Cerrar" final.
+     * Primero notifica al padre para que refresque la lista de recursos,
+     * y luego ejecuta el callback para cerrar el modal.
+     */
+    const handleCloseAndNotify = () => {
+        onRecursosCreados(); // Refresca la lista en segundo plano.
+        onClose();           // Cierra el modal.
+    };
+
     // --- RENDERIZADO ---
     return (
         <div>
@@ -121,7 +152,13 @@ const CrearTipoRecursoModal = ({ onClose, onRecursosCreados }) => {
                             <div key={field.id} className="grid grid-cols-[1fr_140px_auto] items-start gap-2">
                                 {/* Input para el nombre del tipo de recurso */}
                                 <div>
-                                    <input {...register(`tipos.${index}.nombre`)} placeholder="Nombre del Recurso" className={STYLES.input} />
+                                    <input {...register(`tipos.${index}.nombre`)}
+                                        placeholder="Nombre del Recurso"
+                                        onChange={(event) => {
+                                            const capitalizedValue = toTitleCase(event.target.value);
+                                            setValue(`tipos.${index}.nombre`, capitalizedValue, { shouldValidate: true });
+                                        }}
+                                        className={STYLES.input} />
                                     {errors.tipos?.[index]?.nombre && <p className={STYLES.errorText}>{errors.tipos[index].nombre.message}</p>}
                                 </div>
                                 {/* Selector para el tipo (asignable o inventario) */}
@@ -138,7 +175,9 @@ const CrearTipoRecursoModal = ({ onClose, onRecursosCreados }) => {
                             </div>
                         ))}
                     </div>
-                    {errors.tipos && <p className={STYLES.errorText}>{errors.tipos.message}</p>}
+                    {errors.tipos && !Array.isArray(errors.tipos) && (
+                        <p className={STYLES.errorText}>{errors.tipos.message}</p>
+                    )}
                     
                     {/* Botón para añadir un nuevo campo vacío */}
                     <button type="button" onClick={() => append({ nombre: '', tipo: 'asignable' })} className={`${STYLES.buttonLink} flex items-center gap-1`}>
@@ -159,7 +198,8 @@ const CrearTipoRecursoModal = ({ onClose, onRecursosCreados }) => {
 
                     {/* Botón de envío principal */}
                     <div className="pt-4">
-                        <button type="submit" className={STYLES.buttonPrimary}>Crear Tipos</button>
+                        {/* El botón se deshabilita si el formulario no es válido o si ya se está enviando. */}
+                        <button type="submit" disabled={!isValid || isSubmitting}  className={STYLES.buttonPrimary}>Crear Tipos</button>
                     </div>
                 </form>
             ) : (
@@ -179,8 +219,8 @@ const CrearTipoRecursoModal = ({ onClose, onRecursosCreados }) => {
                     </ul>
                     {/* El botón de cerrar solo aparece cuando el proceso ha finalizado (progreso al 100%) */}
                     {progress === 100 && (
-                        <div className="mt-6 text-center">
-                            <button onClick={onClose} className={`${STYLES.buttonPrimaryAuto}`}>Cerrar</button>
+                            <div className="mt-6 flex justify-center">
+                                <button onClick={handleCloseAndNotify} className={`${STYLES.buttonPrimaryAuto}`}>Cerrar</button>
                         </div>
                     )}
                 </div>

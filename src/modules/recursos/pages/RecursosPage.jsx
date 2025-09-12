@@ -7,6 +7,8 @@ import CrearTipoRecursoModal from '../components/CrearTipoRecursoModal';
 import GeneradorInventarioModal from '../components/GeneradorInventarioModal';
 import CargarArchivoModal from '../components/CargarArchivoModal';
 import { toast } from 'react-hot-toast';
+import FormularioEditarTipoRecurso from '../components/FormularioEditarTipoRecurso';
+import ConfirmacionEliminarTipo from '../components/ConfirmacionEliminarTipo';
 
 /**
  * @description
@@ -30,9 +32,11 @@ const RecursosPage = () => {
     const [isGeneradorModalOpen, setIsGeneradorModalOpen] = useState(false);
     /** @type {[boolean, function]} isCargarModalOpen - Controla la visibilidad del modal para cargar inventario desde un archivo. */
     const [isCargarModalOpen, setIsCargarModalOpen] = useState(false);
-
     /** @type {React.RefObject} gestionInventarioRef - Referencia al componente `GestionInventarioPanel` para poder invocar métodos en él (ej: `refrescar`). */
     const gestionInventarioRef = useRef();
+
+    const [tipoAEditar, setTipoAEditar] = useState(null); // Guardará el objeto a editar
+    const [tipoAEliminar, setTipoAEliminar] = useState(null); // Guardará el objeto a eliminar
 
     // --- DATOS Y EFECTOS --- //
 
@@ -58,6 +62,22 @@ const RecursosPage = () => {
     const tipoSeleccionado = tiposDeRecurso.find(t => t.id === tipoSeleccionadoId) || null;
 
     // --- MANEJADORES DE EVENTOS (HANDLERS) --- //
+
+    /**
+     * @description Handlers para cerrar modales y refrescar la lista
+     */
+    const handleModalSuccess = () => {
+        setTipoAEditar(null);
+        setTipoAEliminar(null);
+        setIsCreateModalOpen(false);
+        fetchTiposDeRecurso();
+    };
+
+    const handleModalCancel = () => {
+        setTipoAEditar(null);
+        setTipoAEliminar(null);
+        setIsCreateModalOpen(false);
+    };
 
     /**
      * @description Callback que se ejecuta cuando el modal de creación de tipos se cierra exitosamente.
@@ -108,6 +128,8 @@ const RecursosPage = () => {
                         onSelectTipo={setTipoSeleccionadoId}
                         onCrearTipo={() => setIsCreateModalOpen(true)}
                         isLoading={isLoadingTipos}
+                        onEditarTipo={setTipoAEditar}
+                        onEliminarTipo={setTipoAEliminar}
                     />
                 </div>
 
@@ -125,9 +147,36 @@ const RecursosPage = () => {
             {/* --- MODALES --- */}
 
             {/* Modal para la Creación de Nuevos Tipos de Recurso */}
-            <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Añadir Nuevos Tipos de Recurso">
+            {/* <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Añadir Nuevos Tipos de Recurso">
                 <CrearTipoRecursoModal onClose={() => setIsCreateModalOpen(false)} onRecursosCreados={handleRecursosCreados} />
+            </Modal> */}
+            <Modal isOpen={isCreateModalOpen} onClose={handleModalCancel} title="Añadir Nuevos Tipos de Recurso">
+                <CrearTipoRecursoModal onClose={handleModalCancel} onRecursosCreados={handleModalSuccess} />
             </Modal>
+
+            {/* Modal para editar el Tipo de Recurso */}
+            {/* Se renderiza solo si hay un `tipoAEditar` en el estado. */}
+            {tipoAEditar && (
+                <Modal isOpen={!!tipoAEditar} onClose={handleModalCancel} title={`Modificar "${tipoAEditar.nombre}"`}>
+                    <FormularioEditarTipoRecurso
+                        tipo={tipoAEditar}
+                        onSuccess={handleModalSuccess}
+                        onCancel={handleModalCancel}
+                    />
+                </Modal>
+            )}
+
+            {/* Modal para eliminar el Tipo de Recurso */}
+            {/* Se renderiza solo si hay un `tipoAEliminar` en el estado. */}
+            {tipoAEliminar && (
+                <Modal isOpen={!!tipoAEliminar} onClose={handleModalCancel} title="Confirmar Eliminación">
+                    <ConfirmacionEliminarTipo
+                        tipo={tipoAEliminar}
+                        onSuccess={handleModalSuccess}
+                        onCancel={handleModalCancel}
+                    />
+                </Modal>
+            )}
 
             {/* 
               Los modales de generación y carga solo se renderizan si hay un tipo de recurso seleccionado,
