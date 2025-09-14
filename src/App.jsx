@@ -11,11 +11,11 @@ import DashboardRouter from './pages/DashboardRouter';
 import SetupWizard from './pages/admin/setup/SetupWizard';
 import { Toaster } from 'react-hot-toast';
 import RecursosPage from './modules/recursos/pages/RecursosPage';
+import ResidentesPage from './modules/residentes/pages/ResidentesPage';
 
 // Componente placeholder para el dashboard
 const DashboardPlaceholder = () => <h1 className="text-3xl font-bold text-white">Dashboard Principal</h1>;
 const ContratosPlaceholder = () => <h1 className="text-3xl font-bold text-white">Página de Contratos</h1>;
-const ResidentesPlaceholder = () => <h1 className="text-3xl font-bold text-white">Página de Residentes</h1>;
 const MiCuentaPlaceholder = () => <h1 className="text-3xl font-bold text-white">Página de Mi Cuenta</h1>;
 const AyudaPlaceholder = () => <h1 className="text-3xl font-bold text-white">Página de Ayuda</h1>;
 const AdminMainDashboard = () => <h1 className="text-3xl font-bold text-white">Dashboard Principal del Administrador</h1>;
@@ -89,7 +89,7 @@ function App() {
             <Route path="setup" element={<SetupWizard />} />
 
             <Route path="contratos" element={<ContratosPlaceholder />} />
-            <Route path="residentes" element={<ResidentesPlaceholder />} />
+            <Route path="residentes" element={<ResidentesPage />} />
             <Route path="mi-cuenta" element={<MiCuentaPlaceholder />} />
             <Route path="ayuda" element={<AyudaPlaceholder />} />
             <Route path="recursos" element={<RecursosPage />} />

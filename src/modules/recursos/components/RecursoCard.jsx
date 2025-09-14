@@ -1,5 +1,49 @@
 import React from 'react';
-import { FaCar, FaHome, FaCheckCircle } from 'react-icons/fa';
+import { FaCar, FaHome, FaCheckCircle, FaKey, FaBicycle, FaCube, FaRss, FaLock, FaLockOpen, FaUser, FaSuitcase, FaWarehouse } from 'react-icons/fa';
+
+/**
+ * @description Mapeo de tipos de recursos a sus iconos representativos.
+ * Las keys están en minúsculas para evitar problemas de case sensitivity.
+ */
+const iconosPorTipo = {
+    'maletero / depósito': <FaSuitcase size={28} />,
+    'control remoto': <FaRss size={28} />,
+    'llave magnética': <FaKey size={28} />,
+    // Icono por defecto para tipos no sugeridos
+    default: <FaCube size={28} />,
+};
+
+/**
+ * @description Iconos dinámicos que cambian según el estado del recurso.
+ * Permite mayor expresividad visual para tipos específicos.
+ */
+const iconosDinamicos = {
+    'estacionamiento': {
+        disponible: <FaWarehouse size={28} />,
+        ocupado: <FaCar size={28} />,
+        seleccionado: <FaWarehouse size={28} />
+    },
+    'casillero': {
+        disponible: <FaLockOpen size={28} />,
+        ocupado: <FaLock size={28} />,
+        seleccionado: <FaLockOpen size={28} />
+    },
+    'bicicletero': {
+        disponible: <FaBicycle size={28} />,
+        ocupado: <FaUser size={28} />,
+        seleccionado: <FaBicycle size={28} />
+    }
+};
+
+/**
+ * @description Función helper para obtener icono dinámico por tipo y estado.
+ * @param {string} tipo - Nombre del tipo de recurso
+ * @param {string} estado - Estado del recurso (disponible, ocupado, seleccionado)
+ * @returns {JSX.Element|null} Icono correspondiente o null si no encontrado
+ */
+const getIconoDinamico = (tipo, estado) => {
+    return iconosDinamicos[tipo?.toLowerCase()]?.[estado];
+};
 
 /**
  * @description Mapeo centralizado de los estados de un recurso a sus correspondientes clases de Tailwind CSS e íconos.
@@ -33,7 +77,7 @@ const cardStates = {
  * @description Tarjeta visual que representa un único recurso en la cuadrícula de asignación.
  * Es un componente puramente presentacional ("tonto") que recibe todo su estado y lógica como props.
  * Su apariencia cambia según el `estado` del `item` que se le pasa.
- * 
+ *
  * @param {object} props
  * @param {object} props.item - El objeto del recurso a renderizar. Debe contener `id`, `identificador_unico`, `propietario_nombre` y `estado`.
  * @param {function} props.onClick - Callback que se ejecuta cuando el usuario hace clic en la tarjeta, pasando el `item` completo.
@@ -41,6 +85,11 @@ const cardStates = {
 const RecursoCard = ({ item, onClick }) => {
     // Determina la configuración de estilo a usar, basándose en el estado del item. Si el estado no es válido, usa 'disponible' como fallback.
     const stateConfig = cardStates[item.estado] || cardStates.disponible;
+    // Determina el icono a usar, basándose en el tipo de recurso.
+    // Primero intenta icono dinámico por tipo y estado, luego fallback a icono simple por tipo
+    const icono = getIconoDinamico(item.tipo_recurso, item.estado) ||
+                 iconosPorTipo[item.tipo_recurso?.toLowerCase()] ||
+                 iconosPorTipo.default;
 
     return (
         <div
@@ -48,7 +97,7 @@ const RecursoCard = ({ item, onClick }) => {
             className={`
                 p-3 rounded-lg border-2 text-center transition-all duration-200 ease-in-out relative
                 transform hover:-translate-y-1 active:scale-95 cursor-pointer
-                ${stateConfig.bg} 
+                ${stateConfig.bg}
                 ${stateConfig.glow}
             `}
         >
@@ -66,7 +115,9 @@ const RecursoCard = ({ item, onClick }) => {
 
             {/* Sección inferior: Muestra el ícono principal y el nombre del propietario o 'Disponible'. */}
             <div className={`mt-1 ${stateConfig.iconColor}`}>
-                {stateConfig.icon}
+                <div className="flex justify-center">
+                    {icono}
+                </div>
                 <p className="text-xs mt-1 truncate h-4 font-semibold">
                     {item.propietario_nombre || 'Disponible'}
                 </p>

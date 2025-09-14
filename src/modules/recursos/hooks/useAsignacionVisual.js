@@ -1,218 +1,252 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'; // MODIFICADO: Añadimos useMemo
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import apiService from '../../../services/apiService';
 import { toast } from 'react-hot-toast';
 
-/**
- * @description Un Hook personalizado que encapsula toda la lógica de estado y
- * las interacciones para el panel de asignación visual de recursos.
- *
- * @param {object|null} tipoRecurso - El tipo de recurso actualmente seleccionado.
- * @returns {object} Un objeto con el estado y las funciones para que la UI funcione.
- */
 export const useAsignacionVisual = (tipoRecurso) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [originalItems, setOriginalItems] = useState([]);
-	// MODIFICADO: 'workingItems' ahora representa el estado con cambios, antes del filtrado.
 	const [workingItems, setWorkingItems] = useState([]);
 	const [selectedIds, setSelectedIds] = useState(new Set());
 	const [modo, setModo] = useState('simple');
-	// NUEVO: Estado para almacenar el término de búsqueda del usuario.
-	const [searchTerm, setSearchTerm] = useState('');
+    const [sesionGuardadaDetectada, setSesionGuardadaDetectada] = useState(false);
+    const [selectionMemory, setSelectionMemory] = useState(null);
 
-	/**
-	 * @description Carga el inventario desde la API. Se define con `useCallback`
-	 * para que su referencia sea estable entre renders, optimizando los `useEffect` que dependen de ella.
-	 */
+    const localStorageKey = useMemo(() => 
+        tipoRecurso ? `lifebit-unsaved-asignaciones-${tipoRecurso.id}` : null
+    , [tipoRecurso]);
+
+    const saveSessionToLS = useCallback((sessionData) => {
+        if (localStorageKey) {
+            const hayCambiosEnItems = JSON.stringify(sessionData.items) !== JSON.stringify(originalItems);
+            const haySeleccionActiva = sessionData.selected && sessionData.selected.length > 0;
+            const haySeleccionEnMemoria = sessionData.memory && sessionData.memory.length > 0;
+
+            if (hayCambiosEnItems || haySeleccionActiva || haySeleccionEnMemoria) {
+                localStorage.setItem(localStorageKey, JSON.stringify(sessionData));
+            } else {
+                localStorage.removeItem(localStorageKey);
+            }
+        }
+    }, [localStorageKey, originalItems]);
+
 	const fetchInventario = useCallback(async () => {
 		const tipoId = tipoRecurso?.id;
-		if (!tipoId) {
-			setWorkingItems([]);
-			setOriginalItems([]);
-			return;
-		}
+        if (!tipoId) return;
 
 		setIsLoading(true);
 		try {
-			const response = await apiService.get(`/admin/recursos/por-tipo/${tipoId}`);
-			const itemsConEstado = response.data.data.recursos
-				.map((item) => ({
-					id: item.id,
-					identificador_unico: item.identificador_unico,
-					propietario_id: item.id_unidad,
-					propietario_nombre: item.nombre_unidad_propietaria,
-					estado: item.nombre_unidad_propietaria ? 'ocupado' : 'disponible',
-				}))
+            const sesionGuardadaJSON = localStorage.getItem(localStorageKey);
+            const response = await apiService.get(`/admin/recursos/por-tipo/${tipoId}`);
+            const itemsDesdeAPI = response.data.data.recursos
+    .map((item) => ({
+     id: item.id,
+     identificador_unico: item.identificador_unico,
+     propietario_id: item.id_unidad,
+     propietario_nombre: item.nombre_unidad_propietaria,
+     estado: item.nombre_unidad_propietaria ? 'ocupado' : 'disponible',
+     tipo_recurso: item.tipo_recurso,
+    }))
 				.sort((a, b) =>
-					a.identificador_unico.localeCompare(b.identificador_unico, undefined, { numeric: true })
+					a.identificador_unico.localeCompare(b.identificador_unico, undefined, {
+						numeric: true,
+						sensitivity: 'base',
+					})
 				);
-			setWorkingItems(itemsConEstado);
-			setOriginalItems(JSON.parse(JSON.stringify(itemsConEstado)));
+            
+            setOriginalItems(itemsDesdeAPI);
+
+            if (sesionGuardadaJSON) {
+                const sesionGuardada = JSON.parse(sesionGuardadaJSON);
+                setWorkingItems(sesionGuardada.items);
+                const restoredSelectedIds = new Set(sesionGuardada.selected);
+                setSelectedIds(restoredSelectedIds);
+                if (sesionGuardada.memory) { setSelectionMemory(new Set(sesionGuardada.memory)); }
+                setSesionGuardadaDetectada(true);
+
+                if (restoredSelectedIds.size > 0 || (sesionGuardada.memory && sesionGuardada.memory.length > 0)) {
+                    setModo('masivo');
+                }
+            } else {
+                setWorkingItems(itemsDesdeAPI);
+                setSelectedIds(new Set());
+                setSelectionMemory(null);
+            }
 		} catch (err) {
 			toast.error('No se pudo cargar el inventario.');
+            setOriginalItems([]);
+            setWorkingItems([]);
 		} finally {
 			setIsLoading(false);
 		}
-	}, [tipoRecurso?.id]);
+	}, [tipoRecurso?.id, localStorageKey]);
 
-	// Efecto que llama a `fetchInventario` cuando `tipoRecurso` cambia.
 	useEffect(() => {
+        setOriginalItems([]); setWorkingItems([]); setSelectedIds(new Set());
+        setSelectionMemory(null); setSesionGuardadaDetectada(false);
 		fetchInventario();
 	}, [fetchInventario]);
 
-	/**
-	 * @description Limpia la selección actual y revierte el estado visual de los items.
-	 */
-	const clearSelection = useCallback(() => {
-		setSelectedIds(new Set());
-		setWorkingItems((prevItems) =>
-			prevItems.map((item) => {
-				if (item.estado === 'seleccionado') {
-					const originalState = originalItems.find(o => o.id === item.id)?.estado || (item.propietario_nombre ? 'ocupado' : 'disponible');
-					return { ...item, estado: originalState };
-				}
-				return item;
-			})
-		);
-	}, [originalItems]);
-
-	// Efecto para limpiar la selección si el usuario cambia de modo.
-	useEffect(() => {
-		clearSelection();
-	}, [modo, clearSelection]);
-
-	/**
-	 * @description Maneja la selección/deselección de un item en modo masivo.
-	 */
 	const toggleSelection = (itemToToggle) => {
 		const newSelectedIds = new Set(selectedIds);
-		const isCurrentlySelected = newSelectedIds.has(itemToToggle.id);
-
-		if (isCurrentlySelected) {
-			newSelectedIds.delete(itemToToggle.id);
-		} else {
-			newSelectedIds.add(itemToToggle.id);
-		}
-		setSelectedIds(newSelectedIds);
-
-		setWorkingItems((prev) =>
-			prev.map((item) => {
+		if (newSelectedIds.has(itemToToggle.id)) { newSelectedIds.delete(itemToToggle.id); } 
+        else { newSelectedIds.add(itemToToggle.id); }
+		
+		setWorkingItems((prev) => {
+            const nuevosItems = prev.map((item) => {
 				if (item.id === itemToToggle.id) {
-					const originalState = originalItems.find(o => o.id === item.id)?.estado || (item.propietario_nombre ? 'ocupado' : 'disponible');
-					return {
-						...item,
-						estado: !isCurrentlySelected ? 'seleccionado' : originalState,
-					};
+					const originalState = originalItems.find(o => o.id === item.id)?.estado || 'disponible';
+					return { ...item, estado: newSelectedIds.has(item.id) ? 'seleccionado' : originalState };
 				}
 				return item;
-			})
-		);
+			});
+            saveSessionToLS({ items: nuevosItems, selected: Array.from(newSelectedIds), memory: selectionMemory ? Array.from(selectionMemory) : null });
+            return nuevosItems;
+        });
+        setSelectedIds(newSelectedIds);
+	};
+    
+    const deactivateSelection = () => {
+        const itemsSinSeleccion = workingItems.map(item => {
+            if (selectedIds.has(item.id)) {
+                const originalState = originalItems.find(o => o.id === item.id)?.estado || 'disponible';
+                return {...item, estado: originalState};
+            }
+            return item;
+        });
+        setWorkingItems(itemsSinSeleccion);
+        setSelectionMemory(selectedIds);
+        setSelectedIds(new Set());
+        saveSessionToLS({ items: itemsSinSeleccion, selected: [], memory: Array.from(selectedIds) });
+    };
+
+    const activateSelection = () => {
+        const memory = selectionMemory || selectedIds;
+        if (memory && memory.size > 0) {
+            const itemsConSeleccionRestaurada = workingItems.map(item => {
+                if(memory.has(item.id)) { return {...item, estado: 'seleccionado'}; }
+                return item;
+            });
+            setWorkingItems(itemsConSeleccionRestaurada);
+            setSelectedIds(memory);
+            setSelectionMemory(null);
+            saveSessionToLS({ items: itemsConSeleccionRestaurada, selected: Array.from(memory), memory: null });
+        }
+    };
+    
+	const handleAsignar = async (itemIds, unidad) => {
+        if (modo === 'simple') {
+            const toastId = toast.loading('Asignando recurso...');
+            try {
+                const asignaciones = itemIds.map(id => ({ idRecurso: id, idUnidad: unidad.id }));
+                await apiService.patch('/admin/recursos/asignaciones', { asignaciones });
+                toast.success('Recurso asignado con éxito', { id: toastId });
+                await fetchInventario();
+                return true;
+            } catch (error) {
+                toast.error('Error al asignar el recurso.', { id: toastId });
+                return false;
+            }
+        } else {
+            setWorkingItems((prev) => {
+                const nuevosItems = prev.map((item) => {
+                    if (itemIds.includes(item.id)) {
+                        return { ...item, estado: 'ocupado', propietario_id: unidad.id, propietario_nombre: unidad.numero_unidad };
+                    }
+                    return item;
+                });
+                saveSessionToLS({ items: nuevosItems, selected: [], memory: null });
+                return nuevosItems;
+            });
+            setSelectedIds(new Set());
+            setSelectionMemory(null);
+        }
 	};
 
-	/**
-	 * @description Asigna una unidad a uno o más items en el estado de trabajo.
-	 */
-	const handleAsignar = (itemIds, unidad) => {
-		setWorkingItems((prev) =>
-			prev.map((item) => {
-				if (itemIds.includes(item.id)) {
-					return {
-						...item,
-						estado: 'ocupado',
-						propietario_id: unidad.id,
-						propietario_nombre: unidad.numero_unidad,
-					};
-				}
-				return item;
-			})
-		);
-		clearSelection();
+	const handleDesasignar = async (itemIds) => {
+        if (modo === 'simple') {
+            const toastId = toast.loading('Desasignando recurso...');
+            try {
+                const asignaciones = itemIds.map(id => ({ idRecurso: id, idUnidad: null }));
+                await apiService.patch('/admin/recursos/asignaciones', { asignaciones });
+                toast.success('Recurso desasignado con éxito', { id: toastId });
+                await fetchInventario();
+                return true;
+            } catch (error) {
+                toast.error('Error al desasignar el recurso.', { id: toastId });
+                return false;
+            }
+        } else {
+            setWorkingItems((prev) => {
+                const nuevosItems = prev.map((item) => {
+                    if (itemIds.includes(item.id)) {
+                        return { ...item, estado: 'disponible', propietario_id: null, propietario_nombre: null };
+                    }
+                    return item;
+                });
+                saveSessionToLS({ items: nuevosItems, selected: [], memory: null });
+                return nuevosItems;
+            });
+            setSelectedIds(new Set());
+            setSelectionMemory(null);
+        }
 	};
 
-	/**
-	 * @description Desasigna uno o más items en el estado de trabajo.
-	 */
-	const handleDesasignar = (itemIds) => {
-		setWorkingItems((prev) =>
-			prev.map((item) => {
-				if (itemIds.includes(item.id)) {
-					return {
-						...item,
-						estado: 'disponible',
-						propietario_id: null,
-						propietario_nombre: null,
-					};
-				}
-				return item;
-			})
-		);
-		clearSelection();
-	};
-
-	/**
-	 * @description Descarta todos los cambios realizados y vuelve al estado original.
-	 */
-	const descartarCambios = () => {
-		setWorkingItems(JSON.parse(JSON.stringify(originalItems)));
-		clearSelection();
+    const descartarCambios = () => {
+        if (localStorageKey) {
+            localStorage.removeItem(localStorageKey);
+        }
+        setWorkingItems(JSON.parse(JSON.stringify(originalItems)));
+        setSelectedIds(new Set());
+        setSelectionMemory(null);
 		toast.info('Cambios descartados.');
 	};
 
-	/**
-	 * @description Calcula los cambios y los envía a la API para guardarlos.
-	 */
 	const guardarCambios = async () => {
-		const cambios = workingItems.filter(
-			(item, index) => item.propietario_id !== originalItems[index]?.propietario_id
-		);
+        const cambios = workingItems.filter((item) => {
+            const originalItem = originalItems.find((o) => o.id === item.id);
+            return originalItem && item.propietario_id !== originalItem.propietario_id;
+        });
 
 		if (cambios.length === 0) {
-			toast.info('No hay cambios para guardar.');
-			return;
+			toast.info('No hay cambios de asignación para guardar.');
+            if (localStorageKey) { localStorage.removeItem(localStorageKey); }
+			return false;
 		}
 
-		const asignaciones = cambios.map((c) => ({
-			idRecurso: c.id,
-			idUnidad: c.propietario_id || null,
-		}));
-
+		const asignaciones = cambios.map((c) => ({ idRecurso: c.id, idUnidad: c.propietario_id || null }));
+		
 		try {
 			await apiService.patch('/admin/recursos/asignaciones', { asignaciones });
 			toast.success(`${asignaciones.length} asignacion(es) guardada(s) con éxito!`);
-			fetchInventario(); // Re-sincronizamos con la base de datos.
+            if (localStorageKey) { localStorage.removeItem(localStorageKey); }
+            return true;
 		} catch (error) {
 			toast.error('Error al guardar los cambios.');
+            return false;
 		}
 	};
 
-	// NUEVO: Lógica de filtrado con useMemo para optimización.
-	// Esta función solo se re-ejecutará si `workingItems` o `searchTerm` cambian.
-	const filteredItems = useMemo(() => {
-		if (!searchTerm) {
-			return workingItems; // Si no hay búsqueda, devuelve todos los items.
-		}
-		return workingItems.filter(item =>
-			item.identificador_unico.toLowerCase().includes(searchTerm.toLowerCase())
-		);
-	}, [workingItems, searchTerm]);
+    const restaurarSesion = () => {
+        setSesionGuardadaDetectada(false);
+        toast.success("Trabajo restaurado. Continúa donde lo dejaste.");
+    };
 
-
-	// Variable computada para saber si hay cambios pendientes.
+    const descartarSesionGuardada = () => {
+        if (localStorageKey) { localStorage.removeItem(localStorageKey); }
+        setSesionGuardadaDetectada(false);
+        setWorkingItems(JSON.parse(JSON.stringify(originalItems)));
+        setSelectedIds(new Set());
+        setSelectionMemory(null);
+        toast.info("Se descartaron los cambios de la sesión anterior.");
+    };
+    
 	const hayCambiosSinGuardar = JSON.stringify(originalItems) !== JSON.stringify(workingItems);
 
-	// El hook devuelve un objeto con todo lo que la UI necesita.
 	return {
-		isLoading,
-		items: filteredItems, // MODIFICADO: Ahora exponemos los items ya filtrados.
-		modo,
-		setModo,
-		selectedIds,
-		toggleSelection,
-		handleAsignar,
-		handleDesasignar,
-		guardarCambios,
-		descartarCambios,
-		hayCambiosSinGuardar,
-		searchTerm,      // NUEVO: Exponemos el término de búsqueda.
-		setSearchTerm,   // NUEVO: Exponemos la función para actualizar la búsqueda.
+		isLoading, items: workingItems, modo, setModo, selectedIds,
+		toggleSelection, handleAsignar, handleDesasignar, guardarCambios,
+		descartarCambios, hayCambiosSinGuardar,
+        sesionGuardadaDetectada, restaurarSesion, descartarSesionGuardada,
+        activateSelection, deactivateSelection,
 	};
 };

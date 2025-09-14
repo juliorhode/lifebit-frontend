@@ -3,10 +3,7 @@ import { useAuthStore } from '../../../store/authStore.js';
 import { SETUP_STATES } from '../../../config/constants.js';
 import UnidadesPage from './UnidadesPage.jsx';
 import RecursosPage from '../../../modules/recursos/pages/RecursosPage.jsx';
-
-
-// Creamos placeholders para los pasos futuros
-const ResidentesPage = () => <div className="text-white">Página de Configuración de Residentes (Paso 3)</div>;
+import ResidentesPageSetup from '../../../modules/residentes/pages/ResidentesPageSetup.jsx';
 
 /**
  * @description Componente de página que actúa como un "orquestador".
@@ -34,7 +31,7 @@ const SetupWizard = () => {
             return <RecursosPage />;
 
         case SETUP_STATES.PASO_3_RESIDENTES:
-            return <ResidentesPage />;
+            return <ResidentesPageSetup />;
 
         // Si el estado es 'COMPLETADO' o desconocido, no debería llegar aquí
         // gracias a nuestro enrutador, pero añadimos un fallback por seguridad.

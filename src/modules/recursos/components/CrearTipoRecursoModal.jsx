@@ -27,10 +27,16 @@ const ProgressBar = ({ progress }) => (
 const sugerencias = [
     { nombre: 'Estacionamiento', tipo: 'asignable' },
     { nombre: 'Maletero / Depósito', tipo: 'asignable' },
-    { nombre: 'Control Remoto (Garaje)', tipo: 'asignable' },
-    { nombre: 'Llave Magnética (Acceso)', tipo: 'asignable' },
-    { nombre: 'Taquilla / Casillero', tipo: 'asignable' },
+    { nombre: 'Control Remoto', tipo: 'asignable' },
+    { nombre: 'Llave Magnética', tipo: 'asignable' },
+    { nombre: 'Casillero', tipo: 'asignable' },
     { nombre: 'Bicicletero', tipo: 'asignable' },
+    { nombre: 'Sala de Reuniones', tipo: 'asignable' },
+    { nombre: 'Gimnasio', tipo: 'asignable' },
+    { nombre: 'Lavandería', tipo: 'asignable' },
+    { nombre: 'Piscina', tipo: 'asignable' },
+    { nombre: 'Jardín', tipo: 'asignable' },
+    { nombre: 'Ascensor', tipo: 'asignable' },
 ];
 
 /**
@@ -49,6 +55,8 @@ const CrearTipoRecursoModal = ({ onClose, onRecursosCreados }) => {
     const [progress, setProgress] = useState(0);
     /** @type {[Array<object>, function]} results - Almacena los resultados (éxito/error) de cada intento de creación para mostrarlos al final. */
     const [results, setResults] = useState([]);
+    /** @type {[boolean, function]} showAllSuggestions - Controla si mostrar todas las sugerencias o solo las principales. */
+    const [showAllSuggestions, setShowAllSuggestions] = useState(false);
 
     // --- REACT-HOOK-FORM SETUP ---
     const {
@@ -188,12 +196,23 @@ const CrearTipoRecursoModal = ({ onClose, onRecursosCreados }) => {
                     <div className="pt-4 border-t border-gray-700">
                         <h4 className="font-semibold text-gray-300 mb-3">O añade desde nuestras sugerencias:</h4>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            {sugerencias.map((sugerencia) => (
+                            {(showAllSuggestions ? sugerencias : sugerencias.slice(0, 6)).map((sugerencia) => (
                                 <button key={sugerencia.nombre} type="button" onClick={() => handleSugerenciaClick(sugerencia)} className="w-full h-full px-3 py-2 bg-gray-700 text-gray-200 rounded-md text-sm hover:bg-blue-600 hover:text-white transition-colors text-center">
                                     {sugerencia.nombre}
                                 </button>
                             ))}
                         </div>
+                        {sugerencias.length > 6 && (
+                            <div className="mt-3 text-center">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAllSuggestions(!showAllSuggestions)}
+                                    className={`${STYLES.buttonLink} text-sm`}
+                                >
+                                    {showAllSuggestions ? 'Ver menos' : `Ver ${sugerencias.length - 6} más`}
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                     {/* Botón de envío principal */}

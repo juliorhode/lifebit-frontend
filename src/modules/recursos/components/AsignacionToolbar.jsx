@@ -25,7 +25,7 @@ const AsignacionToolbar = ({ selectedCount, unidades, onAsignar, onDesasignar, o
     };
 
     return (
-        <div className="bg-gray-900 border-t-2 border-blue-800 p-4 flex flex-col md:flex-row items-center gap-4">
+        <div className="bg-gray-900 border-t-2 border-b-2 border-blue-800 p-4 flex flex-col md:flex-row items-center gap-4">
 
             {/* --- SECCIÓN IZQUIERDA: INFORMACIÓN (Sin cambios) --- */}
             <div className="text-white text-center md:text-left flex-shrink-0">
@@ -42,7 +42,7 @@ const AsignacionToolbar = ({ selectedCount, unidades, onAsignar, onDesasignar, o
                     className={`${STYLES.input} w-full`} // w-full para que llene su contenedor
                     disabled={seleccionContieneOcupados }
                 >
-                    <option value="" disabled>-- Asignar a... --</option>
+                    <option value="" disabled>Asignar a...</option>
                     {unidades.map(unidad => (
                         <option key={unidad.id} value={unidad.id}>{unidad.numero_unidad}</option>
                     ))}

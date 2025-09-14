@@ -8,20 +8,29 @@ import Modal from '../../../components/ui/Modal.jsx';
 import AsignacionSimpleModal from './AsignacionSimpleModal.jsx';
 import SearchBar from '../../../components/ui/SearchBar.jsx';
 
+
+/**
+ * @description Componente principal que orquesta la interfaz de asignación visual de recursos.
+ * Utiliza el hook `useAsignacionVisual` para toda la lógica de estado y delegando la renderización
+ * a componentes hijos como `RecursoCard`, `AsignacionToolbar` y `AsignacionSimpleModal`.
+ * @param {object} props
+ * @param {object} props.tipoRecurso - El tipo de recurso seleccionado sobre el cual se trabajará.
+ * @param {function} props.onGoBack - Callback para volver a la vista de tabla.
+ * @param {function} props.onSuccess - Callback que se ejecuta después de guardar cambios exitosamente, para notificar al componente padre.
+ */
 const AsignacionVisualPanel = ({ tipoRecurso, onGoBack, onSuccess }) => {
     const {
         isLoading, items, modo, setModo,
         selectedIds, toggleSelection, handleAsignar, handleDesasignar,
-        guardarCambios, descartarCambios, hayCambiosSinGuardar,
+        guardarCambios, descartarCambios, hayCambiosSinGuardar, clearSelection, searchTerm, setSearchTerm, // searchTerm viene del hook
         sesionGuardadaDetectada,
         restaurarSesion,
-        descartarSesionGuardada,
-        activateSelection,
-        deactivateSelection,
+        descartarSesionGuardada
     } = useAsignacionVisual(tipoRecurso);
 
     const [unidades, setUnidades] = useState([]);
     const [itemParaAsignar, setItemParaAsignar] = useState(null);
+    /** @type {[string, function]} terminoBusqueda - Almacena el texto actual del campo de búsqueda para filtrar los items. */
     const [terminoBusqueda, setTerminoBusqueda] = useState('');
 
     useEffect(() => {
@@ -34,48 +43,27 @@ const AsignacionVisualPanel = ({ tipoRecurso, onGoBack, onSuccess }) => {
         fetchUnidades();
     }, []);
 
-    const handleModeChange = (newMode) => {
-        if (modo !== newMode) {
-            if (newMode === 'simple') {
-                deactivateSelection();
-            } else {
-                activateSelection();
-            }
-            setModo(newMode);
-        }
-    };
-
-    const handleSimpleAction = async (action, itemIds, unidad = null) => {
-        let success = false;
-        if (action === 'asignar') {
-            success = await handleAsignar(itemIds, unidad);
-        } else {
-            success = await handleDesasignar(itemIds);
-        }
-
-        if (success) {
-            setItemParaAsignar(null);
-            if (onSuccess) onSuccess();
-        }
-    };
-
-    const handleGuardadoExitoso = async () => {
-        const success = await guardarCambios();
-        if (success && onSuccess) {
-            onSuccess();
-        }
-    };
-
     const handleAsignarMasivo = (unidadId) => {
         const unidad = unidades.find(u => u.id === unidadId);
         if (!unidad) return;
         handleAsignar(Array.from(selectedIds), unidad);
     };
 
+    const handleCancelarMasivo = () => {
+        clearSelection();
+    };
+
     const handleSimpleClick = (item) => {
         setItemParaAsignar(item);
     };
 
+    const handleGuardadoExitoso = () => {
+        guardarCambios().then(() => {
+            onSuccess();
+        });
+    };
+
+    // Filtra los items basado en el término de búsqueda para facilitar la localización.
     const itemsFiltrados = items.filter(item =>
         item.identificador_unico.toLowerCase().includes(terminoBusqueda.toLowerCase())
     );
@@ -87,6 +75,7 @@ const AsignacionVisualPanel = ({ tipoRecurso, onGoBack, onSuccess }) => {
     return (
         <>
             <div className="flex flex-col h-full bg-gray-900 p-6 rounded-lg">
+                {/* Notificación de sesión guardada detectada */}
                 {sesionGuardadaDetectada && (
                     <div className="bg-blue-900/50 border border-blue-700 p-3 rounded-lg mb-4 flex flex-col sm:flex-row items-center justify-between gap-3">
                         <p className="text-blue-200 text-center sm:text-left">
@@ -102,6 +91,7 @@ const AsignacionVisualPanel = ({ tipoRecurso, onGoBack, onSuccess }) => {
                         </div>
                     </div>
                 )}
+                {/* Header con título, descripción y controles de modo */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 flex-shrink-0">
                     <div>
                         <h3 className="font-semibold text-white">Gestión de Asignaciones Visual</h3>
@@ -110,27 +100,29 @@ const AsignacionVisualPanel = ({ tipoRecurso, onGoBack, onSuccess }) => {
                         </p>
                     </div>
                     <div className="flex items-center gap-4 mt-2 sm:mt-0">
-                        <div className="flex items-center bg-gray-800 rounded-lg p-1">
-                            <button onClick={() => handleModeChange('simple')} className={`px-3 py-1 text-sm rounded-md ${modo === 'simple' ? 'bg-blue-600 text-white' : 'text-gray-400'}`}>Simple</button>
-                            <button onClick={() => handleModeChange('masivo')} className={`px-3 py-1 text-sm rounded-md ${modo === 'masivo' ? 'bg-blue-600 text-white' : 'text-gray-400'}`}>Masivo</button>
+                        <div className="flex items-center bg-gray-900 rounded-lg p-1">
+                            <button onClick={() => setModo('simple')} className={`px-3 py-1 text-sm rounded-md ${modo === 'simple' ? 'bg-blue-600 text-white' : 'text-gray-400'}`}>Simple</button>
+                            <button onClick={() => setModo('masivo')} className={`px-3 py-1 text-sm rounded-md ${modo === 'masivo' ? 'bg-blue-600 text-white' : 'text-gray-400'}`}>Masivo</button>
                         </div>
                         <button onClick={onGoBack} className={STYLES.buttonLink}>Volver a Tabla</button>
                     </div>
                 </div>
+
+                {/* Barra de Búsqueda */}
                 <SearchBar
                     value={terminoBusqueda}
-                    onChange={(e) => setTerminoBusqueda(e.target.value)}
-                    placeholder='Buscar por identificador...'
-                    className='flex-shrink-0'
+                    onChange={(e) => setTerminoBusqueda(e.target.value)} // Actualiza el estado del término de búsqueda
+                    placeholder='Buscar por identificador...' // Texto del placeholder
                 />
-                <div className="flex-grow overflow-y-auto p-4 -mr-2 ">
+
+                <div className="flex-grow overflow-y-auto pr-2 -mr-2 mt-4">
                     {itemsFiltrados.length > 0 ? (
-                        // <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-4">
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mt-2">
                             {itemsFiltrados.map(item => (
                                 <RecursoCard
                                     key={item.id}
                                     item={item}
+                                    modo={modo}
                                     onClick={modo === 'masivo' ? toggleSelection : handleSimpleClick}
                                 />
                             ))}
@@ -141,13 +133,15 @@ const AsignacionVisualPanel = ({ tipoRecurso, onGoBack, onSuccess }) => {
                         </div>
                     )}
                 </div>
-                <div className="flex-shrink-0 pt-2  mt-auto ">
+
+                <div className="flex-shrink-0 pt-4 mt-4 border-t border-gray-700">
                     {modo === 'masivo' && selectedIds.size > 0 && (
                         <AsignacionToolbar
                             selectedCount={selectedIds.size}
                             unidades={unidades}
                             onAsignar={handleAsignarMasivo}
                             onDesasignar={() => handleDesasignar(Array.from(selectedIds))}
+                            onCancel={handleCancelarMasivo}
                         />
                     )}
                     {hayCambiosSinGuardar && (
@@ -158,6 +152,7 @@ const AsignacionVisualPanel = ({ tipoRecurso, onGoBack, onSuccess }) => {
                     )}
                 </div>
             </div>
+
             <Modal
                 isOpen={!!itemParaAsignar}
                 onClose={() => setItemParaAsignar(null)}
@@ -167,8 +162,8 @@ const AsignacionVisualPanel = ({ tipoRecurso, onGoBack, onSuccess }) => {
                     <AsignacionSimpleModal
                         item={itemParaAsignar}
                         unidades={unidades}
-                        onAsignar={(itemIds, unidad) => handleSimpleAction('asignar', itemIds, unidad)}
-                        onDesasignar={(itemIds) => handleSimpleAction('desasignar', itemIds)}
+                        onAsignar={handleAsignar}
+                        onDesasignar={handleDesasignar}
                         onClose={() => setItemParaAsignar(null)}
                     />
                 )}

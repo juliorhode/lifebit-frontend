@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import apiService from '../../../services/apiService';
+import { useAuthStore } from '../../../store/authStore';
+import { SETUP_STATES } from '../../../config/constants';
 import TiposRecursoPanel from '../components/TiposRecursoPanel';
 import GestionInventarioPanel from '../components/GestionInventarioPanel';
 import Modal from '../../../components/ui/Modal';
@@ -11,38 +13,26 @@ import FormularioEditarTipoRecurso from '../components/FormularioEditarTipoRecur
 import ConfirmacionEliminarTipo from '../components/ConfirmacionEliminarTipo';
 
 /**
- * @description
- * Página principal para la gestión de Recursos. Actúa como el componente contenedor que orquesta
- * la interacción entre el panel de tipos de recurso, el panel de gestión de inventario y los diversos
- * modales (crear tipo, generar inventario, cargar archivo).
+ * @description Página principal del módulo de recursos
+ * Permite gestionar tipos de recursos e inventarios del edificio
+ * Incluye funcionalidad condicional para el setup wizard
+ * @returns {JSX.Element} Componente de la página de recursos
  */
 const RecursosPage = () => {
+    // SETUP WIZARD: Hook para acceder al estado de autenticación y configuración
+    const { usuario, getProfile } = useAuthStore();
 
-    // --- ESTADO --- //
-
-    /** @type {[Array<object>, function]} tiposDeRecurso - Almacena la lista de todos los tipos de recurso (ej: Silla, Proyector) traídos de la API. */
     const [tiposDeRecurso, setTiposDeRecurso] = useState([]);
-    /** @type {[number|null, function]} tipoSeleccionadoId - Guarda el ID del tipo de recurso que el usuario ha seleccionado en el `TiposRecursoPanel`. */
     const [tipoSeleccionadoId, setTipoSeleccionadoId] = useState(null);
-    /** @type {[boolean, function]} isLoadingTipos - Controla el estado de carga para la obtención inicial de los tipos de recurso. */
     const [isLoadingTipos, setIsLoadingTipos] = useState(true);
-    /** @type {[boolean, function]} isCreateModalOpen - Controla la visibilidad del modal para crear un nuevo tipo de recurso. */
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    /** @type {[boolean, function]} isGeneradorModalOpen - Controla la visibilidad del modal para generar inventario secuencial. */
     const [isGeneradorModalOpen, setIsGeneradorModalOpen] = useState(false);
-    /** @type {[boolean, function]} isCargarModalOpen - Controla la visibilidad del modal para cargar inventario desde un archivo. */
     const [isCargarModalOpen, setIsCargarModalOpen] = useState(false);
-    /** @type {React.RefObject} gestionInventarioRef - Referencia al componente `GestionInventarioPanel` para poder invocar métodos en él (ej: `refrescar`). */
+    const [tipoAEditar, setTipoAEditar] = useState(null);
+    const [tipoAEliminar, setTipoAEliminar] = useState(null);
+    const [hasItemsGenerados, setHasItemsGenerados] = useState(false);
     const gestionInventarioRef = useRef();
 
-    const [tipoAEditar, setTipoAEditar] = useState(null); // Guardará el objeto a editar
-    const [tipoAEliminar, setTipoAEliminar] = useState(null); // Guardará el objeto a eliminar
-
-    // --- DATOS Y EFECTOS --- //
-
-    /**
-     * @description Obtiene la lista de todos los tipos de recurso desde el backend y actualiza el estado.
-     */
     const fetchTiposDeRecurso = async () => {
         setIsLoadingTipos(true);
         try {
@@ -50,22 +40,37 @@ const RecursosPage = () => {
             setTiposDeRecurso(response.data.data.tiposRecurso);
         } catch (error) {
             console.error("Error al obtener tipos de recurso:", error);
+            toast.error("No se pudo cargar la lista de tipos de recurso.");
         } finally {
             setIsLoadingTipos(false);
         }
     };
 
-    // Carga los tipos de recurso una vez cuando el componente se monta.
-    useEffect(() => { fetchTiposDeRecurso(); }, []);
+    useEffect(() => {
+        fetchTiposDeRecurso();
+    }, []);
 
-    /** @description Variable computada que encuentra el objeto completo del tipo de recurso seleccionado a partir de su ID. */
     const tipoSeleccionado = tiposDeRecurso.find(t => t.id === tipoSeleccionadoId) || null;
 
-    // --- MANEJADORES DE EVENTOS (HANDLERS) --- //
+    // SETUP WIZARD: Lógica condicional para mostrar botón de continuar
+    // Se requiere: tipos de recursos creados + items de inventario generados
+    const isInSetupWizard = usuario?.estado_configuracion === SETUP_STATES.PASO_2_RECURSOS;
+    const hasTiposRecursos = tiposDeRecurso.length > 0;
+    const hasRecursosCompletos = hasTiposRecursos && hasItemsGenerados;
+    const showContinueButton = isInSetupWizard && hasRecursosCompletos;
 
-    /**
-     * @description Handlers para cerrar modales y refrescar la lista
-     */
+    // SETUP WIZARD: Handler para avanzar al siguiente paso del setup
+    const handleContinuarASiguientePaso = async () => {
+        try {
+            await apiService.post('/admin/configuracion/avanzar-paso');
+            await getProfile(); // Refresca el perfil para actualizar estado_configuracion
+            toast.success('¡Paso completado! Continuando con la configuración...');
+        } catch (error) {
+            console.error('Error al avanzar al siguiente paso:', error);
+            toast.error('Error al avanzar al siguiente paso.');
+        }
+    };
+
     const handleModalSuccess = () => {
         setTipoAEditar(null);
         setTipoAEliminar(null);
@@ -79,48 +84,27 @@ const RecursosPage = () => {
         setIsCreateModalOpen(false);
     };
 
-    /**
-     * @description Callback que se ejecuta cuando el modal de creación de tipos se cierra exitosamente.
-     * Cierra el modal y refresca la lista de tipos para mostrar el nuevo.
-     */
-    const handleRecursosCreados = () => {
-        setIsCreateModalOpen(false);
-        fetchTiposDeRecurso();
-    };
-
-    /**
-     * @description Callback que se ejecuta cuando el generador de inventario termina exitosamente.
-     * Cierra el modal y llama al método `refrescar` del panel de inventario para mostrar los nuevos datos.
-     */
-    const handleInventarioGenerado = () => {
-        setIsGeneradorModalOpen(false);
-        if (gestionInventarioRef.current) {
-            gestionInventarioRef.current.refrescar();
-        }
-        toast.success('¡Inventario generado exitosamente!');
-    };
-
-    /**
-     * @description Callback que se ejecuta cuando se carga un inventario desde archivo exitosamente.
-     * Cierra los modales pertinentes y refresca el panel de inventario.
-     */
     const handleInventarioChange = () => {
         setIsGeneradorModalOpen(false);
         setIsCargarModalOpen(false);
         if (gestionInventarioRef.current) {
             gestionInventarioRef.current.refrescar();
         }
+        // SETUP WIZARD: Marcar que se han generado items de inventario
+        setHasItemsGenerados(true);
         toast.success('¡Inventario actualizado exitosamente!');
     };
 
-
-    // --- RENDERIZADO --- //
+    // AQUI VA EL CAMBIO: El handler que recibe la señal de éxito desde los paneles de asignación.
+    const handleInventarioActualizado = () => {
+        if (gestionInventarioRef.current) {
+            gestionInventarioRef.current.refrescar();
+        }
+    };
 
     return (
         <>
-            {/* Layout principal de la página, dividido en dos columnas en pantallas grandes. */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Columna Izquierda: Panel con la lista de tipos de recurso. */}
                 <div className="lg:col-span-1">
                     <TiposRecursoPanel
                         tipos={tiposDeRecurso}
@@ -133,29 +117,24 @@ const RecursosPage = () => {
                     />
                 </div>
 
-                {/* Columna Derecha: Panel que muestra el inventario del tipo seleccionado. */}
                 <div className="lg:col-span-2">
                     <GestionInventarioPanel
                         ref={gestionInventarioRef}
                         tipoSeleccionado={tipoSeleccionado}
                         onGenerarClick={() => setIsGeneradorModalOpen(true)}
                         onCargarClick={() => setIsCargarModalOpen(true)}
+                        // AQUI VA EL CAMBIO: Conectamos el handler al panel.
+                        onInventarioChange={handleInventarioActualizado}
                     />
                 </div>
             </div>
 
             {/* --- MODALES --- */}
 
-            {/* Modal para la Creación de Nuevos Tipos de Recurso */}
-            {/* <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Añadir Nuevos Tipos de Recurso">
-                <CrearTipoRecursoModal onClose={() => setIsCreateModalOpen(false)} onRecursosCreados={handleRecursosCreados} />
-            </Modal> */}
             <Modal isOpen={isCreateModalOpen} onClose={handleModalCancel} title="Añadir Nuevos Tipos de Recurso">
                 <CrearTipoRecursoModal onClose={handleModalCancel} onRecursosCreados={handleModalSuccess} />
             </Modal>
 
-            {/* Modal para editar el Tipo de Recurso */}
-            {/* Se renderiza solo si hay un `tipoAEditar` en el estado. */}
             {tipoAEditar && (
                 <Modal isOpen={!!tipoAEditar} onClose={handleModalCancel} title={`Modificar "${tipoAEditar.nombre}"`}>
                     <FormularioEditarTipoRecurso
@@ -166,8 +145,6 @@ const RecursosPage = () => {
                 </Modal>
             )}
 
-            {/* Modal para eliminar el Tipo de Recurso */}
-            {/* Se renderiza solo si hay un `tipoAEliminar` en el estado. */}
             {tipoAEliminar && (
                 <Modal isOpen={!!tipoAEliminar} onClose={handleModalCancel} title="Confirmar Eliminación">
                     <ConfirmacionEliminarTipo
@@ -178,27 +155,20 @@ const RecursosPage = () => {
                 </Modal>
             )}
 
-            {/* 
-              Los modales de generación y carga solo se renderizan si hay un tipo de recurso seleccionado,
-              ya que dependen de los datos de `tipoSeleccionado` para funcionar.
-            */}
             {tipoSeleccionado && (
                 <>
-                    {/* Modal para el Generador de Inventario Secuencial */}
                     <Modal
                         isOpen={isGeneradorModalOpen}
                         onClose={() => setIsGeneradorModalOpen(false)}
                         title="Generador de Inventario Secuencial"
-                        maxWidthClass="max-w-2xl"
                     >
                         <GeneradorInventarioModal
                             onClose={() => setIsGeneradorModalOpen(false)}
-                            onSuccess={handleInventarioGenerado}
+                            onSuccess={handleInventarioChange}
                             tipoRecurso={tipoSeleccionado}
                         />
                     </Modal>
 
-                    {/* Modal para Cargar Inventario desde Archivo */}
                     <Modal isOpen={isCargarModalOpen} onClose={() => setIsCargarModalOpen(false)} title={`Cargar Inventario para ${tipoSeleccionado.nombre}`}>
                         <CargarArchivoModal
                             onClose={() => setIsCargarModalOpen(false)}
@@ -207,6 +177,35 @@ const RecursosPage = () => {
                         />
                     </Modal>
                 </>
+            )}
+
+            {/* SETUP WIZARD: Botón condicional para continuar al siguiente paso */}
+            {showContinueButton && (
+                <div className="mt-8 flex justify-end">
+                    <button
+                        onClick={handleContinuarASiguientePaso}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-lg font-medium transition-all duration-200 hover:shadow-xl animate-pulse"
+                        title="Continuar al siguiente paso del setup"
+                    >
+                        <i className="fas fa-arrow-right mr-2"></i>
+                        Continuar a Residentes
+                    </button>
+                </div>
+            )}
+
+            {/* SETUP WIZARD: Mensaje informativo cuando no hay recursos completos */}
+            {isInSetupWizard && !hasRecursosCompletos && (
+                <div className="mt-8 p-4 bg-blue-900 bg-opacity-50 border border-blue-700 rounded-lg">
+                    <div className="flex items-center text-blue-200">
+                        <i className="fas fa-info-circle mr-3 text-blue-400"></i>
+                        <span>
+                            {!hasTiposRecursos
+                                ? "Crea al menos un tipo de recurso para poder continuar al siguiente paso del setup."
+                                : "Ahora genera items de inventario para los tipos de recursos creados usando 'Generar Secuencialmente' o 'Cargar desde Archivo'."
+                            }
+                        </span>
+                    </div>
+                </div>
             )}
         </>
     );

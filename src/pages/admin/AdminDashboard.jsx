@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore.js';
 import { SETUP_STATES } from '../../config/constants.js';
 import SetupNotification from '../../components/ui/SetupNotification.jsx';
+import IndicadorProgresoResidentes from '../../components/ui/IndicadorProgresoResidentes.jsx';
 
 const AdminDashboard = () => {
     const usuario = useAuthStore((state) => state.usuario);
@@ -18,6 +19,9 @@ const AdminDashboard = () => {
                     onContinue={() => navigate('/dashboard/setup')}
                 />
             )}
+
+            {/* INDICADOR DE PROGRESO DE RESIDENTES: Aparece cuando setup completo pero faltan residentes */}
+            <IndicadorProgresoResidentes />
 
             <h1 className="text-3xl font-bold text-white">
                 Dashboard Principal del Administrador
