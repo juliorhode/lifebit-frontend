@@ -49,7 +49,7 @@ const GestionInventarioPanel = forwardRef(({ tipoSeleccionado, onGenerarClick, o
     if (!tipoSeleccionado) {
         return (
             <div className={`${STYLES.card} h-full flex items-center justify-center text-center`}>
-                <div className="text-gray-500">
+                <div className="text-gray-600 dark:text-gray-500">
                     <h2 className="text-xl font-semibold">Panel de Gestión de Inventario</h2>
                     <p className="mt-1">← Selecciona un tipo de recurso para comenzar.</p>
                 </div>
@@ -89,9 +89,9 @@ const GestionInventarioPanel = forwardRef(({ tipoSeleccionado, onGenerarClick, o
                 </button>
             </div>
 
-            <div className="border-t border-gray-700 pt-4 flex-grow flex flex-col min-w-0">
+            <div className="border-t border-gray-300 dark:border-gray-700 pt-4 flex-grow flex flex-col min-w-0">
                 <div className="flex justify-between items-center mb-2 flex-shrink-0">
-                    <h3 className="font-semibold text-white">Inventario Actual ({inventarioFiltrado.length})</h3>
+                    <h3 className="font-semibold text-gray-700 dark:text-white">Inventario Actual ({inventarioFiltrado.length})</h3>
                     {inventarioFiltrado.length > 0 && (
                         <button onClick={() => setVistaActual('visual')} className={`${STYLES.buttonLink} flex items-center gap-1`}>
                             <FiEye /> Gestionar Asignaciones
@@ -101,14 +101,14 @@ const GestionInventarioPanel = forwardRef(({ tipoSeleccionado, onGenerarClick, o
                 <div className="flex-grow overflow-y-auto">
                     <div className="overflow-x-auto">
                         {isLoading ? (
-                            <p className="text-gray-400">Cargando inventario...</p>
+                            <p className="text-gray-600 dark:text-gray-400">Cargando inventario...</p>
                         ) : error ? (
                             <p className={STYLES.errorText}>{error}</p>
                         ) : inventario.length > 0 ? (
                             inventarioFiltrado.length > 0 ? (
-                                <table className="w-full text-left text-sm text-gray-300 table-fixed">
+                                <table className="w-full text-left text-sm text-gray-600 dark:text-gray-300 table-fixed">
                                     <colgroup><col className="w-2/3" /><col className="w-1/3" /></colgroup>
-                                    <thead className="border-b border-gray-700">
+                                    <thead className="border-b border-gray-300 dark:border-gray-700">
                                         <tr>
                                             <th className="py-2 px-2">Identificador</th>
                                             <th className="py-2 px-2">Propietario</th>
@@ -116,7 +116,7 @@ const GestionInventarioPanel = forwardRef(({ tipoSeleccionado, onGenerarClick, o
                                     </thead>
                                     <tbody>
                                         {inventarioFiltrado.map(item => (
-                                            <tr key={item.id} className="border-b border-gray-800">
+                                            <tr key={item.id} className="border-b border-gray-200 dark:border-gray-800">
                                                 <td className="py-2 px-2 font-mono truncate">{item.identificador_unico}</td>
                                                 <td className="py-2 px-2 truncate">{item.nombre_unidad_propietaria || <span className="text-gray-500">Sin Asignar</span>}</td>
                                             </tr>
@@ -124,10 +124,10 @@ const GestionInventarioPanel = forwardRef(({ tipoSeleccionado, onGenerarClick, o
                                     </tbody>
                                 </table>
                             ) : (
-                                <p className="text-gray-400 text-center py-8">No se encontraron resultados para "{terminoBusqueda}".</p>
+                                <p className="text-gray-600 dark:text-gray-400 text-center py-8">No se encontraron resultados para "{terminoBusqueda}".</p>
                             )
                         ) : (
-                            <p className="text-gray-400 text-center py-8">Aún no hay inventario para este tipo de recurso.</p>
+                            <p className="text-gray-600 dark:text-gray-400 text-center py-8">Aún no hay inventario para este tipo de recurso.</p>
                         )}
                     </div>
                 </div>

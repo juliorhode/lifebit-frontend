@@ -52,14 +52,14 @@ const getIconoDinamico = (tipo, estado) => {
 const cardStates = {
     /** Estado para un recurso que no está asignado a ninguna unidad. */
     disponible: {
-        bg: 'bg-gray-800 border-gray-700',
+        bg: 'bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-700',
         glow: 'hover:border-green-500 hover:shadow-[0_0_15px_rgba(34,197,94,0.5)]',
         iconColor: 'text-green-400',
         icon: <FaCar size={28} />,
     },
     /** Estado para un recurso que ya está asignado a una unidad. */
     ocupado: {
-        bg: 'bg-gray-800 border-red-800/50',
+        bg: 'bg-gray-50 dark:bg-gray-800 border-red-300 dark:border-red-800/50',
         glow: 'hover:border-red-600',
         iconColor: 'text-red-400',
         icon: <FaHome size={28} />,
@@ -103,7 +103,7 @@ const RecursoCard = ({ item, onClick }) => {
         >
             {/* Sección superior: Muestra el identificador único del recurso y el ícono de 'check' si está seleccionado. */}
             <div className="flex justify-center items-center h-8">
-                <p className="font-bold text-lg text-white">{item.identificador_unico}</p>
+                <p className="font-bold text-lg text-gray-700 dark:text-white">{item.identificador_unico}</p>
 
                 {/* El ícono de check solo es visible cuando el estado es 'seleccionado' */}
                 {item.estado === 'seleccionado' && (

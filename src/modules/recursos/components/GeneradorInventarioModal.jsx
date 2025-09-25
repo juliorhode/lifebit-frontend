@@ -205,7 +205,7 @@ const GeneradorInventarioModal = ({ onClose, onSuccess, tipoRecurso }) => {
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
             <h2 className={STYLES.titleSection}>Generador Secuencial: <span className="text-blue-400">{tipoRecurso.nombre}</span></h2>
-            <p className="text-gray-400 mt-1 mb-6">Construye el patrón, define la cantidad y previsualiza el resultado.</p>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 mb-6">Construye el patrón, define la cantidad y previsualiza el resultado.</p>
 
             <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={pointerWithin} sensors={sensors}>
                 <div className="flex flex-col md:flex-row gap-6">
@@ -215,7 +215,7 @@ const GeneradorInventarioModal = ({ onClose, onSuccess, tipoRecurso }) => {
                             {/* Se añade `min-h-[255px]` para asegurar que el contenedor de la paleta no se encoja. */}
                             <div className="mt-4 space-y-3 min-h-[255px]">
                                 <div>
-                                    <p className="text-sm font-semibold text-gray-400 mb-2">Contadores</p>
+                                    <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">Contadores</p>
                                     <div className="grid grid-cols-2 gap-2">
                                         {bloquesContador.map(item => paletteItems.some(p => p.id === item.id) &&
                                             <DraggableItem key={item.id} id={item.id} text={item.text()} />
@@ -223,7 +223,7 @@ const GeneradorInventarioModal = ({ onClose, onSuccess, tipoRecurso }) => {
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-sm font-semibold text-gray-400 mb-2">Personalizado</p>
+                                    <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">Personalizado</p>
                                     <div className="grid grid-cols-1 gap-2">
                                         {bloquesTexto.map(item => <DraggableItem key={item.id} id={item.id} text={item.text()} />)}
                                     </div>
@@ -246,14 +246,14 @@ const GeneradorInventarioModal = ({ onClose, onSuccess, tipoRecurso }) => {
                             </div>
                         </Container>
                         {/* Panel de Previsualización */}
-                        <div className="p-4 bg-gray-800 rounded-lg min-h-[150px]">
-                            <h3 className="font-semibold text-white">Previsualización</h3>
+                        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg min-h-[150px]">
+                            <h3 className="font-semibold text-gray-700 dark:text-gray-700 dark:text-white">Previsualización</h3>
                             {preview.length > 0 ? (
-                                <div className="mt-2 text-gray-400 text-sm">
-                                    <p className="mb-2">Se generarán <span className="font-bold text-white">{cantidad || 0}</span> items.</p>
+                                <div className="mt-2 text-gray-600 dark:text-gray-400 text-sm">
+                                    <p className="mb-2">Se generarán <span className="font-bold text-gray-700 dark:text-white">{cantidad || 0}</span> items.</p>
                                     <p>Ejemplos:</p>
                                     <div className="flex flex-wrap gap-2 mt-2">
-                                        {preview.slice(0, 5).map((example, index) => <span key={index} className="font-mono bg-gray-700 px-2 py-1 rounded text-xs">{example}</span>)}
+                                        {preview.slice(0, 5).map((example, index) => <span key={index} className="font-mono bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded text-xs">{example}</span>)}
                                         {preview.length > 5 && <span className="font-mono text-xs">... y más</span>}
                                     </div>
                                 </div>
@@ -266,7 +266,7 @@ const GeneradorInventarioModal = ({ onClose, onSuccess, tipoRecurso }) => {
             </DndContext>
 
             {/* Inputs para Cantidad y Número de Inicio */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6 pt-6 border-t border-gray-700">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6 pt-6 border-t border-gray-300 dark:border-gray-700">
                 <div>
                     <label className={STYLES.label}>Cantidad a Generar</label>
                     <input type="number" {...register("cantidad")} className={STYLES.input} />

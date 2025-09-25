@@ -151,7 +151,8 @@ const CrearTipoRecursoModal = ({ onClose, onRecursosCreados }) => {
 
                                 {/* Columna 1: Input (se estira) */}
                                 <div>
-                                    <input {...register(`tipos.${index}.nombre`)} placeholder="Nombre del Recurso" className={STYLES.input} />
+                                    <label htmlFor={`tipo-nombre-${index}`} className={STYLES.label}>Nombre del Recurso</label>
+                                    <input {...register(`tipos.${index}.nombre`)} id={`tipo-nombre-${index}`} placeholder="Nombre del Recurso" className={STYLES.input} />
                                     {errors.tipos?.[index]?.nombre && <p className={STYLES.errorText}>{errors.tipos[index].nombre.message}</p>}
                                 </div>
 
@@ -164,8 +165,8 @@ const CrearTipoRecursoModal = ({ onClose, onRecursosCreados }) => {
                                 </div>
 
                                 {/* Columna 3: Botón (ancho automático) */}
-                                <button type="button" onClick={() => remove(index)} className="p-3 text-gray-400 hover:text-red-500 h-full flex items-center">
-                                    <FiTrash2 />
+                                <button type="button" onClick={() => remove(index)} aria-label="Eliminar tipo de recurso" className="p-3 text-gray-400 hover:text-red-500 h-full flex items-center">
+                                    <FiTrash2 aria-hidden="true" />
                                 </button>
                             </div>
                         ))}

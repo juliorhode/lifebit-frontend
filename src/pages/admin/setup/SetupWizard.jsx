@@ -17,7 +17,7 @@ const SetupWizard = () => {
     if (!usuario || !usuario.estado_configuracion) {
         return (
             <div className="flex h-full w-full items-center justify-center">
-                <p className="text-white">Cargando información de configuración...</p>
+                <p className="text-gray-900 dark:text-white">Cargando información de configuración...</p>
             </div>
         );
     }
@@ -37,7 +37,7 @@ const SetupWizard = () => {
         // gracias a nuestro enrutador, pero añadimos un fallback por seguridad.
         default:
             return (
-                <div className="text-white">
+                <div className="text-gray-900 dark:text-white">
                     Estado de configuración desconocido o ya completado: {usuario.estado_configuracion}
                 </div>
             );

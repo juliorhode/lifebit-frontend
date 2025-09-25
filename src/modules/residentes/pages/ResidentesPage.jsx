@@ -9,36 +9,50 @@ import InvitarResidenteModal from '../components/InvitarResidenteModal';
 import InvitarResidentesMasivoModal from '../components/InvitarResidentesMasivoModal';
 import EstadisticasResidentes from '../components/EstadisticasResidentes';
 import BorradoresPanel from '../components/BorradoresPanel';
+import { useGestionResidentes } from '../hooks/useGestionResidentes';
 
 /**
  * @description Página principal del módulo de residentes
+ * Componente presentacional que delega toda la lógica al hook useGestionResidentes
  * Proporciona interfaz completa para gestión de residentes del edificio
- * Incluye invitaciones, listado, estadísticas y sistema de borradores
  * @returns {JSX.Element} Componente de la página principal de residentes
  */
 const ResidentesPage = () => {
     // STORE: Acceso al estado global de autenticación
     const { usuario, getProfile } = useAuthStore();
 
-    // STATE: Gestión del estado local del componente
-    const [residentes, setResidentes] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isInvitarModalOpen, setIsInvitarModalOpen] = useState(false);
-    const [isMasivoModalOpen, setIsMasivoModalOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [filtroEstado, setFiltroEstado] = useState('todos');
-    const [datosBorrador, setDatosBorrador] = useState(null);
-    const [ultimaActualizacion, setUltimaActualizacion] = useState(null);
-    const [tiempoIndicador, setTiempoIndicador] = useState(Date.now()); // Para forzar actualización del indicador
-    const [residenteEditando, setResidenteEditando] = useState(null);
-    const [isSuspenderModalOpen, setIsSuspenderModalOpen] = useState(false);
-    const [residenteASuspender, setResidenteASuspender] = useState(null);
-    const [eliminandoId, setEliminandoId] = useState(null);
+    // HOOK: Toda la lógica de gestión de residentes centralizada
+    const {
+        residentesFiltrados,
+        estadisticas,
+        isLoading,
+        ultimaActualizacion,
+        searchTerm,
+        setSearchTerm,
+        filtroEstado,
+        setFiltroEstado,
+        isInvitarModalOpen,
+        isMasivoModalOpen,
+        isSuspenderModalOpen,
+        residenteEditando,
+        residenteASuspender,
+        datosBorrador,
+        handleOpenInvitarModal,
+        handleCargarBorrador, // ✅ NUEVO: Función del hook para cargar borradores
+        setIsMasivoModalOpen,
+        handleEditarResidente,
+        handleSuspenderResidente,
+        handleCloseModals,
+        confirmarCambioEstado,
+        eliminandoId,
+        handleInvitacionExitosa,
+        handleBorradorGuardado, // ✅ NUEVO: Función para refrescar panel de borradores
+        cargarResidentes,
+        borradoresRefreshTrigger, // ✅ NUEVO: Trigger para refrescar borradores
+    } = useGestionResidentes();
 
-    // CARGA INICIAL: Obtener lista de residentes al montar componente
-    useEffect(() => {
-        cargarResidentes();
-    }, []);
+    // STATE: Lógica específica de UI que no pertenece al hook
+    const [tiempoIndicador, setTiempoIndicador] = useState(Date.now()); // Para forzar actualización del indicador
 
     // POLLING AUTOMÁTICO: Actualizar datos cada 10 minutos cuando la pestaña esté visible
     useEffect(() => {
@@ -65,7 +79,7 @@ const ResidentesPage = () => {
     useEffect(() => {
         // Si estamos en el paso 3 del setup wizard y ya hay residentes, completar automáticamente
         const isInSetupWizard = usuario?.estado_configuracion === SETUP_STATES.PASO_3_RESIDENTES;
-        const hasResidentes = residentes.length > 0;
+        const hasResidentes = estadisticas.total > 0;
 
         if (isInSetupWizard && hasResidentes) {
             const completarSetupAutomaticamente = async () => {
@@ -79,25 +93,7 @@ const ResidentesPage = () => {
             };
             completarSetupAutomaticamente();
         }
-    }, [residentes.length, usuario?.estado_configuracion, getProfile]);
-
-    /**
-     * @description Carga la lista completa de residentes desde la API
-     * @async
-     */
-    const cargarResidentes = async () => {
-        try {
-            setIsLoading(true);
-            const response = await apiService.get('/admin/residentes');
-            setResidentes(response.data.data || []);
-            setUltimaActualizacion(new Date());
-        } catch (error) {
-            console.error('Error al cargar residentes:', error);
-            toast.error('Error al cargar la lista de residentes');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    }, [estadisticas.total, usuario?.estado_configuracion, getProfile]);
 
     /**
      * @description Carga silenciosamente los residentes para polling automático
@@ -109,93 +105,29 @@ const ResidentesPage = () => {
             const response = await apiService.get('/admin/residentes');
             const nuevosDatos = response.data.data || [];
 
-            // Detectar cambios en el estado de los residentes
-            const cambiosDetectados = detectarCambiosEstado(residentes, nuevosDatos);
-
             // Verificar si hay cambios en la cantidad de residentes o en los datos
-            const hayCambios = cambiosDetectados.length > 0 ||
-                              residentes.length !== nuevosDatos.length ||
-                              JSON.stringify(residentes) !== JSON.stringify(nuevosDatos);
+            const hayCambios = estadisticas.total !== nuevosDatos.length ||
+                              JSON.stringify(estadisticas) !== JSON.stringify({
+                                  total: nuevosDatos.length,
+                                  activos: nuevosDatos.filter(r => r.estado === 'activo').length,
+                                  pendientes: nuevosDatos.length - nuevosDatos.filter(r => r.estado === 'activo').length
+                              });
 
             if (hayCambios) {
-                setResidentes(nuevosDatos);
-                setUltimaActualizacion(new Date());
+                // Recargar usando el hook
+                cargarResidentes();
 
                 // Mostrar notificación de actualización (solo si hay cambios)
-                mostrarNotificacionActualizacion();
-
-                // Notificaciones específicas de cambios deshabilitadas para evitar spam
+                const residentesInactivos = nuevosDatos.length - nuevosDatos.filter(r => r.estado === 'activo').length;
+                if (residentesInactivos > 0) {
+                    toast.info(`Datos actualizados - ${residentesInactivos} residente${residentesInactivos > 1 ? 's' : ''} pendiente${residentesInactivos > 1 ? 's' : ''} de activación`, {
+                        duration: 3000 // 3 segundos
+                    });
+                }
             }
         } catch (error) {
             console.error('Error en polling silencioso:', error);
             // No mostrar error al usuario para polling silencioso
-        }
-    };
-
-    /**
-     * @description Detecta cambios en el estado de activación de residentes
-     * @param {Array} datosActuales - Lista actual de residentes (con campo 'estado')
-     * @param {Array} datosNuevos - Lista nueva de residentes (con campo 'estado')
-     * @returns {Array} Lista de cambios detectados
-     */
-    const detectarCambiosEstado = (datosActuales, datosNuevos) => {
-        const cambios = [];
-
-        // Crear mapa de residentes actuales por ID
-        const mapaActual = new Map(datosActuales.map(r => [r.id, r]));
-
-        // Comparar con nuevos datos
-        datosNuevos.forEach(residenteNuevo => {
-            const residenteActual = mapaActual.get(residenteNuevo.id);
-
-            if (residenteActual) {
-                // Verificar cambio de estado activo
-                if (residenteActual.estado !== residenteNuevo.estado) {
-                    cambios.push({
-                        id: residenteNuevo.id,
-                        nombre: residenteNuevo.nombre,
-                        email: residenteNuevo.email,
-                        cambio: residenteNuevo.estado === 'activo' ? 'activado' : 'desactivado',
-                        anterior: residenteActual.estado === 'activo',
-                        nuevo: residenteNuevo.estado === 'activo'
-                    });
-                }
-            } else {
-                // Detectar residentes nuevos que aparecen como activos
-                // Esto indica que se activaron recientemente
-                if (residenteNuevo.estado === 'activo') {
-                    cambios.push({
-                        id: residenteNuevo.id,
-                        nombre: residenteNuevo.nombre,
-                        email: residenteNuevo.email,
-                        cambio: 'activado',
-                        anterior: false, // Asumimos que era inactivo antes
-                        nuevo: true
-                    });
-                }
-            }
-        });
-
-        return cambios;
-    };
-
-    // Función de notificaciones específicas deshabilitada para evitar spam
-    // Solo se usan las notificaciones generales de actualización
-
-    /**
-     * @description Muestra notificación de actualización de datos
-     * Solo cuando hay cambios en los datos (no cada polling)
-     */
-    const mostrarNotificacionActualizacion = () => {
-        const totalResidentes = residentes.length;
-        const residentesActivos = residentes.filter(r => r.estado === 'activo').length;
-        const residentesInactivos = totalResidentes - residentesActivos;
-
-        // Solo mostrar si hay residentes inactivos (pendientes)
-        if (residentesInactivos > 0) {
-            toast.info(`Datos actualizados - ${residentesInactivos} residente${residentesInactivos > 1 ? 's' : ''} pendiente${residentesInactivos > 1 ? 's' : ''} de activación`, {
-                duration: 3000 // 3 segundos
-            });
         }
     };
 
@@ -220,121 +152,8 @@ const ResidentesPage = () => {
         return fecha.toLocaleString();
     };
 
-    /**
-     * @description Maneja la carga de un borrador desde el panel
-     * @param {Object} datos - Datos del borrador a cargar
-     */
-    const handleCargarBorrador = (datos) => {
-        setDatosBorrador(datos);
-        setResidenteEditando(null); // No estamos editando
-        setIsInvitarModalOpen(true);
-    };
-
-    /**
-     * @description Maneja la edición de un residente
-     * @param {Object} residente - Datos del residente a editar (desde la lista)
-     */
-    const handleEditarResidente = async (residente) => {
-        try {
-            // Obtener la lista de unidades para mapear numero_unidad a id
-            const response = await apiService.get('/admin/unidades');
-            const unidades = response.data.data?.unidades || [];
-
-            // Encontrar la unidad correspondiente por numero_unidad
-            const unidadCorrespondiente = unidades.find(unidad => unidad.numero_unidad === residente.numero_unidad);
-            const unidadId = unidadCorrespondiente ? unidadCorrespondiente.id : '';
-
-            // Mapear los datos al formato esperado por el formulario
-            const datosMapeados = {
-                nombre: residente.nombre || '',
-                apellido: residente.apellido || '',
-                email: residente.email || '',
-                cedula: residente.cedula || '',
-                telefono: residente.telefono || '',
-                unidad_id: residente.numero_unidad // Mantener el numero_unidad (string) para preselección
-            };
-
-            setResidenteEditando(residente); // Guardar datos del residente para referencia
-            setDatosBorrador(datosMapeados); // Precargar formulario
-            setIsInvitarModalOpen(true);
-        } catch (error) {
-            console.error('Error al cargar unidades para edición:', error);
-            toast.error('Error al preparar la edición del residente');
-        }
-    };
-
-    /**
-     * @description Maneja la suspensión de un residente
-     * @param {Object} residente - Datos del residente a suspender
-     */
-    const handleSuspenderResidente = (residente) => {
-        setResidenteASuspender(residente);
-        setIsSuspenderModalOpen(true);
-    };
-
-    /**
-     * @description Confirma y ejecuta la suspensión o reactivación del residente
-     */
-    const confirmarCambioEstado = async () => {
-        if (!residenteASuspender) return;
-
-        const esSuspension = residenteASuspender.estado !== 'suspendido';
-
-        try {
-            setEliminandoId(residenteASuspender.id);
-            setIsSuspenderModalOpen(false);
-
-            if (esSuspension) {
-                // SUSPENDER: Usar DELETE que cambia estado a 'suspendido'
-                await apiService.delete(`/admin/residentes/${residenteASuspender.id}`);
-                toast.success(`Residente ${residenteASuspender.nombre} suspendido exitosamente`);
-            } else {
-                // REACTIVAR: Usar PATCH para cambiar estado a 'activo'
-                await apiService.patch(`/admin/residentes/${residenteASuspender.id}`, {
-                    estado: 'activo'
-                });
-                toast.success(`Residente ${residenteASuspender.nombre} reactivado exitosamente`);
-            }
-
-            cargarResidentes(); // Recargar la lista
-        } catch (error) {
-            console.error(`Error al ${esSuspension ? 'suspender' : 'reactivar'} residente:`, error);
-            toast.error(`Error al ${esSuspension ? 'suspender' : 'reactivar'} el residente`);
-        } finally {
-            setEliminandoId(null);
-            setResidenteASuspender(null);
-        }
-    };
-
-    /**
-     * @description Maneja el éxito de una invitación individual o edición
-     * Recarga la lista, muestra mensaje de éxito y verifica auto-completado del setup wizard
-     */
-    const handleInvitacionExitosa = async () => {
-        cargarResidentes();
-        setIsInvitarModalOpen(false);
-        setDatosBorrador(null); // Limpiar datos del borrador
-        setResidenteEditando(null); // Limpiar residente editando
-
-        const mensaje = residenteEditando ? 'Residente actualizado exitosamente' : 'Invitación enviada exitosamente';
-        toast.success(mensaje);
-
-        // SETUP WIZARD: Auto-completar si estamos en el paso de invitar residentes (solo para nuevas invitaciones)
-        if (!residenteEditando) {
-            const isInSetupWizard = usuario?.estado_configuracion === SETUP_STATES.PASO_3_RESIDENTES;
-
-            if (isInSetupWizard) {
-                try {
-                    await apiService.post('/admin/configuracion/avanzar-paso');
-                    await getProfile(); // Refrescar perfil para actualizar estado_configuracion
-                    toast.success('¡Residente invitado! Setup completado.');
-                } catch (error) {
-                    console.error('Error al completar setup wizard:', error);
-                    toast.error('Error al completar la configuración automática.');
-                }
-            }
-        }
-    };
+    // ✅ REMOVIDO: La función handleCargarBorrador ahora viene del hook useGestionResidentes
+    // Esto asegura que los datos del borrador se manejen correctamente
 
     /**
      * @description Maneja el éxito de invitaciones masivas
@@ -355,32 +174,16 @@ const ResidentesPage = () => {
         }
     };
 
-    /**
-     * @description Filtra residentes según término de búsqueda y estado
-     * @returns {Array} Lista filtrada de residentes
-     */
-    const residentesFiltrados = residentes.filter(residente => {
-        const coincideBusqueda = residente.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                residente.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                residente.numero_unidad?.toLowerCase().includes(searchTerm.toLowerCase());
-
-        const coincideEstado = filtroEstado === 'todos' ||
-                              (filtroEstado === 'activos' && residente.estado === 'activo') ||
-                              (filtroEstado === 'inactivos' && residente.estado !== 'activo');
-
-        return coincideBusqueda && coincideEstado;
-    });
-
     return (
         <div className="space-y-6">
             {/* HEADER: Título y acciones principales */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Gestión de Residentes</h1>
-                    <p className="text-gray-400 mt-1">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gestión de Residentes</h1>
+                    <p className="text-gray-600 dark:text-gray-400 mt-1">
                         Administra las invitaciones de los residentes de tu edificio.
                         {ultimaActualizacion && tiempoIndicador && (
-                            <span className="ml-2 text-xs text-gray-500">
+                            <span className="ml-2 text-xs text-gray-900 dark:text-white">
                                 • Datos actualizados {formatearTiempoRelativo(ultimaActualizacion)}
                             </span>
                         )}
@@ -389,10 +192,7 @@ const ResidentesPage = () => {
 
                 <div className="flex gap-3">
                     <button
-                        onClick={() => {
-                            setDatosBorrador(null); // Limpiar datos de borrador
-                            setIsInvitarModalOpen(true);
-                        }}
+                        onClick={handleOpenInvitarModal}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
                     >
                         <i className="fas fa-plus mr-2"></i>
@@ -411,12 +211,15 @@ const ResidentesPage = () => {
 
             {/* ESTADÍSTICAS: Panel con métricas generales */}
             <EstadisticasResidentes
-                residentes={residentes}
+                residentes={residentesFiltrados}
                 isLoading={isLoading}
             />
 
             {/* BORRADORES: Panel de invitaciones pendientes (si existen) */}
-            <BorradoresPanel onCargarBorrador={handleCargarBorrador} />
+            <BorradoresPanel
+                onCargarBorrador={handleCargarBorrador}
+                refreshTrigger={borradoresRefreshTrigger} // ✅ NUEVO: Trigger para refrescar
+            />
 
             {/* LISTA DE RESIDENTES: Tabla con filtros y búsqueda */}
             <ListaResidentes
@@ -435,11 +238,7 @@ const ResidentesPage = () => {
             {/* MODALES: Formularios de invitación */}
             <Modal
                 isOpen={isInvitarModalOpen}
-                onClose={() => {
-                    setIsInvitarModalOpen(false);
-                    setDatosBorrador(null); // Limpiar datos al cerrar
-                    setResidenteEditando(null); // Limpiar residente editando
-                }}
+                onClose={handleCloseModals}
                 title={
                     residenteEditando ? "Editar Residente" :
                     datosBorrador ? "Continuar Invitación" :
@@ -447,12 +246,12 @@ const ResidentesPage = () => {
                 }
             >
                 <InvitarResidenteModal
-                    onClose={() => {
-                        setIsInvitarModalOpen(false);
-                        setDatosBorrador(null);
-                        setResidenteEditando(null);
+                    onClose={handleCloseModals}
+                    onSuccess={() => {
+                        handleInvitacionExitosa();
+                        handleBorradorGuardado();
                     }}
-                    onSuccess={handleInvitacionExitosa}
+                    onBorradorGuardado={handleBorradorGuardado} // ✅ NUEVO: Para refrescar panel
                     initialData={datosBorrador}
                     residenteEditando={residenteEditando}
                 />
@@ -472,25 +271,22 @@ const ResidentesPage = () => {
             {/* MODAL DE GESTIÓN DE ESTADO */}
             <Modal
                 isOpen={isSuspenderModalOpen}
-                onClose={() => {
-                    setIsSuspenderModalOpen(false);
-                    setResidenteASuspender(null);
-                }}
+                onClose={handleCloseModals}
                 title={residenteASuspender?.estado === 'suspendido' ? "Reactivar Residente" : "Suspender Residente"}
             >
                 <div className="space-y-4">
                     <div className="text-center">
-                        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4"
+                        {/* <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4"
                              style={{ backgroundColor: residenteASuspender?.estado === 'suspendido' ? '#10b981' : '#f97316' }}>
                             <i className={`fas ${residenteASuspender?.estado === 'suspendido' ? 'fa-user-check' : 'fa-exclamation-triangle'} text-white text-lg`}></i>
-                        </div>
-                        <h3 className="text-lg font-medium text-white mb-2">
+                        </div> */}
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                             {residenteASuspender?.estado === 'suspendido'
                                 ? "¿Estás seguro de reactivar a este residente?"
                                 : "¿Estás seguro de suspender a este residente?"
                             }
                         </h3>
-                        <p className="text-gray-400 text-sm mb-4">
+                        <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
                             {residenteASuspender?.estado === 'suspendido'
                                 ? `El residente ${residenteASuspender?.nombre} ${residenteASuspender?.apellido} recuperará acceso a la plataforma.`
                                 : `El residente ${residenteASuspender?.nombre} ${residenteASuspender?.apellido} perderá acceso temporalmente a la plataforma.`
@@ -514,11 +310,8 @@ const ResidentesPage = () => {
 
                     <div className="flex gap-3 justify-end">
                         <button
-                            onClick={() => {
-                                setIsSuspenderModalOpen(false);
-                                setResidenteASuspender(null);
-                            }}
-                            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors duration-200"
+                            onClick={handleCloseModals}
+                            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-lg font-medium transition-colors duration-200"
                         >
                             Cancelar
                         </button>

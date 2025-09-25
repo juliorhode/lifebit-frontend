@@ -107,9 +107,15 @@ const CargarArchivoModal = ({ onClose, onSuccess, tipoRecurso }) => {
                     </p>
 
                     {/* Contenedor de la zona para arrastrar y soltar archivos */}
-                    <div {...getRootProps()} className={`relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isDragActive ? 'border-blue-500 bg-blue-900/50' : 'border-gray-600 hover:border-blue-500'}`}>
+                    <div
+                        {...getRootProps()}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Seleccionar archivo Excel para cargar inventario. Formatos aceptados: .xlsx o .xls"
+                        className={`relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isDragActive ? 'border-blue-500 bg-blue-900/50' : 'border-gray-600 hover:border-blue-500'}`}
+                    >
                         {/* Input de archivo real, es invisible y controlado por react-dropzone */}
-                        <input {...getInputProps()} />
+                        <input {...getInputProps()} aria-label="Archivo de inventario" />
                         <FiUploadCloud className="mx-auto h-12 w-12 text-gray-500" />
                         <p className="font-semibold text-blue-400 mt-2">
                             Arrastra tu archivo aquí o haz clic para seleccionar

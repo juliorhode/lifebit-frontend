@@ -25,10 +25,10 @@ const AsignacionToolbar = ({ selectedCount, unidades, onAsignar, onDesasignar, o
     };
 
     return (
-        <div className="bg-gray-900 border-t-2 border-b-2 border-blue-800 p-4 flex flex-col md:flex-row items-center gap-4">
+        <div className="bg-gray-50 dark:bg-gray-900 border-t-2 border-b-2 border-blue-800 p-4 flex flex-col md:flex-row items-center gap-4">
 
             {/* --- SECCIÓN IZQUIERDA: INFORMACIÓN (Sin cambios) --- */}
-            <div className="text-white text-center md:text-left flex-shrink-0">
+            <div className="text-gray-700 dark:text-white text-center md:text-left flex-shrink-0">
                 <span className="font-bold text-lg">{selectedCount}</span>
                 <span className="ml-2">recurso(s) seleccionado(s)</span>
             </div>

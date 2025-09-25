@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
-import { toast } from 'react-hot-toast';
+import React from 'react';
 import { FiRefreshCw, FiEdit, FiUserX, FiUserCheck } from 'react-icons/fi';
-import apiService from '../../../services/apiService';
+import { getEstadoBadge } from '../utils/residentes.utils';
 
 /**
  * @description Componente que muestra la lista de residentes en formato de tabla
@@ -28,47 +27,21 @@ const ListaResidentes = ({
     onSuspender,
     eliminandoId
 }) => {
-    const [eliminandoLocalId, setEliminandoLocalId] = useState(null);
-
-    // Función obsoleta - la suspensión ahora se maneja desde ResidentesPage.jsx
-
-    // Función obsoleta - la edición ahora se maneja desde ResidentesPage.jsx
-
-    /**
-     * @description Obtiene el badge de estado para un residente
-     * @param {string} estado - Estado del residente ('activo' o 'pendiente')
-     * @returns {Object} Configuración del badge {color, texto, icono}
-     */
-    const getEstadoBadge = (estado) => {
-        if (estado === 'activo') {
-            return {
-                color: 'bg-green-100 text-green-800 border-green-200',
-                texto: 'Activo',
-                icono: 'fas fa-check-circle'
-            };
-        } else {
-            return {
-                color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-                texto: 'Pendiente',
-                icono: 'fas fa-clock'
-            };
-        }
-    };
 
     return (
-        <div className="bg-gray-800 rounded-lg overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
             {/* HEADER: Controles de filtro y búsqueda */}
-            <div className="p-6 border-b border-gray-700">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                     <div className="flex-1 max-w-md">
                         <div className="relative">
-                            <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>
                             <input
                                 type="text"
                                 placeholder="Buscar por nombre, email o unidad..."
                                 value={searchTerm}
                                 onChange={(e) => onSearchChange(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                         </div>
                     </div>
@@ -77,7 +50,7 @@ const ListaResidentes = ({
                         <select
                             value={filtroEstado}
                             onChange={(e) => onFiltroChange(e.target.value)}
-                            className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="todos">Todos los estados</option>
                             <option value="activos">Solo activos</option>
@@ -87,13 +60,14 @@ const ListaResidentes = ({
                         <button
                             onClick={onRefresh}
                             disabled={isLoading}
-                            className="px-3 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg text-white transition-colors duration-200 disabled:opacity-50 flex items-center gap-2"
+                            className="px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white transition-colors duration-200 disabled:opacity-50 flex items-center gap-2"
                             title="Actualizar lista"
+                            aria-label="Actualizar lista de residentes"
                         >
                             {isLoading ? (
-                                <FiRefreshCw className="animate-spin" size={16} />
+                                <FiRefreshCw className="animate-spin" size={16} aria-hidden="true" />
                             ) : (
-                                <FiRefreshCw size={16} />
+                                <FiRefreshCw size={16} aria-hidden="true" />
                             )}
                         </button>
                     </div>
@@ -106,20 +80,20 @@ const ListaResidentes = ({
                     // SKELETON LOADING
                     <div className="p-6">
                         {[...Array(5)].map((_, i) => (
-                            <div key={i} className="animate-pulse flex items-center py-3 border-b border-gray-700 last:border-b-0">
-                                <div className="h-4 bg-gray-700 rounded w-1/4 mr-4"></div>
-                                <div className="h-4 bg-gray-700 rounded w-1/3 mr-4"></div>
-                                <div className="h-4 bg-gray-700 rounded w-1/6 mr-4"></div>
-                                <div className="h-6 bg-gray-700 rounded w-16"></div>
+                            <div key={i} className="animate-pulse flex items-center py-3 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mr-4"></div>
+                                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mr-4"></div>
+                                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/6 mr-4"></div>
+                                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
                             </div>
                         ))}
                     </div>
                 ) : residentes.length === 0 ? (
                     // ESTADO VACÍO
                     <div className="p-12 text-center">
-                        <i className="fas fa-users text-gray-600 text-4xl mb-4"></i>
-                        <h3 className="text-gray-400 text-lg font-medium mb-2">No hay residentes</h3>
-                        <p className="text-gray-500">
+                        <i className="fas fa-users text-gray-400 dark:text-gray-600 text-4xl mb-4"></i>
+                        <h3 className="text-gray-600 dark:text-gray-400 text-lg font-medium mb-2">No hay residentes</h3>
+                        <p className="text-gray-500 dark:text-gray-500">
                             {searchTerm || filtroEstado !== 'todos'
                                 ? 'No se encontraron residentes con los filtros aplicados'
                                 : 'Aún no has invitado a ningún residente'
@@ -129,45 +103,45 @@ const ListaResidentes = ({
                 ) : (
                     // TABLA DE DATOS
                     <table className="w-full">
-                        <thead className="bg-gray-700">
+                                <thead className="bg-gray-200 dark:bg-gray-700">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                     Residente
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                     Unidad
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                     Estado
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                     Rol
                                 </th>
-                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                     Acciones
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-700">
+                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                             {residentes.map((residente) => {
                                 const estadoBadge = getEstadoBadge(residente.estado);
                                 return (
-                                    <tr key={residente.id} className="hover:bg-gray-750 transition-colors duration-150">
+                                    <tr key={residente.id} className="bg-gray-50/30 dark:bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div>
-                                                <div className="text-sm font-medium text-white">
+                                                <div className="text-sm font-medium text-gray-900 dark:text-white">
                                                     {residente.nombre && residente.apellido
                                                         ? `${residente.nombre} ${residente.apellido}`
                                                         : residente.nombre || 'Sin nombre'
                                                     }
                                                 </div>
-                                                <div className="text-sm text-gray-400">
+                                                <div className="text-sm text-gray-500 dark:text-gray-400">
                                                     {residente.email}
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-white">
+                                            <div className="text-sm text-gray-900 dark:text-white">
                                                 {residente.numero_unidad || 'Sin asignar'}
                                             </div>
                                         </td>
@@ -178,7 +152,7 @@ const ListaResidentes = ({
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-sm text-gray-300 capitalize">
+                                            <span className="text-sm text-gray-600 dark:text-gray-300 capitalize">
                                                 {residente.rol || 'residente'}
                                             </span>
                                         </td>
@@ -186,27 +160,29 @@ const ListaResidentes = ({
                                             <div className="flex justify-end gap-2">
                                                 <button
                                                     onClick={() => onEditar(residente)}
-                                                    className="text-blue-400 hover:text-blue-600 transition-colors duration-200 p-1"
+                                                    className="text-blue-500 hover:text-blue-700 transition-colors duration-200 p-1"
                                                     title="Editar residente"
+                                                    aria-label={`Editar residente ${residente.nombre} ${residente.apellido}`}
                                                 >
-                                                    <FiEdit size={16} />
+                                                    <FiEdit size={16} aria-hidden="true" />
                                                 </button>
                                                 <button
                                                     onClick={() => onSuspender(residente)}
                                                     disabled={eliminandoId === residente.id}
                                                     className={`transition-colors duration-200 disabled:opacity-50 p-1 ${
                                                         residente.estado === 'suspendido'
-                                                            ? 'text-green-400 hover:text-green-600'
-                                                            : 'text-orange-400 hover:text-orange-600'
+                                                            ? 'text-green-500 hover:text-green-700'
+                                                            : 'text-orange-500 hover:text-orange-700'
                                                     }`}
                                                     title={residente.estado === 'suspendido' ? 'Reactivar residente' : 'Suspender residente'}
+                                                    aria-label={residente.estado === 'suspendido' ? `Reactivar residente ${residente.nombre} ${residente.apellido}` : `Suspender residente ${residente.nombre} ${residente.apellido}`}
                                                 >
                                                     {eliminandoId === residente.id ? (
-                                                        <FiRefreshCw className="animate-spin" size={16} />
+                                                        <FiRefreshCw className="animate-spin" size={16} aria-hidden="true" />
                                                     ) : residente.estado === 'suspendido' ? (
-                                                        <FiUserCheck size={16} />
+                                                        <FiUserCheck size={16} aria-hidden="true" />
                                                     ) : (
-                                                        <FiUserX size={16} />
+                                                        <FiUserX size={16} aria-hidden="true" />
                                                     )}
                                                 </button>
                                             </div>
@@ -221,8 +197,8 @@ const ListaResidentes = ({
 
             {/* FOOTER: Información de resultados */}
             {!isLoading && residentes.length > 0 && (
-                <div className="px-6 py-3 bg-gray-700 border-t border-gray-600">
-                    <p className="text-sm text-gray-400">
+                <div className="px-6 py-3 bg-gray-200 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                         Mostrando {residentes.length} residente{residentes.length !== 1 ? 's' : ''}
                     </p>
                 </div>

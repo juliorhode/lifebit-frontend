@@ -13,7 +13,7 @@ import { toast } from 'react-hot-toast'; // Importamos toast
  * @param {{progress: number}} props - Props del componente.
  */
 const ProgressBar = ({ progress }) => (
-    <div className="w-full bg-gray-700 rounded-full h-2.5 my-4">
+    <div className="w-full bg-gray-200 dark:bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 my-4">
         <div
             className="bg-blue-500 h-2.5 rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
@@ -160,7 +160,9 @@ const CrearTipoRecursoModal = ({ onClose, onRecursosCreados }) => {
                             <div key={field.id} className="grid grid-cols-[1fr_140px_auto] items-start gap-2">
                                 {/* Input para el nombre del tipo de recurso */}
                                 <div>
+                                    <label htmlFor={`tipo-nombre-${index}`} className={STYLES.label}>Nombre del Recurso</label>
                                     <input {...register(`tipos.${index}.nombre`)}
+                                        id={`tipo-nombre-${index}`}
                                         placeholder="Nombre del Recurso"
                                         onChange={(event) => {
                                             const capitalizedValue = toTitleCase(event.target.value);
@@ -177,8 +179,8 @@ const CrearTipoRecursoModal = ({ onClose, onRecursosCreados }) => {
                                     </select>
                                 </div>
                                 {/* Botón para eliminar un campo */}
-                                <button type="button" onClick={() => remove(index)} className="p-3 text-gray-400 hover:text-red-500 h-full flex items-center">
-                                    <FiTrash2 />
+                                <button type="button" onClick={() => remove(index)} aria-label="Eliminar tipo de recurso" className="p-3 text-gray-600 dark:text-gray-400 hover:text-red-500 h-full flex items-center">
+                                    <FiTrash2 aria-hidden="true" />
                                 </button>
                             </div>
                         ))}
@@ -193,11 +195,11 @@ const CrearTipoRecursoModal = ({ onClose, onRecursosCreados }) => {
                     </button>
 
                     {/* Sección de sugerencias */}
-                    <div className="pt-4 border-t border-gray-700">
-                        <h4 className="font-semibold text-gray-300 mb-3">O añade desde nuestras sugerencias:</h4>
+                    <div className="pt-4 border-t border-gray-300 dark:border-gray-700">
+                        <h4 className="font-semibold text-gray-600 dark:text-gray-300 mb-3">O añade desde nuestras sugerencias:</h4>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                             {(showAllSuggestions ? sugerencias : sugerencias.slice(0, 6)).map((sugerencia) => (
-                                <button key={sugerencia.nombre} type="button" onClick={() => handleSugerenciaClick(sugerencia)} className="w-full h-full px-3 py-2 bg-gray-700 text-gray-200 rounded-md text-sm hover:bg-blue-600 hover:text-white transition-colors text-center">
+                                <button key={sugerencia.nombre} type="button" onClick={() => handleSugerenciaClick(sugerencia)} className="w-full h-full px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md text-sm hover:bg-blue-600 hover:text-gray-700 dark:text-white transition-colors text-center">
                                     {sugerencia.nombre}
                                 </button>
                             ))}
@@ -224,7 +226,7 @@ const CrearTipoRecursoModal = ({ onClose, onRecursosCreados }) => {
             ) : (
                 // --- VISTA 2: PANTALLA DE PROGRESO Y RESULTADOS ---
                 <div>
-                    <h4 className="font-semibold text-white text-center">Procesando...</h4>
+                    <h4 className="font-semibold text-gray-700 dark:text-white text-center">Procesando...</h4>
                     <ProgressBar progress={progress} />
                     {/* Lista de resultados de la creación en lote */}
                     <ul className="space-y-2 max-h-48 overflow-y-auto pr-2">

@@ -81,12 +81,12 @@ const AsignacionVisualPanel = ({ tipoRecurso, onGoBack, onSuccess }) => {
     );
 
     if (isLoading) {
-        return <p className="text-center text-gray-400 p-8">Cargando inventario...</p>;
+        return <p className="text-center text-gray-600 dark:text-gray-600 dark:text-gray-400 p-8">Cargando inventario...</p>;
     }
 
     return (
         <>
-            <div className="flex flex-col h-full bg-gray-900 p-6 rounded-lg">
+            <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
                 {sesionGuardadaDetectada && (
                     <div className="bg-blue-900/50 border border-blue-700 p-3 rounded-lg mb-4 flex flex-col sm:flex-row items-center justify-between gap-3">
                         <p className="text-blue-200 text-center sm:text-left">
@@ -104,15 +104,15 @@ const AsignacionVisualPanel = ({ tipoRecurso, onGoBack, onSuccess }) => {
                 )}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 flex-shrink-0">
                     <div>
-                        <h3 className="font-semibold text-white">Gestión de Asignaciones Visual</h3>
-                        <p className="text-sm text-gray-400">
+                        <h3 className="font-semibold text-gray-700 dark:text-white">Gestión de Asignaciones Visual</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                             {modo === 'simple' ? "Haz clic en un recurso para asignarlo o desasignarlo." : "Selecciona varios recursos para asignarlos en lote."}
                         </p>
                     </div>
                     <div className="flex items-center gap-4 mt-2 sm:mt-0">
-                        <div className="flex items-center bg-gray-800 rounded-lg p-1">
-                            <button onClick={() => handleModeChange('simple')} className={`px-3 py-1 text-sm rounded-md ${modo === 'simple' ? 'bg-blue-600 text-white' : 'text-gray-400'}`}>Simple</button>
-                            <button onClick={() => handleModeChange('masivo')} className={`px-3 py-1 text-sm rounded-md ${modo === 'masivo' ? 'bg-blue-600 text-white' : 'text-gray-400'}`}>Masivo</button>
+                        <div className="flex items-center bg-gray-50 dark:bg-gray-800 rounded-lg p-1">
+                            <button onClick={() => handleModeChange('simple')} className={`px-3 py-1 text-sm rounded-md ${modo === 'simple' ? 'bg-blue-600 text-white' : 'text-gray-600 dark:text-gray-400'}`}>Simple</button>
+                            <button onClick={() => handleModeChange('masivo')} className={`px-3 py-1 text-sm rounded-md ${modo === 'masivo' ? 'bg-blue-600 text-white' : 'text-gray-600 dark:text-gray-400'}`}>Masivo</button>
                         </div>
                         <button onClick={onGoBack} className={STYLES.buttonLink}>Volver a Tabla</button>
                     </div>

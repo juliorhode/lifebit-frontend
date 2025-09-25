@@ -11,9 +11,13 @@ import { FiX } from 'react-icons/fi';
  * @param {function} props.onClose - Función a llamar cuando el usuario cierra el modal.
  * @param {string} props.title - El título que se mostrará en la cabecera del modal.
  * @param {React.ReactNode} props.children - El contenido JSX que se renderizará dentro del modal.
+ * @param {boolean} props.forceDark - Fuerza el modal a mostrarse en modo oscuro (útil para páginas que siempre deben ser oscuras).
  * @returns {JSX.Element|null} El modal renderizado o null si no está abierto.
  */
-const Modal = ({ isOpen, onClose, title, children, isProcessing = false }) => {
+const Modal = ({ isOpen, onClose, title, children, isProcessing = false, forceDark = false }) => {
+    // Detectar si el tema global es oscuro o si se fuerza modo oscuro
+    const isDarkTheme = forceDark || document.body.classList.contains('dark');
+
     // Efecto para prevenir el scroll del body cuando el modal está abierto.
     // Cuando el modal se monta o desmonta
     useEffect(() => {
@@ -40,7 +44,7 @@ const Modal = ({ isOpen, onClose, title, children, isProcessing = false }) => {
         // fixed inset - 0 hace que el overlay ocupe toda la pantalla del dispositivo, sin importar su tamaño.
         // flex items-center justify-center asegura que el contenido (el div del modal) siempre esté perfectamente centrado, tanto vertical como horizontalmente.
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 transition-opacity duration-300"
+            className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 transition-opacity duration-300 ${isDarkTheme ? 'dark' : ''}`}
             onClick={!isProcessing ? onClose : undefined} // Cierra el modal al hacer clic en el fondo, solo funciona si NO estamos procesando
         >
             {/* El contenedor del modal en sí. */}

@@ -36,13 +36,18 @@ const ThemeToggle = () => {
     // 2. EFECTO SECUNDARIO PARA ACTUALIZAR EL DOM Y LOCALSTORAGE
     // Este hook se ejecuta cada vez que el valor de 'theme' cambia.
     useEffect(() => {
-        const root = window.document.documentElement;
+        // Aseguramos que estamos en el navegador
+        if (typeof window === 'undefined') return;
 
-        // Limpiamos cualquier clase de tema anterior
-        root.classList.remove('dark', 'light');
+        const root = window.document.body;
 
-        // Añadimos la clase correspondiente al tema actual
-        root.classList.add(theme);
+        // Removemos la clase 'dark' para resetear al modo light por defecto
+        root.classList.remove('dark');
+
+        // Si el tema es 'dark', añadimos la clase 'dark'
+        if (theme === 'dark') {
+            root.classList.add('dark');
+        }
 
         // Guardamos la preferencia del usuario para futuras visitas
         window.localStorage.setItem('color-theme', theme);
@@ -55,6 +60,7 @@ const ThemeToggle = () => {
 
     return (
         <button
+            type="button"
             onClick={toggleTheme}
             className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500 transition-colors"
             aria-label="Alternar modo claro/oscuro"

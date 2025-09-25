@@ -211,10 +211,10 @@ const InvitarResidentesMasivoModal = ({ onClose, onSuccess }) => {
         <div className="space-y-6">
             {/* HEADER: Título y descripción */}
             <div>
-                <h3 className="text-lg font-semibold text-white mb-2">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                     Invitar Residentes Masivamente
                 </h3>
-                <p className="text-gray-400 text-sm">
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
                     Sube un archivo Excel con la lista de residentes para enviar invitaciones automáticamente.
                 </p>
             </div>
@@ -226,8 +226,8 @@ const InvitarResidentesMasivoModal = ({ onClose, onSuccess }) => {
                     <div
                         className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors duration-200 ${
                             isDragOver
-                                ? 'border-blue-500 bg-blue-500 bg-opacity-10'
-                                : 'border-gray-600 hover:border-gray-500'
+                                ? 'border-blue-300 bg-blue-100 bg-opacity-50 dark:border-blue-400 dark:bg-blue-900 dark:bg-opacity-20'
+                                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                         }`}
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
@@ -244,18 +244,18 @@ const InvitarResidentesMasivoModal = ({ onClose, onSuccess }) => {
                         {selectedFile ? (
                             <div>
                                 <i className="fas fa-file-excel text-green-400 text-3xl mb-3"></i>
-                                <p className="text-white font-medium">{selectedFile.name}</p>
-                                <p className="text-gray-400 text-sm">
+                                <p className="text-gray-900 dark:text-white font-medium">{selectedFile.name}</p>
+                                <p className="text-gray-600 dark:text-gray-400 text-sm">
                                     {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                                 </p>
                             </div>
                         ) : (
                             <div>
-                                <i className={`fas ${isDragOver ? 'fa-cloud-upload-alt text-blue-400' : 'fa-cloud-upload-alt text-gray-400'} text-3xl mb-3`}></i>
-                                <p className="text-white font-medium mb-2">
+                                <i className={`fas ${isDragOver ? 'fa-cloud-upload-alt text-blue-500 dark:text-blue-300' : 'fa-cloud-upload-alt text-gray-500 dark:text-gray-400'} text-3xl mb-3`}></i>
+                                <p className="text-gray-900 dark:text-white font-medium mb-2">
                                     {isDragOver ? 'Suelta el archivo aquí' : 'Arrastra tu archivo Excel aquí'}
                                 </p>
-                                <p className="text-gray-400 text-sm mb-4">o</p>
+                                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">o</p>
                                 <button
                                     onClick={() => fileInputRef.current?.click()}
                                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200"
@@ -271,7 +271,7 @@ const InvitarResidentesMasivoModal = ({ onClose, onSuccess }) => {
                     </div>
 
                     {/* PLANTILLA: Descarga de plantilla Excel */}
-                    <div className="bg-blue-900 bg-opacity-30 border border-blue-700 rounded-lg p-4">
+                    <div className="bg-blue-50 dark:bg-blue-900 bg-opacity-30 dark:bg-opacity-30 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
                         <div className="text-center">
                             <button
                                 onClick={handleDescargarPlantilla}
@@ -280,7 +280,7 @@ const InvitarResidentesMasivoModal = ({ onClose, onSuccess }) => {
                                 <i className="fas fa-download mr-2"></i>
                                 Descargar Plantilla Excel
                             </button>
-                            <p className="text-blue-200 text-xs mt-2">
+                            <p className="text-blue-700 dark:text-blue-200 text-xs mt-2">
                                 Descarga el archivo, ábrelo en Excel y guárdalo como .xlsx antes de subirlo
                             </p>
                         </div>
@@ -310,7 +310,7 @@ const InvitarResidentesMasivoModal = ({ onClose, onSuccess }) => {
                             <button
                                 onClick={handleReiniciar}
                                 disabled={isUploading}
-                                className="w-50 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors duration-200 disabled:opacity-50"
+                                className="w-50 px-4 py-2 bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 text-white rounded-lg font-medium transition-colors duration-200 disabled:opacity-50"
                             >
                                 <i className="fas fa-redo mr-2"></i>
                                 Reiniciar
@@ -320,7 +320,7 @@ const InvitarResidentesMasivoModal = ({ onClose, onSuccess }) => {
 
                     {/* PROGRESS BAR: Durante el upload */}
                     {isUploading && (
-                        <div className="w-full bg-gray-700 rounded-full h-2">
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                             <div
                                 className="bg-green-600 h-2 rounded-full transition-all duration-300"
                                 style={{ width: `${uploadProgress}%` }}
@@ -333,32 +333,32 @@ const InvitarResidentesMasivoModal = ({ onClose, onSuccess }) => {
             {/* RESULTADOS: Mostrar estadísticas del procesamiento */}
             {resultados && (
                 <div className="space-y-4">
-                    <div className="bg-gray-700 rounded-lg p-4">
-                        <h4 className="text-white font-medium mb-3">Resultados del procesamiento</h4>
+                    <div className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                        <h4 className="text-gray-900 dark:text-white font-medium mb-3">Resultados del procesamiento</h4>
 
                         <div className="grid grid-cols-3 gap-4 text-center">
-                            <div className="bg-blue-900 bg-opacity-50 rounded p-3">
-                                <div className="text-2xl font-bold text-blue-300">{resultados.procesados}</div>
-                                <div className="text-sm text-blue-200">Procesados</div>
+                            <div className="bg-blue-100 dark:bg-blue-900 bg-opacity-50 dark:bg-opacity-50 rounded p-3">
+                                <div className="text-2xl font-bold text-blue-600 dark:text-blue-300">{resultados.procesados}</div>
+                                <div className="text-sm text-blue-700 dark:text-blue-200">Procesados</div>
                             </div>
 
-                            <div className="bg-green-900 bg-opacity-50 rounded p-3">
-                                <div className="text-2xl font-bold text-green-300">{resultados.exitosos}</div>
-                                <div className="text-sm text-green-200">Exitosos</div>
+                            <div className="bg-green-100 dark:bg-green-900 bg-opacity-50 dark:bg-opacity-50 rounded p-3">
+                                <div className="text-2xl font-bold text-green-600 dark:text-green-300">{resultados.exitosos}</div>
+                                <div className="text-sm text-green-700 dark:text-green-200">Exitosos</div>
                             </div>
 
-                            <div className="bg-red-900 bg-opacity-50 rounded p-3">
-                                <div className="text-2xl font-bold text-red-300">{resultados.errores?.length || 0}</div>
-                                <div className="text-sm text-red-200">Errores</div>
+                            <div className="bg-red-100 dark:bg-red-900 bg-opacity-50 dark:bg-opacity-50 rounded p-3">
+                                <div className="text-2xl font-bold text-red-600 dark:text-red-300">{resultados.errores?.length || 0}</div>
+                                <div className="text-sm text-red-700 dark:text-red-200">Errores</div>
                             </div>
                         </div>
 
                         {/* DETALLE DE ERRORES: Si existen */}
                         {resultados.errores && resultados.errores.length > 0 && (
                             <div className="mt-4">
-                                <h5 className="text-red-300 font-medium mb-2">Errores encontrados:</h5>
-                                <div className="bg-red-900 bg-opacity-20 border border-red-700 rounded p-3 max-h-30 overflow-y-auto">
-                                    <ul className="text-sm text-red-200 space-y-1">
+                                <h5 className="text-red-600 dark:text-red-300 font-medium mb-2">Errores encontrados:</h5>
+                                <div className="bg-red-50 dark:bg-red-900 bg-opacity-20 dark:bg-opacity-20 border border-red-200 dark:border-red-700 rounded p-3 max-h-30 overflow-y-auto">
+                                    <ul className="text-sm text-red-700 dark:text-red-200 space-y-1">
                                         {resultados.errores.map((error, index) => (
                                             <li key={index}>
                                                 • Fila {error.fila}: {error.error}

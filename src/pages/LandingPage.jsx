@@ -370,7 +370,7 @@ const LandingPage = () => {
     const [selectedPlan, setSelectedPlan] = useState('2'); // Gold por defecto
 
     return (
-        <div className="bg-black">
+        <div className="bg-black dark">
             <Header />
             <HeroSection />
             <main>

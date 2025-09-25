@@ -189,14 +189,14 @@ const UnidadesPage = () => {
         <div className="p-2">
             <div className="text-center mb-6">
                 <h1 className={STYLES.titleSection}>Paso 1: Configuración Semántica</h1>
-                <p className="text-gray-400 mt-1">
+                <p className="text-gray-600 dark:text-gray-400 mt-1">
                     Comencemos por definir la estructura contextual de tu propiedad.
                 </p>
             </div>
 
             {/* --- 2. NUEVA SECCIÓN DE CONFIGURACIÓN SEMÁNTICA --- */}
             <div className={`${STYLES.card} mb-6`}>
-                <h3 className="font-semibold text-white mb-4">Define tu Propiedad</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Define tu Propiedad</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label className={STYLES.label}>¿Cómo llamas a tus agrupaciones principales?</label>
@@ -223,7 +223,7 @@ const UnidadesPage = () => {
 
             <div className="text-center mb-6">
                 <h1 className={STYLES.titleSection}>Paso 2: Crear Estructura</h1>
-                <p className="text-gray-400 mt-1">
+                <p className="text-gray-600 dark:text-gray-400 mt-1">
                     Arrastra y mueve los bloques para construir el formato de tus unidades.
                 </p>
             </div>
@@ -235,21 +235,21 @@ const UnidadesPage = () => {
                             <h3 className={STYLES.dnd.paletteTitle}>Paleta de Bloques</h3>
                             {/* Grupo de Pisos */}
                             <div className="mt-4">
-                                <p className="text-sm font-semibold text-gray-400 mb-2 ">{etiquetaNivel}</p>
+                                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2 ">{etiquetaNivel}</p>
                                 <div className="grid grid-cols-2 gap-2 ">
                                     {bloquesPiso.map(item => paletteItems.some(pItem => pItem.id === item.id) && <Item key={item.id} id={item.id} text={item.text(etiquetaNivel)} />)}
                                 </div>
                             </div>
                             {/* Grupo de Unidades */}
                             <div className="mt-4">
-                                <p className="text-sm font-semibold text-gray-400 mb-2 ">{etiquetaUnidad}</p>
+                                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2 ">{etiquetaUnidad}</p>
                                 <div className="grid grid-cols-2 gap-2 ">
                                     {bloquesUnidad.map(item => paletteItems.some(pItem => pItem.id === item.id) && <Item key={item.id} id={item.id} text={item.text(etiquetaUnidad)} />)}
                                 </div>
                             </div>
                             {/* Grupo de Texto Fijo */}
                             <div className="mt-4">
-                                <p className="text-sm font-semibold text-gray-400 mb-2">Personalizado</p>
+                                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">Personalizado</p>
                                 <div className="grid grid-cols-2 gap-2 ">
                                     {bloquesTexto.map(item => <Item key={item.id} id={item.id} text={item.text()} />)}
                                 </div>
@@ -263,7 +263,7 @@ const UnidadesPage = () => {
                             <div className="flex justify-between items-center">
                                 <h3 className={STYLES.dnd.paletteTitle}>Tu Nomenclatura</h3>
                                 {canvasItems.length > 0 && (
-                                    <button onClick={handleClearCanvas} className="p-1 text-gray-500 hover:text-white hover:bg-gray-700 rounded-full transition-colors" aria-label="Limpiar lienzo">
+                                    <button onClick={handleClearCanvas} className="p-1 text-gray-500 hover:text-white hover:bg-gray-600 dark:hover:bg-gray-700 rounded-full transition-colors" aria-label="Limpiar lienzo">
                                         <FiTrash2 size={16} />
                                     </button>
                                 )}
@@ -279,20 +279,20 @@ const UnidadesPage = () => {
                                 )}
                             </div>
                         </Container>
-                        <div className="p-4 bg-gray-800 rounded-lg min-h-[100px]">
-                            <h3 className="font-semibold text-white">Previsualización</h3>
+                        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg min-h-[100px]">
+                            <h3 className="font-semibold text-gray-900 dark:text-white">Previsualización</h3>
                             {preview.length > 0 ? (
                                 <div className="mt-2 space-y-3">
                                     {preview.map((group) => (
                                         <div key={group.level}>
-                                            <p className="text-sm text-gray-400 font-semibold">
+                                            <p className="text-sm text-gray-600 dark:text-gray-400 font-semibold">
                                                 {/* TODO: Usar la etiqueta personalizada (ej. "Calle") */}
                                                 Para {etiquetaNivel} {group.level}:
                                             </p>
                                             <ul className="list-none pl-4 mt-1 space-y-1">
                                                 {group.examples.map((example, index) => (
                                                     <li key={index}>
-                                                        <span className="font-mono bg-gray-700 px-2 py-1 rounded text-sm text-gray-200">{example}</span>
+                                                        <span className="font-mono bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded text-sm text-gray-800 dark:text-gray-200">{example}</span>
                                                     </li>
                                                 ))}
                                             </ul>
@@ -329,14 +329,14 @@ const UnidadesPage = () => {
 
             <div className="text-center mt-4 mb-6">
                 <h1 className={STYLES.titleSection}>Paso 3: Configuración Semántica</h1>
-                <p className="text-gray-400 mt-1">
+                <p className="text-gray-600 dark:text-gray-400 mt-1">
                     Comencemos por definir la estructura y nomenclatura de tu propiedad.
                 </p>
             </div>
             {/* --- Formulario de Configuración General --- */}
             <form onSubmit={handleSubmit(onFormSubmit)}>
                 <div className={`${STYLES.card} mt-6`}>
-                    <h3 className="font-semibold text-white mb-4">Configuración General</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Configuración General</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label className={STYLES.label}>Total de {etiquetaNivel}s *</label>
@@ -357,12 +357,18 @@ const UnidadesPage = () => {
                 </div>
 
                 <div className={`${STYLES.card} mt-6`}>
-                    <h3 className="font-semibold text-white mb-4">Excepciones (Opcional)</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Excepciones (Opcional)</h3>
                     {fields.map((field, index) => (
                         <div key={field.id} className="flex items-center gap-4 mb-4">
-                            <input type="number" placeholder={`${etiquetaNivel} Nº`} {...register(`excepciones.${index}.piso`)} className={STYLES.input} />
-                            <input type="number" placeholder={`Cantidad de ${etiquetaUnidad}s`} {...register(`excepciones.${index}.cantidad`)} className={STYLES.input} />
-                            <button type="button" onClick={() => remove(index)}><FiTrash2 className="text-red-500" /></button>
+                            <div>
+                                <label className={STYLES.label} htmlFor={`excepcion-piso-${index}`}>{etiquetaNivel} Nº</label>
+                                <input type="number" id={`excepcion-piso-${index}`} placeholder={`${etiquetaNivel} Nº`} {...register(`excepciones.${index}.piso`)} className={STYLES.input} />
+                            </div>
+                            <div>
+                                <label className={STYLES.label} htmlFor={`excepcion-cantidad-${index}`}>Cantidad de {etiquetaUnidad}s</label>
+                                <input type="number" id={`excepcion-cantidad-${index}`} placeholder={`Cantidad de ${etiquetaUnidad}s`} {...register(`excepciones.${index}.cantidad`)} className={STYLES.input} />
+                            </div>
+                            <button type="button" onClick={() => remove(index)} aria-label="Eliminar excepción"><FiTrash2 className="text-red-500" /></button>
                         </div>
                     ))}
                     <button type="button" onClick={() => append({ piso: '', cantidad: '' })} className={STYLES.buttonLink}>

@@ -1,0 +1,645 @@
+# Roadmap de Desarrollo Frontend para "LifeBit" (React)
+
+## Epopeya F0: Configuración del Proyecto y Arquitectura Frontend (CORE-FE)
+*******************************************************************************
+
+*   `[ ]` **CORE-FE-01:** Configurar un nuevo proyecto de React usando `Vite` (herramienta de construcción moderna y rápida).
+*   `[ ]` **CORE-FE-02:** Estructurar las carpetas del proyecto (componentes, páginas, servicios, hooks, etc.).
+*   `[ ]` **CORE-FE-03:** Configurar un sistema de enrutamiento con `React Router DOM` para manejar la navegación entre páginas.
+*   `[ ]` **CORE-FE-04:** Implementar una librería de componentes de UI (ej. `Material-UI`, `Chakra UI`, o `Tailwind CSS`) para un desarrollo visual rápido y consistente.
+*   `[ ]` **CORE-FE-05:** Configurar un gestor de estado global (ej. `Zustand` o `Redux Toolkit`) para manejar el estado de la autenticación y los datos compartidos.
+*   `[ ]` **CORE-FE-06:** Crear un servicio `apiService` (usando `axios`) para centralizar todas las llamadas a nuestra API del backend.
+
+---
+
+## Epopeya F1: Flujo de Autenticación y Vistas Públicas (AUTH-FE)
+*******************************************************************************
+
+*   `[~]` **AUTH-FE-01:** Construir la Landing Page pública con sus secciones (basado en el CMS del backend).
+*   `[x]` **AUTH-FE-02:** Construir la página de Login con los formularios para inicio de sesión tradicional y el botón de "Iniciar sesión con Google".
+*   `[x]` **AUTH-FE-03:** Implementar la lógica de login que llama a la API, guarda el JWT y el Refresh Token de forma segura (usando cookies HttpOnly).
+*   `[x]` **AUTH-FE-04:** Construir la página "Finalizar Registro" para usuarios invitados por token.
+*   `[x]` **AUTH-FE-05:** Crear "Rutas Protegidas" que solo sean accesibles para usuarios autenticados.
+*   `[x]` **AUTH-FE-06:** Implementar la lógica de "logout".
+
+---
+
+## Epopeya F2: Panel de Dueños (DUEÑO-FE)
+*******************************************************************************
+
+*   `[ ]` **DUEÑO-FE-01:** Construir el Layout principal del Dashboard del Dueño (sidebar, header).
+*   `[ ]` **DUEÑO-FE-02:** **[Módulo Edificios]** - Crear la vista de tabla para listar edificios, con filtros y paginación.
+*   `[ ]` **DUEÑO-FE-03:** **[Módulo Edificios]** - Crear los formularios (en modales o páginas separadas) para crear y editar un edificio.
+*   `[ ]` **DUEÑO-FE-04:** **[Dashboard Principal]** - Construir los componentes de las tarjetas de notificación y la tabla de "Contratos Próximos a Vencer".
+*   `[ ]` **DUEÑO-FE-05:** **[Dashboard Financiero]** - Integrar una librería de gráficos (ej. `Chart.js` o `Recharts`) y conectarla a los endpoints de la API para mostrar las métricas.
+*   `[ ]` **DUEÑO-FE-06:** **[Módulo CMS]** - Crear la interfaz para gestionar el contenido de la Landing Page, incluyendo la funcionalidad de drag-and-drop para reordenar secciones.
+
+---
+
+## Epopeya F3: Panel de Administradores (ADMIN-FE)
+*******************************************************************************
+
+*   `[ ]` **ADMIN-FE-01:** Construir el Layout principal del Dashboard del Administrador.
+*   `[ ]` **ADMIN-FE-02:** **[Registro de Residentes]** - Implementar el formulario para el registro manual y el componente de subida de archivos para la carga masiva.
+*   `[ ]` **ADMIN-FE-03:** **[Recursos]** - Construir la interfaz visual de cuadrícula para la asignación de puestos de estacionamiento.
+*   `[ ]` **ADMIN-FE-04:** **[Finanzas]** - Construir los componentes de gráficos y tablas para la vista financiera del administrador.
+*   `[ ]` **ADMIN-FE-05:** **[Motor de Reglas]** - Diseñar e implementar la interfaz de usuario de "drag-and-drop" para la creación de reglas (esta es una tarea de alta complejidad).
+*   `[ ]` **ADMIN-FE-06:** **[Noticias]** - Integrar un editor de texto enriquecido (CKEditor) en un formulario para crear/editar noticias.
+
+---
+
+## Epopeya F4: Panel de Residentes (RESIDENTE-FE)
+*******************************************************************************
+
+*   `[ ]` **RESIDENTE-FE-01:** Construir el Layout y el Dashboard principal del Residente.
+*   `[ ]` **RESIDENTE-FE-02:** **[Recibos y Pagos]** - Crear la vista para mostrar los recibos de condominio y el formulario para reportar un pago (incluyendo la subida del comprobante).
+*   `[ ]` **RESIDENTE-FE-03:** **[Reservas]** - Implementar el componente de calendario y el formulario para solicitar reservas.
+*   `[ ]` **RESIDENTE-FE-04:** **[Votaciones y Elecciones]** - Construir las interfaces para participar en encuestas y votar por candidatos.
+*   `[ ]` **RESIDENTE-FE-05:** **[Discusiones]** - Crear la interfaz del foro con su estructura de hilos y respuestas anidadas.
+
+
+# Roadmap Frontend para "LifeBit" (React)
+
+## Epopeya F0: Fundación del Proyecto (CORE-FE) `[PRÓXIMA A INICIAR]`
+*   `[~]` **CORE-FE-01 a CORE-FE-06:** Configuración de Vite, carpetas, `React Router`, librería de UI, gestor de estado (`Zustand`) y `apiService` (`axios`).
+
+## Epopeya F1: Acceso y Vistas Públicas (AUTH-FE)
+*   `[ ]` **AUTH-FE-01: [Página]** - Construir la Landing Page pública (renderizada desde el CMS).
+*   `[ ]` **AUTH-FE-02: [Componente]** - Construir el formulario de "Solicitud de Servicio".
+*   `[ ]` **AUTH-FE-03: [Página]** - Construir la página de Login con sus componentes (login tradicional y con Google).
+*   `[ ]` **AUTH-FE-04: [Lógica]** - Implementar la lógica de login, guardado seguro de tokens y redirección basada en rol.
+*   `[ ]` **AUTH-FE-05: [Componente]** - Crear el HOC (High-Order Component) o Hook de "Ruta Protegida".
+*   `[ ]` **AUTH-FE-06: [Página]** - Construir la página "Finalizar Registro" para usuarios invitados.
+*   `[ ]` **AUTH-FE-07: [Componente]** - Construir el Layout principal (Sidebar, Header) que se adapta al rol del usuario.
+
+## Epopeya F2: Vistas de Módulos Fundamentales
+*   `[ ]` **VISTA-01: [Edificios]** - Construir la página de gestión de edificios (tabla, filtros, modales de creación/edición) para el Dueño.
+*   `[ ]` **VISTA-02: [Usuarios]** - Construir la página de gestión de residentes para el Admin (tabla, formulario manual, componente de subida masiva).
+*   `[ ]` **VISTA-03: [Cuentas]** - Construir la página de gestión de Cuentas Bancarias para el Admin.
+*   `[ ]` **VISTA-04: [Recursos]** - Construir la interfaz de gestión de Recursos para el Admin.
+
+## Epopeya F3: Vistas de Flujos Financieros
+*   `[ ]` **VISTA-F-01: [Gastos]** - Construir la interfaz para que el Admin registre los gastos mensuales.
+*   `[ ]` **VISTA-F-02: [Recibos]** - Construir la vista que muestra el desglose de un recibo para el Residente.
+*   `[ ]` **VISTA-F-03: [Reporte de Pagos]** - Construir el formulario para que el Residente y el Admin reporten un pago.
+*   `[ ]` **VISTA-F-04: [Conciliación]** - Construir la interfaz para que el Admin/Dueño suba el estado de cuenta y vea los resultados del "matching".
+*   `[ ]` **VISTA-F-05: [Dashboards Financieros]** - Integrar una librería de gráficos para crear los dashboards del Dueño y del Admin.
+
+## Epopeya F4: Vistas de Comunidad e Interacción
+*   `[ ]` **VISTA-C-01: [Noticias]** - Construir la vista para leer noticias y el formulario con CKEditor para crearlas.
+*   `[ ]` **VISTA-C-02: [Foro]** - Construir la interfaz del foro con su vista de hilos y respuestas anidadas.
+*   `[ ]` **VISTA-C-03: [Encuestas/Votaciones]** - Construir la interfaz para crear y para participar en encuestas.
+*   `[ ]` **VISTA-C-04: [Elecciones]** - Construir las vistas para el registro de candidaturas y la emisión de votos.
+*   `[ ]` **VISTA-C-05: [Reservas]** - Construir el componente de calendario y el flujo de solicitud de reservas.
+*   `[ ]` **VISTA-C-06: [Motor de Reglas]** - (La más compleja) Construir la interfaz drag-and-drop para la creación de reglas.
+
+
+
+Roadmap Maestro del Frontend de LifeBit (v2.0 - Consolidado)
+Nuestra Estrella Polar: "Construir la plataforma SaaS más intuitiva, potente y adictiva para la gestión de condominios, transformando tareas complejas en experiencias simples y gratificantes."
+Documento Fundacional: Este roadmap se rige por nuestro Manifiesto de Diseño y Experiencia de LifeBit, que prioriza el modo oscuro, la psicología del comportamiento, el benchmarking de aplicaciones de clase mundial y la internacionalización (i18n).
+Leyenda de Tareas:
+[CORE]: Tarea de Arquitectura o Fundación.
+[UI/UX]: Tarea centrada en la Interfaz o Experiencia de Usuario.
+[LÓGICA]: Tarea centrada en la gestión de estado y comunicación con la API.
+[PÁGINA]: Creación de una vista principal.
+[COMPONENTE]: Creación de un bloque de UI reutilizable.
+
+Leyenda de Estado:
+[x]: Tarea Completada
+[~]: Tarea en Progreso o Parcialmente Completada
+[ ]: Tarea Pendiente
+
+Epopeya F0: La Plataforma de Lanzamiento (Fundación y Arquitectura)
+Objetivo: Forjar el esqueleto de nuestra aplicación. La base invisible pero indestructible sobre la que construiremos todo lo demás.
+[x] F0-01 [CORE]: Definir el Manifiesto de Diseño y Experiencia de LifeBit.
+[~] Paleta de colores (Modo Oscuro y Claro).
+[x] Escala tipográfica y de espaciado.
+[~] Set de iconografía y tono de voz.
+[ ] F0-02 [CORE]: Configurar la librería de internacionalización (i18next) para soporte es/en.
+[x] F0-03 [LÓGICA]: Crear el apiService definitivo con axios, incluyendo withCredentials: true y el interceptor de accessToken.
+[~] F0-04 [UI/UX]: Construir el LayoutPrincipal adaptable (Header/Sidebar) que cambia según el rol del usuario (dueño, admin, residente).
+[ ] F0-05 [UI/UX]: Refactorizar y perfeccionar el componente ThemeToggle para el cambio de tema.
+[x] F0-06 [CORE]: Configurar el App.jsx con el BrowserRouter y la estructura de rutas principal.
+
+Epopeya F1: La Puerta de Entrada (Autenticación y Vistas Públicas)
+Objetivo: Crear un flujo de acceso y onboarding impecable, seguro y persistente para todos los roles.
+[x] F1-01 [LÓGICA]: Construir el authStore de Zustand con toda la lógica de estado (login, logout, refreshToken, getProfile).
+[x] F1-02 [COMPONENTE]: Construir el SessionVerifier para restaurar la sesión del usuario al recargar la página.
+[x] F1-03 [CORE]: Implementar el componente RutaProtegida para blindar las vistas privadas.
+[x] F1-04 [PÁGINA]: Conectar y finalizar la LoginPage (lógica de estado, errores, carga).
+[x] F1-05 [PÁGINA]: Construir la FinalizarRegistroPage para usuarios invitados por token.
+[x] F1-06 [PÁGINA]: Construir el flujo de recuperación de cuenta (ForgotPasswordPage y ResetPasswordPage).
+[x] F1-07 [PÁGINA]: Construir la AuthCallbackPage para el login con Google.
+[x] F1-08 [PÁGINA]: Construir y conectar la LandingPage con su SolicitudForm.
+
+Epopeya F2: El Centro de Comando (Panel del Dueño)
+Objetivo: Empoderarte, Julio, con las herramientas para dirigir tu negocio con total control y visibilidad.
+[ ] F2-01 [PÁGINA]: Construir el DashboardPrincipal del Dueño (Notificaciones, Resumen de Edificios, Contratos a Vencer).
+[ ] F2-02 [PÁGINA]: Construir el DashboardFinanciero del Dueño con gráficos interactivos.
+[ ] F2-03 [PÁGINA]: Módulo de Gestión de Solicitudes (Tabla para listar, Modal para aprobar/rechazar).
+[ ] F2-04 [PÁGINA]: Módulo de Gestión de Contratos (Tabla, filtros, vista de detalle).
+[ ] F2-04a [COMPONENTE]: Formulario de "Registro de Edificio" para clientes VIP.
+[ ] F2-05 [PÁGINA]: Módulo CMS para la Landing Page con drag and drop para reordenar secciones.
+[ ] F2-06 [PÁGINA]: Herramienta de Soporte de Base de Datos (SQL Runner).
+
+Epopeya F3: El Primer Vuelo (Onboarding del Administrador)
+Objetivo: Crear una experiencia de configuración inicial tan guiada y gratificante que los nuevos administradores se sientan empoderados desde el primer minuto.
+[~] F3-01 [COMPONENTE]: Construir el orquestador SetupWizard que guiará todo el proceso.
+[x] F3-02 [PÁGINA]: Paso 1: Interfaz de Creación de Unidades (usando el generador flexible).
+[x] F3-03 [PÁGINA]: Paso 2: Módulo de Gestión de Recursos.
+[~] F3-03a [UI/UX]: CRUD para Tipos de Recurso.
+[x] F3-03b [UI/UX]: Interfaces para la creación de inventario (secuencial y carga masiva por Excel).
+[ ] F3-04 [PÁGINA]: Paso 3: Módulo de Invitación de Residentes (individual y carga masiva por Excel).
+
+Epopeya F4: La Comunidad Viva (Paneles de Admin y Residente)
+Objetivo: Construir las herramientas del día a día que hacen de LifeBit el centro neurálgico de la comunidad.
+[ ] F4-01 [PÁGINA]: Construir el DashboardPrincipal del Administrador.
+[ ] F4-02 [PÁGINA]: Construir el DashboardPrincipal del Residente.
+[ ] F4-03 [PÁGINA]: Módulo de Discusiones (Foro Social v1).
+[ ] F4-03a [UI/UX]: Vista de hilos y respuestas anidadas.
+[ ] F4-03b [LÓGICA]: Implementación de Reacciones (likes).
+[ ] F4-03c [LÓGICA]: Sistema de notificaciones multicanal para respuestas.
+[ ] F4-04 [PÁGINA]: Módulo de Elecciones v1.
+[ ] F4-04a [UI/UX]: Interfaz para postulación de candidatos.
+[ ] F4-04b [UI/UX]: Interfaz de votación.
+[ ] F4-04c [UI/UX]: Vista de resultados.
+[ ] F4-05 [PÁGINA]: Módulo de Gestión Visual de Recursos (Vista de "Puestos").
+[ ] F4-06 [PÁGINA]: Sistema de Reportes/Ticketing (vistas para Residente, Admin y Dueño).
+[ ] F4-07 [PÁGINA]: Flujo de Pagos y Conciliación (vistas para Residente, Admin y Dueño).
+
+Epopeya F5: El Corazón de LifeBit (Motor de Reglas Visual)
+Objetivo: Implementar nuestra killer feature. La herramienta que nos define y nos diferencia de forma radical.
+[ ] F5-01 [LÓGICA]: (Fase 1 - MVP Funcional) Implementar las reglas más comunes a través de formularios simples para entregar valor rápidamente.
+[ ] F5-02 [UI/UX]: (Fase 2 - La Revolución Visual) Construir la interfaz drag and drop.
+[ ] F5-02a [COMPONENTE]: Paleta de bloques de Condiciones y Acciones.
+[ ] F5-02b [COMPONENTE]: Lienzo para la construcción de reglas.
+[ ] F5-02c [LÓGICA]: Motor de Simulación para previsualizar el impacto de una regla.
+[ ] F5-02d [UI/UX]: Asistente guiado (tour interactivo) para la creación de la primera regla.
+
+
+Propuesta para la UnidadesPage v2 (Post-Onboarding):
+Cuando un administrador con la configuración completada acceda a esta página, la vista principal no será el generador drag-and-drop.
+La vista principal será una tabla o lista de todas las unidades existentes.
+Esta tabla tendrá acciones para Editar y Eliminar cada unidad.
+Habrá un botón + Añadir Unidad (para la creación manual individual) y un botón [ Herramienta de Generación Masiva ] que abrirá nuestro constructor drag-and-drop en un modal o sub-página.
+
+
+
+
+
+📋 ADR-007: Funcionalidad de Reenvío de Invitaciones
+📅 Fecha: 20 de septiembre de 2025
+👤 Autor: Arquitecto de LifeBit
+📊 Estado: Propuesto
+🎯 Contexto
+Los tokens de invitación de residentes expiran después de 24 horas, causando frustración en administradores que necesitan reenviar invitaciones manualmente. Actualmente, no existe una forma eficiente de reenviar invitaciones desde la interfaz de administración.
+
+Problema identificado:
+
+Tokens expiran después de 24 horas
+No hay forma de reenviar invitaciones desde la UI
+Administradores deben crear nuevas invitaciones manualmente
+Pérdida de tiempo y experiencia de usuario deficiente
+🎯 Decisión
+Implementar funcionalidad de reenvío de invitaciones con las siguientes características:
+
+Alcance:
+✅ Reenvío de invitaciones para residentes pendientes
+✅ Límite de 3 reenvíos por residente
+✅ Historial de reenvíos para auditoría
+✅ UI intuitiva integrada en la lista de residentes
+✅ Mensajes contextuales según tiempo transcurrido
+Fuera de alcance:
+❌ Reenvío masivo de invitaciones
+❌ Personalización avanzada de emails
+❌ Integración con servicios externos de email
+🏗️ Solución Técnica
+Backend Implementation
+1. Nueva Tabla: historial_reenvios
+CREATE TABLE historial_reenvios (
+    id SERIAL PRIMARY KEY,
+    residente_id INTEGER NOT NULL REFERENCES residentes(id) ON DELETE CASCADE,
+    fecha_reenvio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ip_admin INET,
+    resultado ENUM('exitoso', 'fallido', 'excedido') DEFAULT 'exitoso',
+    mensaje_error TEXT,
+    token_expiracion TIMESTAMP,
+    contador_reenvios INTEGER DEFAULT 1,
+    
+    INDEX idx_residente_fecha (residente_id, fecha_reenvio),
+    INDEX idx_resultado (resultado)
+);
+2. Actualizar Tabla: residentes
+ALTER TABLE residentes 
+ADD COLUMN reenvios_realizados INTEGER DEFAULT 0,
+ADD COLUMN ultimo_reenvio TIMESTAMP NULL,
+ADD COLUMN token_expiracion TIMESTAMP NULL;
+3. Nuevo Endpoint: POST /admin/residentes/:id/reenviar-invitacion
+Controller (controllers/admin/residentes.js):
+
+const reenviarInvitacion = async (req, res) => {
+    const { id } = req.params;
+    const adminIp = req.ip;
+    
+    try {
+        // 1. Verificar que el residente existe y está pendiente
+        const residente = await Residentes.findByPk(id);
+        if (!residente) {
+            return res.status(404).json({
+                success: false,
+                error: 'RESIDENTE_NO_ENCONTRADO',
+                message: 'Residente no encontrado'
+            });
+        }
+        
+        if (residente.estado !== 'pendiente') {
+            return res.status(400).json({
+                success: false,
+                error: 'RESIDENTE_YA_ACTIVO',
+                message: 'Este residente ya está activo'
+            });
+        }
+        
+        // 2. Verificar límite de reenvíos
+        if (residente.reenvios_realizados >= 3) {
+            return res.status(403).json({
+                success: false,
+                error: 'REENVIOS_EXCEDIDOS',
+                message: 'Este residente ya ha recibido 3 reenvíos',
+                data: {
+                    reenvios_realizados: residente.reenvios_realizados,
+                    limite_maximo: 3
+                }
+            });
+        }
+        
+        // 3. Generar nuevo token
+        const nuevoToken = generarTokenInvitacion();
+        const expiracion = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
+        
+        // 4. Actualizar residente
+        await residente.update({
+            token_invitacion: nuevoToken,
+            token_expiracion: expiracion,
+            reenvios_realizados: residente.reenvios_realizados + 1,
+            ultimo_reenvio: new Date()
+        });
+        
+        // 5. Registrar en historial
+        await HistorialReenvios.create({
+            residente_id: id,
+            ip_admin: adminIp,
+            token_expiracion: expiracion,
+            contador_reenvios: residente.reenvios_realizados + 1
+        });
+        
+        // 6. Enviar email
+        await enviarEmailInvitacion({
+            email: residente.email,
+            nombre: residente.nombre,
+            token: nuevoToken,
+            edificio: residente.edificio.nombre
+        });
+        
+        // 7. Respuesta exitosa
+        res.json({
+            success: true,
+            message: 'Invitación reenviada exitosamente',
+            data: {
+                residente_id: id,
+                email: residente.email,
+                reenvios_realizados: residente.reenvios_realizados + 1,
+                reenvios_disponibles: 2 - residente.reenvios_realizados,
+                nuevo_token_expiracion: expiracion,
+                ultimo_reenvio: new Date()
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error en reenvío de invitación:', error);
+        
+        // Registrar error en historial
+        await HistorialReenvios.create({
+            residente_id: id,
+            ip_admin: adminIp,
+            resultado: 'fallido',
+            mensaje_error: error.message
+        });
+        
+        res.status(500).json({
+            success: false,
+            error: 'ERROR_INTERNO',
+            message: 'Error interno del servidor'
+        });
+    }
+};
+4. Modelo: models/HistorialReenvios.js
+const { DataTypes } = require('sequelize');
+
+module.exports = (sequelize) => {
+    const HistorialReenvios = sequelize.define('HistorialReenvios', {
+        id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+        },
+        residente_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            references: {
+                model: 'residentes',
+                key: 'id'
+            }
+        },
+        fecha_reenvio: {
+            type: DataTypes.DATE,
+            defaultValue: DataTypes.NOW
+        },
+        ip_admin: {
+            type: DataTypes.INET,
+            allowNull: true
+        },
+        resultado: {
+            type: DataTypes.ENUM('exitoso', 'fallido', 'excedido'),
+            defaultValue: 'exitoso'
+        },
+        mensaje_error: {
+            type: DataTypes.TEXT,
+            allowNull: true
+        },
+        token_expiracion: {
+            type: DataTypes.DATE,
+            allowNull: true
+        },
+        contador_reenvios: {
+            type: DataTypes.INTEGER,
+            defaultValue: 1
+        }
+    }, {
+        tableName: 'historial_reenvios',
+        timestamps: false,
+        indexes: [
+            {
+                fields: ['residente_id', 'fecha_reenvio']
+            },
+            {
+                fields: ['resultado']
+            }
+        ]
+    });
+    
+    return HistorialReenvios;
+};
+5. Servicio de Email
+// services/emailService.js
+const enviarEmailInvitacion = async ({ email, nombre, token, edificio }) => {
+    const enlaceInvitacion = `${process.env.FRONTEND_URL}/activar-cuenta?token=${token}`;
+    
+    const asunto = `Reinvitación - Acceso a LifeBit - ${edificio}`;
+    const contenido = `
+        <h2>¡Hola ${nombre}!</h2>
+        <p>Te reenviamos el enlace de invitación para acceder a LifeBit del edificio ${edificio}.</p>
+        <p>Este enlace expirará en 24 horas.</p>
+        <a href="${enlaceInvitacion}" style="background: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
+            Activar mi cuenta
+        </a>
+        <p>Si el botón no funciona, copia y pega este enlace en tu navegador:</p>
+        <p>${enlaceInvitacion}</p>
+    `;
+    
+    return await emailService.enviar({
+        to: email,
+        subject: asunto,
+        html: contenido
+    });
+};
+Frontend Implementation
+1. Hook: Actualizar useGestionResidentes.js
+// Agregar al estado
+const [reenviandoId, setReenviandoId] = useState(null);
+
+// Nueva función
+const handleReenviarInvitacion = useCallback(async (residente) => {
+    // Validación básica
+    if (residente.estado !== 'pendiente') {
+        toast.error('Solo se pueden reenviar invitaciones a residentes pendientes');
+        return;
+    }
+    
+    try {
+        setReenviandoId(residente.id);
+        
+        const response = await apiService.post(`/admin/residentes/${residente.id}/reenviar-invitacion`);
+        
+        if (response.data.success) {
+            toast.success(`Invitación reenviada a ${residente.email}`);
+            
+            // Actualizar datos del residente
+            setResidentes(prev => prev.map(r => 
+                r.id === residente.id 
+                    ? {
+                        ...r,
+                        reenvios_realizados: response.data.data.reenvios_realizados,
+                        ultimo_reenvio: response.data.data.ultimo_reenvio,
+                        token_expiracion: response.data.data.nuevo_token_expiracion
+                    }
+                    : r
+            ));
+            
+        } else {
+            // Manejar errores específicos
+            switch (response.data.error) {
+                case 'REENVIOS_EXCEDIDOS':
+                    toast.error(`Límite de reenvíos alcanzado (${response.data.data.reenvios_realizados}/3)`);
+                    break;
+                case 'RESIDENTE_YA_ACTIVO':
+                    toast.error('Este residente ya está activo');
+                    break;
+                default:
+                    toast.error(response.data.message || 'Error al reenviar invitación');
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error al reenviar invitación:', error);
+        toast.error('Error de conexión al reenviar invitación');
+    } finally {
+        setReenviandoId(null);
+    }
+}, []);
+
+// Agregar a la API pública del hook
+return {
+    // ... otros valores
+    handleReenviarInvitacion,
+    reenviandoId
+};
+2. Componente: Actualizar ListaResidentes.jsx
+// Agregar imports
+import { FiMail } from 'react-icons/fi';
+
+// Agregar props
+const ListaResidentes = ({
+    residentes,
+    isLoading,
+    searchTerm,
+    onSearchChange,
+    filtroEstado,
+    onFiltroChange,
+    onRefresh,
+    onEditar,
+    onSuspender,
+    onReenviarInvitacion,  // Nueva prop
+    reenviandoId,          // Nueva prop
+    eliminandoId
+}) => {
+    // Dentro del map de residentes
+    {residentes.map((residente) => {
+        const estadoBadge = getEstadoBadge(residente.estado);
+        const puedeReenviar = residente.estado === 'pendiente' && residente.reenvios_realizados < 3;
+        
+        return (
+            <tr key={residente.id} className="hover:bg-gray-750 transition-colors duration-150">
+                {/* ... columnas existentes ... */}
+                
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex justify-end gap-2">
+                        {/* Botón de editar existente */}
+                        <button
+                            onClick={() => onEditar(residente)}
+                            className="text-blue-400 hover:text-blue-600 transition-colors duration-200 p-1"
+                            title="Editar residente"
+                        >
+                            <FiEdit size={16} />
+                        </button>
+                        
+                        {/* Nuevo botón de reenviar */}
+                        {puedeReenviar && (
+                            <button
+                                onClick={() => onReenviarInvitacion(residente)}
+                                disabled={reenviandoId === residente.id}
+                                className="text-purple-400 hover:text-purple-600 transition-colors duration-200 p-1 disabled:opacity-50"
+                                title={`Reenviar invitación (${residente.reenvios_realizados || 0}/3)`}
+                            >
+                                {reenviandoId === residente.id ? (
+                                    <FiRefreshCw className="animate-spin" size={16} />
+                                ) : (
+                                    <FiMail size={16} />
+                                )}
+                            </button>
+                        )}
+                        
+                        {/* Botón de suspender existente */}
+                        <button
+                            onClick={() => onSuspender(residente)}
+                            disabled={eliminandoId === residente.id}
+                            className={`transition-colors duration-200 disabled:opacity-50 p-1 ${
+                                residente.estado === 'suspendido'
+                                    ? 'text-green-400 hover:text-green-600'
+                                    : 'text-orange-400 hover:text-orange-600'
+                            }`}
+                            title={residente.estado === 'suspendido' ? 'Reactivar residente' : 'Suspender residente'}
+                        >
+                            {eliminandoId === residente.id ? (
+                                <FiRefreshCw className="animate-spin" size={16} />
+                            ) : residente.estado === 'suspendido' ? (
+                                <FiUserCheck size={16} />
+                            ) : (
+                                <FiUserX size={16} />
+                            )}
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        );
+    })}
+3. Página: Actualizar ResidentesPage.jsx
+// En el hook useGestionResidentes
+const {
+    residentesFiltrados,
+    estadisticas,
+    isLoading,
+    ultimaActualizacion,
+    searchTerm,
+    setSearchTerm,
+    filtroEstado,
+    setFiltroEstado,
+    isInvitarModalOpen,
+    isMasivoModalOpen,
+    isSuspenderModalOpen,
+    residenteEditando,
+    residenteASuspender,
+    datosBorrador,
+    handleOpenInvitarModal,
+    setIsMasivoModalOpen,
+    handleEditarResidente,
+    handleSuspenderResidente,
+    handleCloseModals,
+    confirmarCambioEstado,
+    eliminandoId,
+    handleInvitacionExitosa,
+    cargarResidentes,
+    handleReenviarInvitacion,  // Nueva función
+    reenviandoId               // Nuevo estado
+} = useGestionResidentes();
+
+// En el componente ListaResidentes
+<ListaResidentes
+    residentes={residentesFiltrados}
+    isLoading={isLoading}
+    searchTerm={searchTerm}
+    onSearchChange={setSearchTerm}
+    filtroEstado={filtroEstado}
+    onFiltroChange={setFiltroEstado}
+    onRefresh={cargarResidentes}
+    onEditar={handleEditarResidente}
+    onSuspender={handleSuspenderResidente}
+    onReenviarInvitacion={handleReenviarInvitacion}  // Nueva prop
+    reenviandoId={reenviandoId}                      // Nueva prop
+    eliminandoId={eliminandoId}
+/>
+🔄 Consecuencias
+Positivas:
+✅ Mejora UX: Solución inmediata para tokens expirados
+✅ Eficiencia: Reenvío directo desde la lista sin navegación
+✅ Auditoría: Historial completo de reenvíos
+✅ Escalabilidad: Límite controlado de reenvíos
+✅ Consistencia: Mantiene arquitectura existente
+Riesgos:
+⚠️ Abuso: Posibilidad de spam (mitigado con límite de 3)
+⚠️ Complejidad: Nueva tabla y lógica (aceptable)
+⚠️ Almacenamiento: Historial crece con el tiempo (optimizado con índices)
+Alternativas Consideradas:
+Sin límite de reenvíos: Rechazada por riesgo de abuso
+Reenvío automático: Rechazada por complejidad operativa
+Modal separado: Rechazada por peor UX
+📋 Plan de Implementación
+Fase 1: Backend (2-3 horas)
+ Crear tabla historial_reenvios
+ Actualizar tabla residentes
+ Implementar endpoint /admin/residentes/:id/reenviar-invitacion
+ Crear modelo HistorialReenvios
+ Actualizar servicio de email
+Fase 2: Frontend (1-2 horas)
+ Actualizar hook useGestionResidentes
+ Modificar componente ListaResidentes
+ Actualizar ResidentesPage
+ Testing manual
+Fase 3: Testing (1 hora)
+ Pruebas unitarias
+ Pruebas de integración
+ Validación manual
+📊 Métricas de Éxito
+✅ Adopción: 80% de administradores usan la funcionalidad
+✅ Satisfacción: Reducción del 90% en quejas sobre tokens expirados
+✅ Rendimiento: < 2 segundos de respuesta en reenvíos
+✅ Confiabilidad: < 1% de errores en reenvíos
+📝 Notas Adicionales
+Monitoreo: Logs de reenvíos para análisis de uso
+Documentación: Actualizar API docs con nuevo endpoint
+Migración: Script para inicializar reenvios_realizados = 0 en residentes existentes
+Rollback: Fácil de revertir eliminando botón y endpoint
+Estado: ⏳ Pendiente de Implementación
+Prioridad: 🔴 Alta
+Esfuerzo Estimado: 4-6 horas

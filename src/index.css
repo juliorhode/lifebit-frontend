@@ -1,1 +1,63 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Clases personalizadas con @apply para evitar repetición */
+@layer components {
+  /* Clase para tarjetas temáticas */
+  .card-theme {
+    @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 text-gray-900 dark:text-white shadow-lg;
+  }
+
+  /* Clases para textos temáticos */
+  .text-primary {
+    @apply text-gray-900 dark:text-white;
+  }
+
+  .text-secondary {
+    @apply text-gray-600 dark:text-gray-300;
+  }
+
+  .text-tertiary {
+    @apply text-gray-500 dark:text-gray-400;
+  }
+
+  /* Clases para fondos temáticos */
+  .bg-surface {
+    @apply bg-white dark:bg-gray-800;
+  }
+
+  .bg-surface-secondary {
+    @apply bg-gray-50 dark:bg-gray-900;
+  }
+
+  /* Clases para bordes temáticos */
+  .border-theme {
+    @apply border-gray-200 dark:border-gray-700;
+  }
+
+  .border-theme-light {
+    @apply border-gray-300 dark:border-gray-600;
+  }
+
+  /* Clase para botones primarios */
+  .btn-primary {
+    @apply bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors;
+  }
+
+  /* Clase para botones secundarios */
+  .btn-secondary {
+    @apply bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-medium px-4 py-2 rounded-lg transition-colors;
+  }
+
+  /* Clase para inputs temáticos */
+  .input-theme {
+    @apply w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400;
+  }
+
+  /* Clase para labels temáticos */
+  .label-theme {
+    @apply block text-left text-sm font-semibold mb-2 text-gray-700 dark:text-gray-200;
+  }
+}
+

@@ -27,12 +27,12 @@ export const COLORS = {
 // clases de estilo de Tailwind.
 export const STYLES = {
 	// --- FONDOS ---
-	backgroundPage: 'bg-gray-900 text-gray-200',
-	backgroundCard: 'bg-gray-800 text-gray-200',
+	backgroundPage: 'bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-200',
+	backgroundCard: 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200',
 
 	// --- INPUTS Y FORMULARIOS ---
 	input: 'w-full p-3 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:border-blue-500 text-gray-900 dark:text-white',
-	label: 'block text-left text-sm font-semibold mb-2 text-gray-700 dark:text-gray-200',
+	label: 'block text-left text-sm font-semibold mb-2 text-gray-600 dark:text-gray-200',
 	// errorText: 'text-red-500 dark:text-red-400 text-xs mt-1',
 	errorText: 'bg-red-500/20 border border-red-500 text-red-300 p-3 rounded-md',
 	successText: 'bg-green-500/20 border border-green-500 text-green-300 p-3 rounded-md',
@@ -51,28 +51,28 @@ export const STYLES = {
 	buttonLink: 'text-sm text-blue-500 hover:underline focus:outline-none',
 
 	// --- TARJETAS Y CONTENEDORES ---
-	card: 'bg-white dark:bg-gray-800 p-8 rounded-lg shadow-2xl',
+	card: 'bg-gray-50 dark:bg-gray-800 p-8 rounded-lg shadow-lg',
 
 	// --- TEXTOS ---
 	titlePage: 'text-3xl font-bold text-gray-900 dark:text-white',
 	lifeBit: 'text-3xl font-bold text-blue-500 hover:text-blue-400 transition-colors',
-	titleSection: 'text-2xl font-bold text-gray-800 dark:text-white',
+	titleSection: 'text-2xl font-bold text-gray-700 dark:text-white',
 
 	// --- LISTAS ---
 	selectableListItem: {
 		base: 'w-full text-left p-3 rounded-md transition-colors duration-150 text-lg',
 		active: 'bg-blue-600 text-white font-semibold',
-		inactive: 'text-gray-300 hover:bg-gray-700',
+		inactive: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700',
 	},
 
 	// --- COMPONENTES DRAG-AND-DROP ---
 	dnd: {
-		paletteContainer: 'p-4 bg-gray-800 rounded-lg space-y-3',
-		paletteTitle: 'font-semibold text-white',
+		paletteContainer: 'p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-3',
+		paletteTitle: 'font-semibold text-gray-700 dark:text-white',
 		block: 'p-2 px-4 rounded-md cursor-grab bg-blue-900 text-blue-100 border border-blue-700',
 
 		canvasBase: 'p-4 rounded-lg border-2 border-dashed transition-all duration-200',
-		canvasDefault: 'bg-gray-800 border-gray-600',
+		canvasDefault: 'bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600',
 		canvasHover: 'bg-blue-900/50 border-blue-500 scale-[1.02]',
 		canvasContent: 'flex flex-wrap gap-2 min-h-[60px] items-center',
 		canvasPlaceholder: 'w-full flex flex-col items-center justify-center text-gray-500 py-4',

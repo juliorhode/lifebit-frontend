@@ -76,19 +76,11 @@ const LoginPage = () => {
         }
     }, [estado, navigate]); // El array [estado] le dice a useEffect que solo se active cuando 'estado' cambie.
 
-    console.log('Estado de autenticación:', estado);
-    console.log('Error de autenticación:', authError);
-    console.log('Error de URL:', urlError);
-    console.log(searchParams.toString());
-
-
-
-
     // --- RENDERIZADO DEL COMPONENTE (JSX) ---
     return (
         <>
 
-            <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
+            <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4 dark">
                 <div className="w-full max-w-md">
                     <div className="flex items-center justify-center h-16 border-b border-gray-200 dark:border-gray-800">
                         <Logo />
@@ -161,6 +153,7 @@ const LoginPage = () => {
                 isProcessing={isFormProcessing}
                 isOpen={isForgotPasswordOpen}
                 onClose={() => setIsForgotPasswordOpen(false)}
+                forceDark={true}
                 title={
                     <div className="flex flex-col items-center gap-4">
                         <Logo />

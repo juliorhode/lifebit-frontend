@@ -30,7 +30,34 @@ const RecursosPage = () => {
     const [isCargarModalOpen, setIsCargarModalOpen] = useState(false);
     const [tipoAEditar, setTipoAEditar] = useState(null);
     const [tipoAEliminar, setTipoAEliminar] = useState(null);
-    const [hasItemsGenerados, setHasItemsGenerados] = useState(false);
+    /**
+     * @description Estado que indica si se han generado items de inventario
+     * CRÍTICO PARA SETUP WIZARD: Controla la visibilidad del botón "Continuar"
+     *
+     * Problema anterior: Se perdía al refrescar la página porque era solo estado local
+     * Solución: Persistir en localStorage para mantener consistencia
+     *
+     * @type {boolean} true si hay items generados, false si no
+     */
+    const [hasItemsGenerados, setHasItemsGenerados] = useState(() => {
+        // 📖 LECTURA INICIAL: Intentar leer del localStorage
+        // Si existe, usar ese valor; si no, usar false como valor por defecto
+        try {
+            const saved = localStorage.getItem('recursos_hasItemsGenerados');
+            const parsedValue = saved ? JSON.parse(saved) : false;
+
+            return parsedValue;
+        } catch (error) {
+            // 🛡️ FALLBACK: Si hay error leyendo localStorage, usar false
+            console.warn('⚠️ RecursosPage: Error leyendo localStorage, usando false:', error);
+            return false;
+        }
+    });
+
+    /**
+     * @description Referencia al componente GestionInventarioPanel
+     * Se usa para refrescar los datos después de cambios en el inventario
+     */
     const gestionInventarioRef = useRef();
 
     const fetchTiposDeRecurso = async () => {
@@ -52,11 +79,43 @@ const RecursosPage = () => {
 
     const tipoSeleccionado = tiposDeRecurso.find(t => t.id === tipoSeleccionadoId) || null;
 
-    // SETUP WIZARD: Lógica condicional para mostrar botón de continuar
-    // Se requiere: tipos de recursos creados + items de inventario generados
+    // ============================================================================
+    // 🎯 SETUP WIZARD: LÓGICA CONDICIONAL PARA BOTÓN "CONTINUAR"
+    // ============================================================================
+    // Esta sección controla cuándo mostrar el botón "Continuar a Residentes"
+    // Es CRÍTICA para la experiencia del usuario en el setup inicial
+
+    /**
+     * @description Verifica si el usuario está en el paso 2 del setup wizard
+     * Este paso corresponde a la configuración de recursos del edificio
+     */
     const isInSetupWizard = usuario?.estado_configuracion === SETUP_STATES.PASO_2_RECURSOS;
+
+    /**
+     * @description Verifica si se han creado tipos de recursos
+     * Al menos un tipo de recurso debe existir para poder continuar
+     */
     const hasTiposRecursos = tiposDeRecurso.length > 0;
+
+    /**
+     * @description Estado crítico: Verifica si hay items de inventario generados
+     * ANTES: Este estado se perdía al refrescar → Problema solucionado con localStorage
+     * AHORA: Se mantiene consistente gracias a actualizarEstadoItems()
+     *
+     * Esta condición determina si el usuario puede continuar al siguiente paso
+     */
     const hasRecursosCompletos = hasTiposRecursos && hasItemsGenerados;
+
+    /**
+     * @description Condición final: Mostrar botón "Continuar" solo si:
+     * 1. El usuario está en setup wizard (paso 2)
+     * 2. Tiene tipos de recursos creados
+     * 3. ✅ NUEVO: Tiene items de inventario generados (persistido en localStorage)
+     *
+     * Si esta condición es false:
+     * - El botón "Continuar" no se muestra
+     * - Se muestra el mensaje informativo en su lugar
+     */
     const showContinueButton = isInSetupWizard && hasRecursosCompletos;
 
     // SETUP WIZARD: Handler para avanzar al siguiente paso del setup
@@ -84,14 +143,68 @@ const RecursosPage = () => {
         setIsCreateModalOpen(false);
     };
 
+    /**
+     * @description Función centralizada para actualizar el estado hasItemsGenerados
+     * SOLUCIÓN AL PROBLEMA: Persiste el estado en localStorage para sobrevivir refrescos
+     *
+     * @param {boolean} nuevoEstado - El nuevo valor del estado (true/false)
+     *
+     * Flujo:
+     * 1. Actualiza el estado local con setHasItemsGenerados
+     * 2. Persiste en localStorage para mantener consistencia
+     * 3. Loggea para debugging y monitoreo
+     *
+     * Beneficios:
+     * - ✅ Sobrevive a refrescos de página
+     * - ✅ Funciona sin conexión a internet
+     * - ✅ Más rápido que llamadas API
+     * - ✅ Sincronizado entre pestañas del mismo navegador
+     */
+    const actualizarEstadoItems = (nuevoEstado) => {
+        // 🔄 1. Actualizar estado local
+        setHasItemsGenerados(nuevoEstado);
+
+        // 💾 2. Persistir en localStorage
+        try {
+            localStorage.setItem('recursos_hasItemsGenerados', JSON.stringify(nuevoEstado));
+        } catch (error) {
+            // 🛡️ 3. Manejo de errores - si localStorage falla, al menos mantener estado local
+            console.error('Error guardando en localStorage:', error);
+            // El estado local ya se actualizó, así que la funcionalidad básica sigue funcionando
+        }
+    };
+
+    /**
+     * @description Handler ejecutado cuando se completa una operación de inventario
+     * CRÍTICO PARA SETUP WIZARD: Marca que se han generado items para mostrar botón "Continuar"
+     *
+     * Flujo de ejecución:
+     * 1. Cerrar modales abiertos (generador/carga)
+     * 2. Refrescar el panel de inventario para mostrar nuevos datos
+     * 3. ✅ NUEVO: Marcar que hay items generados usando actualizarEstadoItems
+     * 4. Mostrar notificación de éxito al usuario
+     *
+     * Importancia: Esta función se ejecuta después de:
+     * - Generar inventario secuencialmente
+     * - Cargar inventario desde archivo Excel
+     * - Cualquier operación que agregue items al inventario
+     */
     const handleInventarioChange = () => {
+        // 🪟 1. Cerrar modales que puedan estar abiertos
         setIsGeneradorModalOpen(false);
         setIsCargarModalOpen(false);
+
+        // 🔄 2. Refrescar el panel de inventario para mostrar los nuevos datos
         if (gestionInventarioRef.current) {
             gestionInventarioRef.current.refrescar();
         }
-        // SETUP WIZARD: Marcar que se han generado items de inventario
-        setHasItemsGenerados(true);
+
+        // ✅ 3. CRÍTICO: Marcar que se han generado items de inventario
+        // ANTES: setHasItemsGenerados(true); // Se perdía al refrescar
+        // AHORA: actualizarEstadoItems(true); // Se persiste en localStorage
+        actualizarEstadoItems(true);
+
+        // 🔔 4. Notificar al usuario que la operación fue exitosa
         toast.success('¡Inventario actualizado exitosamente!');
     };
 
@@ -179,7 +292,21 @@ const RecursosPage = () => {
                 </>
             )}
 
-            {/* SETUP WIZARD: Botón condicional para continuar al siguiente paso */}
+            {/* ============================================================================
+                🎯 SETUP WIZARD: BOTÓN "CONTINUAR A RESIDENTES"
+                ============================================================================
+                Este botón aparece SOLO cuando se cumplen TODAS las condiciones:
+
+                ✅ Usuario está en setup wizard (paso 2)
+                ✅ Tiene al menos un tipo de recurso creado
+                ✅ ✅ NUEVO: Tiene items de inventario generados (persistido en localStorage)
+
+                Problema solucionado:
+                ANTES: Al refrescar, hasItemsGenerados volvía a false → Botón desaparecía
+                AHORA: localStorage mantiene el estado → Botón permanece visible
+
+                UX Impact: Sin este botón, el usuario se queda "atascado" en el setup
+            */}
             {showContinueButton && (
                 <div className="mt-8 flex justify-end">
                     <button
@@ -193,12 +320,31 @@ const RecursosPage = () => {
                 </div>
             )}
 
-            {/* SETUP WIZARD: Mensaje informativo cuando no hay recursos completos */}
+            {/* ============================================================================
+                ℹ️ SETUP WIZARD: MENSAJE INFORMATIVO CUANDO NO SE PUEDE CONTINUAR
+                ============================================================================
+                Este mensaje aparece cuando showContinueButton es false
+                Guía al usuario sobre qué necesita hacer para desbloquear el siguiente paso
+
+                Lógica condicional:
+                1. Si no hay tipos de recursos → "Crea al menos un tipo de recurso..."
+                2. Si hay tipos pero no items → "Ahora genera items de inventario..."
+
+                UX Importante:
+                - Proporciona instrucciones claras y accionables
+                - Evita que el usuario se sienta "atascado"
+                - Guía el siguiente paso lógico en el flujo
+
+                Problema solucionado:
+                ANTES: Después de refrescar, aparecía este mensaje aunque había items generados
+                AHORA: Gracias a localStorage, mantiene el estado correcto
+            */}
             {isInSetupWizard && !hasRecursosCompletos && (
-                <div className="mt-8 p-4 bg-blue-900 bg-opacity-50 border border-blue-700 rounded-lg">
-                    <div className="flex items-center text-blue-200">
+                <div className="mt-8 p-4 bg-blue-100 dark:bg-blue-900 bg-opacity-50 border border-blue-700 rounded-lg">
+                    <div className="flex items-center text-blue-900 dark:text-blue-200">
                         <i className="fas fa-info-circle mr-3 text-blue-400"></i>
                         <span>
+                            {/* 🔀 LÓGICA CONDICIONAL: Mensaje específico según el estado */}
                             {!hasTiposRecursos
                                 ? "Crea al menos un tipo de recurso para poder continuar al siguiente paso del setup."
                                 : "Ahora genera items de inventario para los tipos de recursos creados usando 'Generar Secuencialmente' o 'Cargar desde Archivo'."
@@ -212,3 +358,4 @@ const RecursosPage = () => {
 };
 
 export default RecursosPage;
+ 
