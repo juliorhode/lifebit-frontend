@@ -57,7 +57,9 @@ const Header = ({ onMenuClick, className='' }) => {
     const userName = `${usuario.nombre} ${usuario.apellido}`;
     const userRole = usuario?.rol;
     // TODO: Usar el avatar de Google si viene en el objeto 'usuario', o un placeholder.
-    const userAvatarUrl = usuario?.avatarUrl || `https://ui-avatars.com/api/?name=${userName.replace(' ', '+')}&background=0D8ABC&color=fff`;
+    
+    
+    const userAvatarUrl = usuario?.avatar_url || `https://ui-avatars.com/api/?name=${userName.replace(' ', '+')}&background=0D8ABC&color=fff`;
 
     return (
         <>

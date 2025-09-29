@@ -33,7 +33,6 @@ export const useAuthStore = create((set, get) => ({
 			// Esto se llama "desestructuración" de objetos en JavaScript.
 			const { accessToken, data } = response.data;
 			const usuario = data.usuario; // Extraemos el usuario del objeto 'data'
-
 			if (!accessToken || !usuario) {
 				throw new Error('Resṕuesta inesperada del servidor.');
 			}
