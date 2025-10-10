@@ -59,11 +59,11 @@ const ListaResidentes = ({
                         </div>
                     </div>
 
-                    <div className="flex gap-3 items-center">
+                    <div className="flex gap-3 items-center w-full sm:w-auto">
                         <select
                             value={filtroEstado}
                             onChange={(e) => onFiltroChange(e.target.value)}
-                            className="input-theme py-2 pr-8" // pr-8 para que el texto no se solape con la flecha
+                            className="input-theme py-2 pr-8 w-full sm:w-auto" // pr-8 para que el texto no se solape con la flecha
                         >
                             <option value="todos">Todos los estados</option>
                             <option value="activos">Solo Activos</option>
@@ -109,80 +109,138 @@ const ListaResidentes = ({
                         </p>
                     </div>
                 ) : (
-                    // Tabla de Datos: Se renderiza cuando hay residentes para mostrar.
-                    <table className="w-full text-sm text-left text-secondary">
-                        <thead className="text-xs uppercase bg-surface-secondary text-tertiary">
-                            <tr>
-                                <th scope="col" className="px-6 py-3">Residente</th>
-                                <th scope="col" className="px-6 py-3">Unidad</th>
-                                <th scope="col" className="px-6 py-3">Estado</th>
-                                <th scope="col" className="px-6 py-3 text-right">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <>
+                        {/* Vista de Tarjetas para Móviles */}
+                        <div className="block md:hidden space-y-4 p-4">
                             {residentes.map((residente) => {
                                 const estadoBadge = getEstadoBadge(residente.estado);
                                 return (
-                                    <tr key={residente.id} className="bg-surface border-b border-theme hover:bg-gray-50 dark:hover:bg-gray-600/20">
-                                        <td className="px-6 py-4 font-medium text-primary whitespace-nowrap">
-                                            <div>
-                                                {`${residente.nombre || ''} ${residente.apellido || ''}`.trim() || 'Nombre no disponible'}
-                                                <div className="font-normal text-tertiary">{residente.email}</div>
+                                    <div key={residente.id} className="bg-surface border border-theme rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-600/20">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <div className="flex-1">
+                                                <h3 className="font-medium text-primary">
+                                                    {`${residente.nombre || ''} ${residente.apellido || ''}`.trim() || 'Nombre no disponible'}
+                                                </h3>
+                                                <p className="text-tertiary text-sm">{residente.email}</p>
                                             </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-secondary">{residente.numero_unidad || 'N/A'}</td>
-                                        <td className="px-6 py-4">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${estadoBadge.color}`}>
                                                 <i className={`${estadoBadge.icono} mr-1.5`}></i>
                                                 {estadoBadge.texto}
                                             </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            {/* SOLUCIÓN DE ALINEACIÓN: Se usa un contenedor flex con ancho fijo para cada acción */}
-                                            <div className="flex justify-end gap-1 items-center">
-                                                {/* Contenedor para la acción de Editar */}
-                                                <div className="w-8 h-8 flex items-center justify-center">
-                                                    <button
-                                                        onClick={() => onEditar(residente)}
-                                                        className="p-1 text-blue-500 hover:text-blue-700 transition-colors rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50"
-                                                        title="Editar residente"
-                                                    >
-                                                        <FiEdit size={16} />
-                                                    </button>
-                                                </div>
-
-                                                {/* Contenedor para la acción de Suspender/Reactivar */}
-                                                <div className="w-8 h-8 flex items-center justify-center">
-                                                    {residente.estado !== 'invitado' ? (
-                                                        <button
-                                                            onClick={() => onSuspender(residente)}
-                                                            disabled={idAccion === residente.id}
-                                                            className={`p-1 transition-colors disabled:opacity-50 rounded-full ${residente.estado === 'suspendido'
-                                                                    ? 'text-green-500 hover:text-green-700 hover:bg-green-100 dark:hover:bg-green-900/50'
-                                                                    : 'text-orange-500 hover:text-orange-700 hover:bg-orange-100 dark:hover:bg-orange-900/50'
-                                                                }`}
-                                                            title={residente.estado === 'suspendido' ? 'Reactivar residente' : 'Suspender residente'}
-                                                        >
-                                                            {idAccion === residente.id ? (
-                                                                <FiRefreshCw className="animate-spin" size={16} />
-                                                            ) : residente.estado === 'suspendido' ? (
-                                                                <FiUserCheck size={16} />
-                                                            ) : (
-                                                                <FiUserX size={16} />
-                                                            )}
-                                                        </button>
-                                                    ) : (
-                                                        // Este espacio vacío se renderiza si el botón no aplica, manteniendo la alineación.
-                                                        null
-                                                    )}
-                                                </div>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <div className="text-secondary">
+                                                <span className="text-sm font-medium">Unidad:</span> {residente.numero_unidad || 'N/A'}
                                             </div>
-                                        </td>
-                                    </tr>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => onEditar(residente)}
+                                                    className="p-2 text-blue-500 hover:text-blue-700 transition-colors rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50"
+                                                    title="Editar residente"
+                                                >
+                                                    <FiEdit size={16} />
+                                                </button>
+                                                {residente.estado !== 'invitado' && (
+                                                    <button
+                                                        onClick={() => onSuspender(residente)}
+                                                        disabled={idAccion === residente.id}
+                                                        className={`p-2 transition-colors disabled:opacity-50 rounded-full ${residente.estado === 'suspendido'
+                                                                ? 'text-green-500 hover:text-green-700 hover:bg-green-100 dark:hover:bg-green-900/50'
+                                                                : 'text-orange-500 hover:text-orange-700 hover:bg-orange-100 dark:hover:bg-orange-900/50'
+                                                            }`}
+                                                        title={residente.estado === 'suspendido' ? 'Reactivar residente' : 'Suspender residente'}
+                                                    >
+                                                        {idAccion === residente.id ? (
+                                                            <FiRefreshCw className="animate-spin" size={16} />
+                                                        ) : residente.estado === 'suspendido' ? (
+                                                            <FiUserCheck size={16} />
+                                                        ) : (
+                                                            <FiUserX size={16} />
+                                                        )}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
                                 );
                             })}
-                        </tbody>
-                    </table>
+                        </div>
+
+                        {/* Tabla de Datos para Desktop/Tablet */}
+                        <table className="hidden md:table w-full text-sm text-left text-secondary">
+                            <thead className="text-xs uppercase bg-surface-secondary text-tertiary">
+                                <tr>
+                                    <th scope="col" className="px-6 py-3">Residente</th>
+                                    <th scope="col" className="px-6 py-3">Unidad</th>
+                                    <th scope="col" className="px-6 py-3">Estado</th>
+                                    <th scope="col" className="px-6 py-3 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {residentes.map((residente) => {
+                                    const estadoBadge = getEstadoBadge(residente.estado);
+                                    return (
+                                        <tr key={residente.id} className="bg-surface border-b border-theme hover:bg-gray-50 dark:hover:bg-gray-600/20">
+                                            <td className="px-6 py-4 font-medium text-primary whitespace-nowrap">
+                                                <div>
+                                                    {`${residente.nombre || ''} ${residente.apellido || ''}`.trim() || 'Nombre no disponible'}
+                                                    <div className="font-normal text-tertiary">{residente.email}</div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-secondary">{residente.numero_unidad || 'N/A'}</td>
+                                            <td className="px-6 py-4">
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${estadoBadge.color}`}>
+                                                    <i className={`${estadoBadge.icono} mr-1.5`}></i>
+                                                    {estadoBadge.texto}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                {/* SOLUCIÓN DE ALINEACIÓN: Se usa un contenedor flex con ancho fijo para cada acción */}
+                                                <div className="flex justify-end gap-1 items-center">
+                                                    {/* Contenedor para la acción de Editar */}
+                                                    <div className="w-8 h-8 flex items-center justify-center">
+                                                        <button
+                                                            onClick={() => onEditar(residente)}
+                                                            className="p-1 text-blue-500 hover:text-blue-700 transition-colors rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50"
+                                                            title="Editar residente"
+                                                        >
+                                                            <FiEdit size={16} />
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Contenedor para la acción de Suspender/Reactivar */}
+                                                    <div className="w-8 h-8 flex items-center justify-center">
+                                                        {residente.estado !== 'invitado' ? (
+                                                            <button
+                                                                onClick={() => onSuspender(residente)}
+                                                                disabled={idAccion === residente.id}
+                                                                className={`p-1 transition-colors disabled:opacity-50 rounded-full ${residente.estado === 'suspendido'
+                                                                        ? 'text-green-500 hover:text-green-700 hover:bg-green-100 dark:hover:bg-green-900/50'
+                                                                        : 'text-orange-500 hover:text-orange-700 hover:bg-orange-100 dark:hover:bg-orange-900/50'
+                                                                    }`}
+                                                                title={residente.estado === 'suspendido' ? 'Reactivar residente' : 'Suspender residente'}
+                                                            >
+                                                                {idAccion === residente.id ? (
+                                                                    <FiRefreshCw className="animate-spin" size={16} />
+                                                                ) : residente.estado === 'suspendido' ? (
+                                                                    <FiUserCheck size={16} />
+                                                                ) : (
+                                                                    <FiUserX size={16} />
+                                                                )}
+                                                            </button>
+                                                        ) : (
+                                                            // Este espacio vacío se renderiza si el botón no aplica, manteniendo la alineación.
+                                                            null
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </>
                 )}
             </div>
         </div>

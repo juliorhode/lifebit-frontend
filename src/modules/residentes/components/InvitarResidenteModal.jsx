@@ -57,7 +57,7 @@ const InvitarResidenteModal = ({
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
             <button onClick={handleClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-white z-10">
                 <i className="fas fa-times text-xl"></i>
             </button>

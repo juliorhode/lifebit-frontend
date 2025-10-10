@@ -53,10 +53,10 @@ const EstadisticasResidentes = ({ estadisticas }) => {
                 <div className="relative z-10 flex items-center justify-between">
                     <div>
                         <p className="text-gray-600 dark:text-gray-300 text-sm font-medium group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">Total Residentes</p>
-                        <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{total}</p>
+                        <p className="text-xl md:text-2xl font-bold text-blue-600 dark:text-blue-400">{total}</p>
                     </div>
                     <div className="bg-blue-100 dark:bg-blue-500/20 p-3 rounded-full group-hover:scale-110 transition-transform">
-                        <i className="fas fa-users text-blue-600 dark:text-blue-400 text-xl"></i>
+                        <i className="fas fa-users text-blue-600 dark:text-blue-400 text-lg md:text-xl"></i>
                     </div>
                 </div>
             </div>
@@ -66,11 +66,11 @@ const EstadisticasResidentes = ({ estadisticas }) => {
                 <div className="relative z-10 flex items-center justify-between">
                     <div>
                         <p className="text-gray-600 dark:text-gray-300 text-sm font-medium">Residentes Activos</p>
-                        <p className="text-2xl font-bold text-green-600 dark:text-green-400">{activos}</p>
+                        <p className="text-xl md:text-2xl font-bold text-green-600 dark:text-green-400">{activos}</p>
                         <p className="text-gray-500 dark:text-gray-400 text-xs">{porcentajeActivos}% del total</p>
                     </div>
                     <div className="bg-green-100 dark:bg-green-500/20 p-3 rounded-full group-hover:scale-110 transition-transform">
-                        <i className="fas fa-user-check text-green-600 dark:text-green-400 text-xl"></i>
+                        <i className="fas fa-user-check text-green-600 dark:text-green-400 text-lg md:text-xl"></i>
                     </div>
                 </div>
             </div>
@@ -80,11 +80,11 @@ const EstadisticasResidentes = ({ estadisticas }) => {
                 <div className="relative z-10 flex items-center justify-between">
                     <div>
                         <p className="text-gray-600 dark:text-gray-300 text-sm font-medium">Pendientes de Activación</p>
-                        <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{pendientes}</p>
+                        <p className="text-xl md:text-2xl font-bold text-yellow-600 dark:text-yellow-400">{pendientes}</p>
                         <p className="text-gray-500 dark:text-gray-400 text-xs">Esperando aceptación</p>
                     </div>
                     <div className="bg-yellow-100 dark:bg-yellow-500/20 p-3 rounded-full group-hover:scale-110 transition-transform">
-                        <i className="fas fa-clock text-yellow-600 dark:text-yellow-400 text-xl"></i>
+                        <i className="fas fa-clock text-yellow-600 dark:text-yellow-400 text-lg md:text-xl"></i>
                     </div>
                 </div>
             </div>
