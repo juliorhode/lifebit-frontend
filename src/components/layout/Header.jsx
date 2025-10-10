@@ -86,8 +86,10 @@ const Header = ({ onMenuClick, className='' }) => {
                         <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex items-center space-x-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white dark:ring-offset-gray-900">
                             <span className="sr-only">Abrir menú de usuario</span>
                             <img
+                                key={userAvatarUrl}
                                 src={userAvatarUrl}
                                 alt="Avatar del usuario"
+                                referrerPolicy="no-referrer" // Evita problemas con CORS si la URL es externa. Esto lo realiza de forma anonima y no le dice a google de donde viene.
                                 className="h-10 w-10 rounded-full border-2 border-gray-300 dark:border-gray-700"
                             />
                             <div className="hidden text-left md:block">

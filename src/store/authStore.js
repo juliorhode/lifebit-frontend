@@ -78,7 +78,6 @@ export const useAuthStore = create((set, get) => ({
 			const response = await apiService.get('/perfil/me');
 			// La respuesta de tu backend es { success: true, data: { user: {...} } }
 			const usuario = response.data.data.user;
-			
 
 			set({
 				usuario: usuario,
@@ -122,8 +121,10 @@ export const useAuthStore = create((set, get) => ({
 
 	// --- ACCIÓN DE PERSISTENCIA ---
 	/**
-	 * @description Intenta refrescar el token de sesión al cargar la aplicación.
-	 * Es el corazón de la persistencia de la sesión.
+	 * @description Intenta refrescar la sesión del usuario al cargar la aplicación.
+	 * Esta es la acción central para la persistencia de la sesión.
+	 * Llama al endpoint de refresh-token y espera recibir tanto un nuevo accessToken
+	 * como el objeto de usuario completo en una sola respuesta.
 	 */
 	refreshToken: async () => {
 		// Ponemos el estado en 'loading' para indicar que estamos verificando.
@@ -132,22 +133,41 @@ export const useAuthStore = create((set, get) => ({
 		try {
 			// Hacemos la petición al backend. El navegador enviará la cookie HttpOnly.
 			const response = await apiService.post('/auth/refresh-token');
-			const { accessToken } = response.data;
+			// Desestructuramos la respuesta para obtener el nuevo token y el usuario.
+			const { accessToken, data } = response.data;
+			const usuario = data?.usuario; // Extraemos el usuario del objeto 'data', si existe
 
-			if (accessToken) {
+			if (accessToken && usuario) {
+				// --- ACTUALIZACIÓN ATÓMICA ---
+				// Actualizamos el estado con el nuevo token y el objeto de usuario
+				// en una única operación.
+				set({
+					accessToken: accessToken,
+					usuario: usuario,
+					estado: 'loggedIn',
+					error: null,
+				});
+				console.log('Sesión renovada automáticamente al cargar la app.', usuario);
+				
+				
+
+				// esto se suplanta por la actualización atómica arriba
 				// Si tenemos un nuevo accessToken, lo guardamos...
-				get().setToken(accessToken);
+				// get().setToken(accessToken);
 				// ...y obtenemos el perfil del usuario para completar el login.
-				await get().getProfile();
+				// await get().getProfile();
 				// `getProfile` se encargará de poner el estado en 'loggedIn'.
 			} else {
 				// Si la respuesta no trae un token (caso improbable), forzamos el logout.
-				throw new Error('Respuesta de refresh-token inválida.');
+				throw new Error('Respuesta inválida del servidor al refrescar token.');
 			}
 		} catch (error) {
 			// Si la petición falla (ej. 401, no hay cookie o expiró),
 			// significa que no hay una sesión válida. Limpiamos todo.
-			console.log('No se pudo refrescar la sesión:', error.message);
+			console.log(
+				'No se pudo refrescar la sesión, cerrando sesión localmente:',
+				error.message
+			);
 			set({
 				accessToken: null,
 				usuario: null,

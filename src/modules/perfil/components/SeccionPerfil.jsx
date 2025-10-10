@@ -47,8 +47,10 @@ const SeccionPerfil = () => {
       </h2>
       <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6 mb-6">
         <img
+          key={usuario.avatar_url} // Forzamos recarga si cambia la URL
           src={usuario.avatar_url || `https://ui-avatars.com/api/?name=${usuario.nombre}+${usuario.apellido}`}
           alt={`Avatar de ${usuario.nombre}`}
+          referrerPolicy="no-referrer" // Evita problemas con CORS si la URL es externa. Esto lo realiza de forma anonima y no le dice a google de donde viene.
           className="w-24 h-24 rounded-full object-cover border-4 border-blue-500"
         />
         <div className="text-center md:text-left">
