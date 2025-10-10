@@ -173,7 +173,7 @@ const CrearTipoRecursoModal = ({ onClose, onRecursosCreados }) => {
                                 </div>
                                 {/* Selector para el tipo (asignable o inventario) */}
                                 <div>
-                                    <select {...register(`tipos.${index}.tipo`)} className={STYLES.input}>
+                                    <select {...register(`tipos.${index}.tipo`)} className={`${STYLES.input} mt-7`}>
                                         <option value="asignable">Asignable</option>
                                         <option value="inventario">Inventario</option>
                                     </select>

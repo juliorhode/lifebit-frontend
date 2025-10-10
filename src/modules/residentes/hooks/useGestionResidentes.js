@@ -1,379 +1,384 @@
+/**
+ * @description Hook maestro y ÚNICA FUENTE DE VERDAD para el módulo de residentes.
+ * Centraliza toda la lógica de estado, llamadas a API y datos derivados, siguiendo
+ * el principio de "Levantar el Estado" (Lifting State Up) para un flujo de datos predecible.
+ *
+ * ARQUITECTURA "SINGLE SOURCE OF TRUTH" (FUENTE ÚNICA DE VERDAD):
+ * El propósito de esta arquitectura es eliminar la duplicación y desincronización de datos.
+ * En lugar de que varios componentes (como el formulario y la página principal) pidan los
+ * mismos datos a la API por separado, este hook lo hace una sola vez y distribuye la
+ * información "verdadera" y actualizada a todos los que la necesiten.
+ *
+ * 1.  Este hook obtiene y mantiene el estado de:
+ *     - Todos los residentes del edificio.
+ *     - Todas las unidades (apartamentos) del edificio.
+ *     - Todos los borradores de invitaciones guardados en el almacenamiento local del navegador.
+ * 2.  Calcula datos derivados de forma eficiente (unidades disponibles, estadísticas)
+ *     usando `useMemo` para evitar cálculos innecesarios en cada renderizado.
+ * 3.  Provee una API limpia y clara (un conjunto de funciones y datos) al componente
+ *     `ResidentesPage`, que actúa como orquestador.
+ * 4.  Los componentes hijos (modales, formularios) reciben estos datos a través de props,
+ *     asegurando un flujo de datos estrictamente unidireccional (de arriba hacia abajo).
+ *
+ * RESPONSABILIDADES CLAVE:
+ * ✅ Gestión centralizada del estado de residentes, unidades y borradores.
+ * ✅ Lógica para cargar y refrescar todos los datos necesarios desde la API.
+ * ✅ Cálculo eficiente de las unidades que están disponibles para ser asignadas.
+ * ✅ Gestión completa de los borradores (Crear, Leer, Actualizar, Eliminar) en localStorage.
+ * ✅ Orquestación de la visibilidad de los modales (abrir/cerrar).
+ * ✅ Servir como una "fachada" para las acciones de la API (invitar, suspender, etc.),
+ *    ocultando la complejidad de las llamadas a `apiService`.
+ */
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useAuthStore } from '../../../store/authStore';
-import { SETUP_STATES } from '../../../config/constants';
 import apiService from '../../../services/apiService';
 import { toast } from 'react-hot-toast';
+// Se importa la función v4 de la librería 'uuid' para generar identificadores únicos universales.
+// Esto es crucial para asignar un ID único e irrepetible a cada borrador que guardamos.
+// Necesitarás instalar esta dependencia ejecutando: npm install uuid
+import { v4 as uuidv4 } from 'uuid';
 
-/**
- * @description Hook maestro para gestionar toda la lógica de la página de Residentes.
- * Actúa como una fachada, ocultando la complejidad y proveyendo una API simple a la UI.
- *
- * FUNCIONALIDADES:
- * ✅ Gestión completa de residentes (CRUD)
- * ✅ Sistema de borradores con localStorage
- * ✅ ✅ NUEVO: Limpieza automática de borradores al enviar invitación
- * ✅ Filtros y búsqueda en tiempo real
- * ✅ Estadísticas calculadas automáticamente
- * ✅ Gestión de modales y estados de UI
- *
- * LIMPIEZA DE BORRADORES:
- * Cuando se envía exitosamente una invitación desde un borrador:
- * 1. Se identifica el borrador por nombre, apellido y email
- * 2. Se elimina del localStorage
- * 3. El panel de borradores se actualiza automáticamente
- * 4. Se muestra confirmación de éxito
- */
 export const useGestionResidentes = () => {
-    // --- DEPARTAMENTO DE DATOS Y LOGÍSTICA ---
-    const { usuario, getProfile } = useAuthStore();
-    const [residentes, setResidentes] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [ultimaActualizacion, setUltimaActualizacion] = useState(null);
+	// =================================================================
+	// DEPARTAMENTO DE ESTADO CENTRALIZADO (LA FUENTE DE VERDAD)
+	// Aquí reside toda la información cruda que el módulo necesita para funcionar.
+	// =================================================================
 
-    // --- DEPARTAMENTO DE ESTRATEGIA (Filtros y Búsqueda) ---
-    const [searchTerm, setSearchTerm] = useState('');
-    const [filtroEstado, setFiltroEstado] = useState('todos');
+	// Almacena la lista completa de residentes obtenida de la API.
+	const [residentes, setResidentes] = useState([]);
+	// Almacena la lista completa de unidades del edificio.
+	const [unidades, setUnidades] = useState([]);
+	// Almacena la lista de borradores leídos desde el localStorage del navegador.
+	const [borradores, setBorradores] = useState([]);
+	// Gestiona el estado del proceso de carga de datos para mostrar indicadores en la UI.
+	// Posibles valores: 'cargando', 'listo', 'error'.
+	const [estadoCarga, setEstadoCarga] = useState('cargando');
+	// Registra la fecha y hora de la última actualización exitosa de datos.
+	const [ultimaActualizacion, setUltimaActualizacion] = useState(null);
 
-    // --- DEPARTAMENTO DE OPERACIONES (Gestión de Modales y Contexto) ---
-    const [isInvitarModalOpen, setIsInvitarModalOpen] = useState(false);
-    const [isMasivoModalOpen, setIsMasivoModalOpen] = useState(false);
-    const [isSuspenderModalOpen, setIsSuspenderModalOpen] = useState(false);
-    const [residenteEditando, setResidenteEditando] = useState(null);
-    const [residenteASuspender, setResidenteASuspender] = useState(null);
-    const [datosBorrador, setDatosBorrador] = useState(null);
-    const [eliminandoId, setEliminandoId] = useState(null);
+	// =================================================================
+	// DEPARTAMENTO DE ESTADO DE LA INTERFAZ DE USUARIO (UI)
+	// Controla los elementos visuales como filtros, modales y estados de acciones.
+	// =================================================================
 
-    // ✅ NUEVO: Estado para refrescar el panel de borradores
-    const [borradoresRefreshTrigger, setBorradoresRefreshTrigger] = useState(0);
+	// El texto introducido por el usuario en la barra de búsqueda.
+	const [searchTerm, setSearchTerm] = useState('');
+	// El filtro de estado seleccionado ('todos', 'activos', 'invitado', 'suspendidos').
+	const [filtroEstado, setFiltroEstado] = useState('todos');
+	// Controlan la visibilidad de los diferentes modales.
+	const [isInvitarModalOpen, setIsInvitarModalOpen] = useState(false);
+	const [isMasivoModalOpen, setIsMasivoModalOpen] = useState(false);
+	const [isSuspenderModalOpen, setIsSuspenderModalOpen] = useState(false);
+	// Almacenan el contexto para los modales (qué residente se edita o suspende).
+	const [residenteEditando, setResidenteEditando] = useState(null);
+	const [residenteASuspender, setResidenteASuspender] = useState(null);
+	// Guarda los datos de un borrador cuando se carga en el formulario.
+	const [datosBorrador, setDatosBorrador] = useState(null);
+	// Guarda el ID del residente sobre el que se está ejecutando una acción (ej. suspender).
+	// Útil para mostrar un spinner en un botón específico.
+	const [idAccion, setIdAccion] = useState(null);
 
-    // --- LÓGICA DE CARGA Y ACTUALIZACIÓN DE DATOS ---
+	// =================================================================
+	// LÓGICA DE CARGA Y REFRESCADO DE DATOS
+	// =================================================================
 
-    const cargarResidentes = useCallback(async () => {
-        try {
-            setIsLoading(true);
-            const response = await apiService.get('/admin/residentes');
-            setResidentes(response.data.data || []);
-            setUltimaActualizacion(new Date());
-        } catch (error) {
-            console.error('Error al cargar residentes:', error);
-            toast.error('Error al cargar la lista de residentes');
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
+	/**
+	 * @description Orquesta la carga de todos los datos esenciales para el módulo.
+	 * Utiliza Promise.all para ejecutar las llamadas a la API en paralelo, lo cual es
+	 * más eficiente que hacerlas una por una en secuencia.
+	 */
+	const cargarDatos = useCallback(async () => {
+		setEstadoCarga('cargando');
+		try {
+			const [resResidentes, resUnidades] = await Promise.all([
+				apiService.get('/admin/residentes'),
+				apiService.get('/admin/unidades'),
+			]);
 
-    useEffect(() => {
-        cargarResidentes();
-    }, [cargarResidentes]);
-    
-    // --- LÓGICA DE FILTRADO (Dato Derivado con useMemo) ---
-    const residentesFiltrados = useMemo(() => {
-        return residentes.filter(residente => {
-            const coincideBusqueda = 
-                residente.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                residente.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                residente.numero_unidad?.toLowerCase().includes(searchTerm.toLowerCase());
-            
-            const coincideEstado = 
-                filtroEstado === 'todos' ||
-                (filtroEstado === 'activos' && residente.estado === 'activo') ||
-                (filtroEstado === 'inactivos' && residente.estado !== 'activo');
-            
-            return coincideBusqueda && coincideEstado;
-        });
-    }, [residentes, searchTerm, filtroEstado]);
-    
-    // --- LÓGICA DE ESTADÍSTICAS (Dato Derivado con useMemo) ---
-    const estadisticas = useMemo(() => {
-        const total = residentes.length;
-        const activos = residentes.filter(r => r.estado === 'activo').length;
-        const pendientes = total - activos;
-        return { total, activos, pendientes };
-    }, [residentes]);
+			// Actualizamos el estado con los datos recibidos de la API.
+			// Usamos '|| []' como fallback para asegurar que siempre sea un array.
+			setResidentes(resResidentes.data.data || []);
+			setUnidades(resUnidades.data.data?.unidades || []);
 
+			// Una vez cargados los datos de la API, sincronizamos el estado de borradores.
+			cargarBorradoresDesdeStorage();
 
-    // --- HANDLERS PARA ABRIR MODALES Y ESTABLECER CONTEXTO ---
-    const handleOpenInvitarModal = () => {
-        setResidenteEditando(null);
-        setDatosBorrador(null);
-        setIsInvitarModalOpen(true);
-    };
+			setUltimaActualizacion(new Date());
+			setEstadoCarga('listo');
+		} catch (error) {
+			console.error('Error al cargar datos del módulo de residentes:', error);
+			toast.error('No se pudieron cargar los datos del módulo.');
+			setEstadoCarga('error');
+		}
+	}, []); // Dejamos el array de dependencias vacío intencionadamente, se explica más abajo.
 
-    /**
-     * @description Maneja la carga de un borrador desde localStorage
-     * Establece los datos del borrador CON SU ID ORIGINAL y abre el modal de invitación
-     * @param {Object} datosBorrador - Datos del borrador a cargar en el formulario
-     * @param {string} borradorId - ID único del borrador para mantener consistencia
-     */
-    const handleCargarBorrador = (datosBorrador, borradorId = null) => {
-        console.log('🎯 useGestionResidentes.handleCargarBorrador - INICIO');
-        console.log('🎯 Datos del borrador recibido:', datosBorrador);
-        console.log('🎯 ID del borrador recibido:', borradorId);
-        console.log('🎯 ID en datosBorrador:', datosBorrador.id);
+	// Este `useEffect` se ejecuta solo una vez cuando el componente que usa el hook se monta por primera vez.
+	// Su única responsabilidad es iniciar la carga de datos inicial.
+	useEffect(() => {
+		cargarDatos();
+	}, [cargarDatos]); // `cargarDatos` está envuelta en `useCallback` y su referencia no cambia,
+	// por lo que este efecto se ejecuta una sola vez, como se espera.
 
-        // ✅ Si no se proporciona ID, intentar extraerlo de los datos
-        let idFinal = borradorId;
-        if (!idFinal && datosBorrador.id) {
-            idFinal = datosBorrador.id;
-            console.log('🎯 ID extraído de datosBorrador:', idFinal);
-        }
+	// =================================================================
+	// LÓGICA DE DATOS DERIVADOS (CALCULADOS CON useMemo)
+	// Estos datos no son estado, sino que se calculan a partir del estado "fuente de verdad".
+	// `useMemo` es una optimización clave: el cálculo solo se re-ejecuta si sus dependencias cambian.
+	// =================================================================
 
-        // ✅ Crear datos completos incluyendo el ID
-        const datosCompletos = {
-            ...datosBorrador,
-            id: idFinal // ✅ Incluir ID para que llegue a useResidenteForm
-        };
+	/**
+	 * @description Calcula la lista de unidades disponibles para ser asignadas.
+	 * Este es un punto crítico de la nueva arquitectura. Al centralizar este cálculo aquí,
+	 * cualquier cambio en la lista de `residentes` (ej. una nueva invitación)
+	 * provocará un re-cálculo automático y la UI se actualizará consistentemente.
+	 * @returns {Array} Un array con los objetos de las unidades disponibles.
+	 */
+	const unidadesDisponibles = useMemo(() => {
+		// Creamos un Set (una estructura de datos muy rápida para búsquedas) con
+		// los `numero_unidad` de todos los residentes que ya están activos.
+		const unidadesOcupadas = new Set(
+			residentes
+				.filter((res) => res.estado === 'activo' || res.estado === 'invitado')
+				.map((res) => res.numero_unidad)
+		);
+		// Filtramos la lista total de unidades, devolviendo solo aquellas que NO están en el Set de ocupadas.
+		return unidades.filter((u) => !unidadesOcupadas.has(u.numero_unidad));
+	}, [residentes, unidades]); // Dependencias: se recalculará solo si `residentes` o `unidades` cambian.
 
-        console.log('🎯 Datos completos a enviar:', datosCompletos);
-        console.log('🎯 ID final en datosCompletos:', datosCompletos.id);
+	/**
+	 * @description Filtra la lista de residentes según el término de búsqueda y el filtro de estado.
+	 * @returns {Array} La lista de residentes filtrada para mostrar en la tabla.
+	 */
+	const residentesFiltrados = useMemo(() => {
+		return residentes.filter((residente) => {
+			const busqueda = searchTerm.toLowerCase();
+			const coincideBusqueda =
+				residente.nombre?.toLowerCase().includes(busqueda) ||
+				residente.apellido?.toLowerCase().includes(busqueda) ||
+				residente.email?.toLowerCase().includes(busqueda) ||
+				residente.numero_unidad?.toLowerCase().includes(busqueda);
 
-        setResidenteEditando(null); // No estamos editando, es un borrador
-        setDatosBorrador(datosCompletos); // Establecer datos completos del borrador
-        setIsInvitarModalOpen(true); // Abrir modal
+			const coincideEstado =
+				filtroEstado === 'todos' ||
+				(filtroEstado === 'activos' && residente.estado === 'activo') ||
+				(filtroEstado === 'inactivos' &&
+					(residente.estado === 'invitado' || residente.estado === 'suspendido')); // Agrupamos todos los no-activos.
 
-        console.log('🎯 useGestionResidentes.handleCargarBorrador - FIN');
-    };
+			return coincideBusqueda && coincideEstado;
+		});
+	}, [residentes, searchTerm, filtroEstado]);
 
-    const handleEditarResidente = (residente) => {
-        setResidenteEditando(residente);
-        setIsInvitarModalOpen(true);
-    };
+	/**
+	 * @description Calcula las estadísticas clave para el panel superior.
+	 * @returns {Object} Un objeto con las estadísticas { total, activos, pendientes }.
+	 */
+	const estadisticas = useMemo(() => {
+		const total = residentes.length;
+		const activos = residentes.filter((r) => r.estado === 'activo').length;
+		const pendientes = residentes.filter((r) => r.estado === 'invitado').length;
+		return { total, activos, pendientes };
+	}, [residentes]);
 
-    const handleSuspenderResidente = (residente) => {
-        setResidenteASuspender(residente);
-        setIsSuspenderModalOpen(true);
-    };
-    
-    const handleCloseModals = () => {
-        console.log('🚪 useGestionResidentes.handleCloseModals - INICIO');
-        console.log('🚪 Estado antes de cerrar:');
-        console.log('  - isInvitarModalOpen:', isInvitarModalOpen);
-        console.log('  - isMasivoModalOpen:', isMasivoModalOpen);
-        console.log('  - isSuspenderModalOpen:', isSuspenderModalOpen);
-        console.log('  - residenteEditando:', residenteEditando);
-        console.log('  - residenteASuspender:', residenteASuspender);
-        console.log('  - datosBorrador:', datosBorrador);
+	// =================================================================
+	// GESTIÓN DE BORRADORES (Lógica centralizada)
+	// =================================================================
 
-        console.log('🚪 Cambiando isInvitarModalOpen de', isInvitarModalOpen, 'a false');
-        setIsInvitarModalOpen(false);
-        setIsMasivoModalOpen(false);
-        setIsSuspenderModalOpen(false);
-        setResidenteEditando(null);
-        setResidenteASuspender(null);
-        setDatosBorrador(null);
+	/**
+	 * @description Lee todas las claves de borradores de `localStorage`, las valida,
+	 * y actualiza el estado `borradores`. Es la única función que lee del storage.
+	 * Usamos `useCallback` para que esta función no se recree en cada render, optimizando rendimiento.
+	 */
+	const cargarBorradoresDesdeStorage = useCallback(() => {
+		const borradoresGuardados = [];
+		for (let i = 0; i < localStorage.length; i++) {
+			const key = localStorage.key(i);
+			if (key?.startsWith('borrador_residente_')) {
+				try {
+					const borrador = JSON.parse(localStorage.getItem(key));
+					// Nos aseguramos de que el objeto guardado tenga la estructura mínima esperada.
+					if (borrador && borrador.id && borrador.timestamp) {
+						// Añadimos la 'key' de localStorage al objeto para poder eliminarlo fácilmente después.
+						borradoresGuardados.push({ ...borrador, key });
+					} else {
+						localStorage.removeItem(key); // Limpieza de datos corruptos.
+					}
+				} catch (error) {
+					// Si el JSON está malformado, lo eliminamos para mantener la higiene.
+					localStorage.removeItem(key);
+				}
+			}
+		}
+		setBorradores(borradoresGuardados);
+	}, []);
 
-        console.log('🚪 useGestionResidentes.handleCloseModals - FIN');
-        console.log('🚪 Todos los modales cerrados y estados limpiados');
+	/**
+	 * @description Guarda o actualiza un borrador en `localStorage`. Esta función es "consciente del contexto".
+	 * Si los datos del formulario ya contienen un `id`, actualiza el borrador existente.
+	 * Si no hay `id`, crea un nuevo borrador con un `uuid` fresco.
+	 * @param {Object} datosFormulario Los datos actuales del formulario, que pueden incluir un `id` de borrador.
+	 */
+	const handleGuardarBorrador = (datosFormulario) => {
+		let idBorrador = datosFormulario.id;
+		const esActualizacion = !!idBorrador; // Convertimos el id a un booleano para saber si es una actualización.
 
-        // Verificar el estado después de un breve delay
-        setTimeout(() => {
-            console.log('🚪 Verificación post-cierre - isInvitarModalOpen debería ser false');
-        }, 100);
-    };
+		// Si no hay ID, es un borrador nuevo, por lo que generamos un UUID para él.
+		if (!esActualizacion) {
+			idBorrador = uuidv4();
+		}
 
-    // --- LÓGICA DE ACCIONES (Llamadas a API de modificación) ---
-    const confirmarCambioEstado = async () => {
-        if (!residenteASuspender) return;
-        const esSuspension = residenteASuspender.estado !== 'suspendido';
-        try {
-            setEliminandoId(residenteASuspender.id);
-            if (esSuspension) {
-                await apiService.delete(`/admin/residentes/${residenteASuspender.id}`);
-                toast.success(`Residente ${residenteASuspender.nombre} suspendido`);
-            } else {
-                await apiService.patch(`/admin/residentes/${residenteASuspender.id}`, { estado: 'activo' });
-                toast.success(`Residente ${residenteASuspender.nombre} reactivado`);
-            }
-            handleCloseModals();
-            cargarResidentes();
-        } catch (error) {
-            toast.error(`Error al ${esSuspension ? 'suspender' : 'reactivar'}`);
-        } finally {
-            setEliminandoId(null);
-        }
-    };
-    
-    /**
-     * @description Maneja el éxito de una invitación individual o edición
-     * ✅ NUEVO: Incluye limpieza automática de borradores utilizados
-     *
-     * FLUJO COMPLETO:
-     * 1. Cerrar modales abiertos
-     * 2. ✅ LIMPIEZA DE BORRADOR: Si se invitó desde borrador, eliminarlo
-     * 3. Recargar lista de residentes
-     * 4. Mostrar mensaje de éxito
-     *
-     * LIMPIEZA DE BORRADORES:
-     * - Solo se ejecuta si hay datosBorrador y no es edición
-     * - Busca en localStorage por nombre, apellido y email
-     * - Elimina el primer match encontrado
-     * - Maneja errores de parsing gracefully
-     * - Loggea la eliminación para debugging
-     *
-     * @returns {void}
-     */
-    /**
-     * @description Maneja el éxito de una invitación individual o edición
-     * ✅ NUEVO: Incluye limpieza automática de borradores utilizados
-     *
-     * FLUJO COMPLETO:
-     * 1. Cerrar modales abiertos
-     * 2. ✅ LIMPIEZA DE BORRADOR: Si se invitó desde borrador, eliminarlo
-     * 3. Recargar lista de residentes
-     * 4. Notificar éxito
-     *
-     * LIMPIEZA DE BORRADORES:
-     * - Solo se ejecuta si hay datosBorrador y no es edición
-     * - Busca en localStorage por nombre, apellido y email
-     * - Elimina el primer match encontrado
-     * - Maneja errores de parsing gracefully
-     * - Loggea la eliminación para debugging
-     *
-     * @returns {void}
-     */
-    const handleInvitacionExitosa = () => {
-        console.log('🎉 handleInvitacionExitosa - INICIO');
-        console.log('🎉 Estado completo:', {
-            datosBorrador,
-            residenteEditando,
-            isInvitarModalOpen,
-            borradorIdPersistente
-        });
-        console.log('🎉 datosBorrador detallado:', JSON.stringify(datosBorrador, null, 2));
+		const borrador = {
+			...datosFormulario,
+			id: idBorrador, // Aseguramos que el ID (nuevo o existente) esté en el objeto.
+			timestamp: Date.now(),
+		};
 
-        // Verificar si hay un borrador para eliminar
-        if (datosBorrador && !residenteEditando) {
-            console.log('🎉 Hay borrador para eliminar:', datosBorrador.id);
-        } else {
-            console.log('🎉 No hay borrador para eliminar o es edición');
-        }
+		const storageKey = `borrador_residente_${idBorrador}`;
+		localStorage.setItem(storageKey, JSON.stringify(borrador));
 
-        // 🧹 PASO 2: LIMPIEZA AUTOMÁTICA DE BORRADORES
-        // Si se invitó exitosamente desde un borrador, eliminarlo para evitar duplicados
-        if (datosBorrador && !residenteEditando) {
-            console.log('🧹 Iniciando limpieza de borrador usado...');
-            console.log('🧹 Buscando borrador con datos:', {
-                nombre: datosBorrador.nombre,
-                apellido: datosBorrador.apellido,
-                email: datosBorrador.email,
-                id: datosBorrador.id
-            });
+		// Sincronizamos el estado de borradores en la aplicación para que la UI reaccione.
+		cargarBorradoresDesdeStorage();
 
-            let borradorEncontrado = false;
+		// Damos un feedback al usuario que diferencia entre guardar por primera vez y actualizar.
+		toast.success(esActualizacion ? 'Borrador actualizado.' : 'Borrador guardado.');
+	};
 
-            // 🔍 Buscar el borrador correspondiente en localStorage
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.startsWith('borrador_residente_')) {
-                    try {
-                        const borrador = JSON.parse(localStorage.getItem(key));
-                        console.log('🧹 Revisando borrador:', key, borrador);
+	/**
+	 * @description Elimina un borrador específico de `localStorage`.
+	 * @param {string} key La clave completa del item a eliminar (ej. 'borrador_residente_uuid').
+	 */
+	const handleEliminarBorrador = (key) => {
+		localStorage.removeItem(key);
+		cargarBorradoresDesdeStorage(); // Re-sincronizamos el estado.
+		toast.success('Borrador eliminado.');
+	};
 
-                        // 🎯 PRIORIDAD 1: Comparar por ID único (más específico)
-                        let esElBorradorCorrecto = false;
+	// =================================================================
+	// ORQUESTACIÓN DE MODALES Y CONTEXTO
+	// =================================================================
 
-                        if (datosBorrador.id && borrador.id === datosBorrador.id) {
-                            console.log('🧹 ✅ Match por ID único:', borrador.id);
-                            esElBorradorCorrecto = true;
-                        }
-                        // 🎯 PRIORIDAD 2: Comparar por datos clave (fallback)
-                        else if (borrador.nombre === datosBorrador.nombre &&
-                                 borrador.apellido === datosBorrador.apellido &&
-                                 borrador.email === datosBorrador.email) {
-                            console.log('🧹 ⚠️ Match por datos (posible duplicado):', borrador.email);
-                            esElBorradorCorrecto = true;
-                        }
+	const handleOpenInvitarModal = () => {
+		setResidenteEditando(null);
+		setDatosBorrador(null);
+		setIsInvitarModalOpen(true);
+	};
 
-                        if (esElBorradorCorrecto) {
-                            console.log('🗑️ Eliminando borrador encontrado:', key);
-                            // 🗑️ Eliminar el borrador encontrado
-                            localStorage.removeItem(key);
-                            console.log('✅ Borrador eliminado exitosamente:', key);
-                            borradorEncontrado = true;
-                            break; // Solo eliminar el primer match
-                        }
-                    } catch (error) {
-                        // ⚠️ Manejo de errores: Si hay problemas parseando, continuar
-                        console.warn('⚠️ Error procesando borrador en localStorage:', error);
-                        // No lanzamos error para no interrumpir el flujo de éxito
-                    }
-                }
-            }
+	const handleCargarBorrador = (borrador) => {
+		setResidenteEditando(null);
+		setDatosBorrador(borrador);
+		setIsInvitarModalOpen(true);
+	};
 
-            if (!borradorEncontrado) {
-                console.warn('⚠️ No se encontró borrador para eliminar');
-            }
+	const handleEditarResidente = (residente) => {
+		setDatosBorrador(null);
+		setResidenteEditando(residente);
+		setIsInvitarModalOpen(true);
+	};
 
-            console.log('🧹 Limpieza de borrador completada');
-        } else {
-            console.log('🧹 No se requiere limpieza de borrador');
-        }
+	const handleSuspenderResidente = (residente) => {
+		setResidenteASuspender(residente);
+		setIsSuspenderModalOpen(true);
+	};
 
-        console.log('🎉 Cerrando modal después de invitación exitosa...');
-        handleCloseModals();
-        console.log('🎉 handleInvitacionExitosa - FIN');
+	const handleCloseModals = () => {
+		setIsInvitarModalOpen(false);
+		setIsMasivoModalOpen(false);
+		setIsSuspenderModalOpen(false);
+		setResidenteEditando(null);
+		setResidenteASuspender(null);
+		setDatosBorrador(null);
+	};
 
-        // 🪟 PASO 1: Cerrar modales
-        handleCloseModals();
+	// =================================================================
+	// ACCIONES (Manejo de llamadas a la API que modifican datos)
+	// =================================================================
 
-        // 🔄 PASO 3: Recargar datos
-        cargarResidentes();
+	/**
+	 * @description Se ejecuta tras el envío exitoso de una invitación o una edición.
+	 * Orquesta la limpieza, el refresco de datos y la notificación al usuario.
+	 */
+	const handleInvitacionExitosa = () => {
+		// Si la acción provino de un borrador (y no era una edición), lo eliminamos.
+		if (datosBorrador && !residenteEditando) {
+			handleEliminarBorrador(datosBorrador.key);
+		}
 
-        // ✅ PASO 4: Notificar éxito
-        const mensaje = residenteEditando ? 'Residente actualizado' : 'Invitación enviada';
-        toast.success(`${mensaje} exitosamente`);
-    };
+		handleCloseModals();
+		// Recargamos TODOS los datos. Esto asegura que la lista de residentes
+		// y la lista de unidades disponibles estén perfectamente sincronizadas.
+		cargarDatos();
 
-    /**
-     * @description Maneja el guardado exitoso de un borrador
-     * ✅ NUEVO: Refresca el panel de borradores para mostrar el nuevo borrador
-     *
-     * @returns {void}
-     */
-    const handleBorradorGuardado = () => {
-        console.log('💾 useGestionResidentes.handleBorradorGuardado - INICIO');
-        console.log('💾 Trigger anterior:', borradoresRefreshTrigger);
-        setBorradoresRefreshTrigger(prev => prev + 1); // ✅ Incrementa el trigger para refrescar
-        console.log('💾 Trigger actualizado:', borradoresRefreshTrigger + 1);
-        console.log('💾 useGestionResidentes.handleBorradorGuardado - FIN');
-    };
+		const mensaje = residenteEditando ? 'Residente actualizado' : 'Invitación enviada';
+		toast.success(`${mensaje} exitosamente.`);
+	};
 
-    // --- API PÚBLICA DEL HOOK: Lo que se devuelve al componente ---
-    return {
-        // Datos
-        residentesFiltrados,
-        estadisticas,
-        isLoading,
-        ultimaActualizacion,
-        
-        // Estado y Setters de UI
-        searchTerm,
-        setSearchTerm,
-        filtroEstado,
-        setFiltroEstado,
-        
-        // Estado y Handlers de Modales
-        isInvitarModalOpen,
-        isMasivoModalOpen,
-        isSuspenderModalOpen,
-        residenteEditando,
-        residenteASuspender,
-        datosBorrador,
-        handleOpenInvitarModal,
-        handleCargarBorrador, // ✅ NUEVO: Para cargar borradores desde localStorage
-        setIsMasivoModalOpen, // Se pasa directo para simplicidad
-        handleEditarResidente,
-        handleSuspenderResidente,
-        handleCloseModals,
+	/**
+	 * @description Confirma la suspensión o reactivación de un residente.
+	 */
+	const confirmarCambioEstado = async () => {
+		if (!residenteASuspender) return;
 
-        // Acciones
-        confirmarCambioEstado,
-        eliminandoId,
-        handleInvitacionExitosa,
-        handleBorradorGuardado, // ✅ NUEVO: Para refrescar panel de borradores
+		setIdAccion(residenteASuspender.id);
+		const esSuspension = residenteASuspender.estado !== 'suspendido';
+		const endpoint = `/admin/residentes/${residenteASuspender.id}`;
+		// Dependiendo de la acción, usamos el método HTTP DELETE o PATCH.
+		const accionAPI = esSuspension
+			? apiService.delete(endpoint)
+			: apiService.patch(endpoint, { estado: 'activo' });
+		const verboPasado = esSuspension ? 'suspendido' : 'reactivado';
 
-        // Funciones de Refresco
-        cargarResidentes,
-        borradoresRefreshTrigger, // ✅ NUEVO: Trigger para refrescar borradores
-    };
+		try {
+			await accionAPI;
+			toast.success(`Residente ${residenteASuspender.nombre} ${verboPasado}.`);
+			handleCloseModals();
+			cargarDatos(); // Refrescamos todo para mantener la consistencia.
+		} catch (error) {
+			toast.error(`Error al ${esSuspension ? 'suspender' : 'reactivar'}.`);
+		} finally {
+			setIdAccion(null); // Limpiamos el ID de la acción en cualquier caso.
+		}
+	};
+
+	// =================================================================
+	// API PÚBLICA DEL HOOK
+	// Devolvemos un objeto con todos los datos y funciones que los
+	// componentes necesitarán para funcionar.
+	// =================================================================
+	return {
+		// Datos y Estado
+		residentesFiltrados,
+		estadisticas,
+		unidadesDisponibles, // La lista calculada de unidades libres.
+		unidadesTotales: unidades, // La lista completa, por si se necesita.
+		borradores,
+		estadoCarga,
+		ultimaActualizacion,
+
+		// Estado y Setters de UI
+		searchTerm,
+		setSearchTerm,
+		filtroEstado,
+		setFiltroEstado,
+
+		// Estado y Handlers de Modales
+		isInvitarModalOpen,
+		isMasivoModalOpen,
+		isSuspenderModalOpen,
+		residenteEditando,
+		residenteASuspender,
+		datosBorrador,
+		handleOpenInvitarModal,
+		handleCargarBorrador,
+		setIsMasivoModalOpen,
+		handleEditarResidente,
+		handleSuspenderResidente,
+		handleCloseModals,
+
+		// Acciones
+		confirmarCambioEstado,
+		idAccion,
+		handleInvitacionExitosa,
+		handleGuardarBorrador, // La nueva función para que el formulario guarde.
+		handleEliminarBorrador, // La nueva función para que el panel elimine.
+
+		// Refresco
+		refrescarDatos: cargarDatos, // Exponemos la función principal de carga.
+	};
 };

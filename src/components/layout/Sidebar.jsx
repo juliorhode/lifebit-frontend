@@ -21,7 +21,7 @@ const bottomLinks = [
 /**
  * @description Componente de la barra lateral de navegación.
  * Es responsivo: se muestra de forma fija en pantallas grandes y se oculta en móviles.
- * 
+ *
  * @returns {JSX.Element} La barra lateral.
  */
 

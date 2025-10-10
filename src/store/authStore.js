@@ -75,7 +75,7 @@ export const useAuthStore = create((set, get) => ({
 		if (!token) return; // No hacer nada si no hay token
 
 		try {
-			const response = await apiService.get('/auth/perfil');
+			const response = await apiService.get('/perfil/me');
 			// La respuesta de tu backend es { success: true, data: { user: {...} } }
 			const usuario = response.data.data.user;
 			

@@ -69,7 +69,7 @@ export const formatearTelefono = (valor) => {
 
 /**
  * @description Genera la configuración de estilo para un badge de estado de residente.
- * @param {string} estado - El estado del residente ('activo', 'pendiente', 'suspendido', etc.).
+ * @param {string} estado - El estado del residente ('activo', 'invitado', 'suspendido', etc.).
  * @returns {{color: string, texto: string, icono: string}} Objeto con clases de CSS, texto y clase de icono.
  */
 export const getEstadoBadge = (estado) => {
@@ -86,7 +86,7 @@ export const getEstadoBadge = (estado) => {
                 texto: 'Suspendido',
                 icono: 'fas fa-user-slash'
             };
-        case 'pendiente':
+        case 'invitado':
         default: // 'pendiente' y cualquier otro estado se manejarán como el caso por defecto.
             return {
                 color: 'bg-yellow-100 text-yellow-800 border-yellow-200',

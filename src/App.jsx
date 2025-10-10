@@ -11,12 +11,13 @@ import DashboardRouter from './pages/DashboardRouter';
 import SetupWizard from './pages/admin/setup/SetupWizard';
 import { Toaster } from 'react-hot-toast';
 import RecursosPage from './modules/recursos/pages/RecursosPage';
+import MiCuentaPage from './modules/perfil/pages/MiCuentaPage';
 import ResidentesPage from './modules/residentes/pages/ResidentesPage';
+
 
 // Componente placeholder para el dashboard
 const DashboardPlaceholder = () => <h1 className="text-3xl font-bold text-white">Dashboard Principal</h1>;
 const ContratosPlaceholder = () => <h1 className="text-3xl font-bold text-white">Página de Contratos</h1>;
-const MiCuentaPlaceholder = () => <h1 className="text-3xl font-bold text-white">Página de Mi Cuenta</h1>;
 const AyudaPlaceholder = () => <h1 className="text-3xl font-bold text-white">Página de Ayuda</h1>;
 const AdminMainDashboard = () => <h1 className="text-3xl font-bold text-white">Dashboard Principal del Administrador</h1>;
 
@@ -75,13 +76,13 @@ function App() {
 
         {/* Grupo de Rutas Protegidas */}
         <Route element={<RutaProtegida />}>
-          {/* 
+          {/*
         Así es como se anidan rutas. El componente LayoutPrincipal se renderizará
         y el <Outlet /> dentro de él será reemplazado por el `element` de la ruta hija
         que coincida con la URL.
         */}
-          <Route path="/dashboard" element={<LayoutPrincipal />}>
-            {/* 
+          <Route path="/dashboard/*" element={<LayoutPrincipal />}>
+            {/*
             La ruta "index" es la que se muestra por defecto cuando se accede al path del padre.
             En este caso, cuando navegues a /dashboard, se mostrará DashboardPlaceholder.
             */}
@@ -90,7 +91,7 @@ function App() {
 
             <Route path="contratos" element={<ContratosPlaceholder />} />
             <Route path="residentes" element={<ResidentesPage />} />
-            <Route path="mi-cuenta" element={<MiCuentaPlaceholder />} />
+            <Route path="mi-cuenta" element={<MiCuentaPage />} />
             <Route path="ayuda" element={<AyudaPlaceholder />} />
             <Route path="recursos" element={<RecursosPage />} />
             {/* Aquí añadiremos el resto de rutas protegidas */}

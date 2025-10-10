@@ -1,9 +1,9 @@
 import React from 'react';
 import { useAuthStore } from '../store/authStore.js';
 import AdminDashboard from './admin/AdminDashboard.jsx';
+import OwnerDashboard from './dueno/OwnerDashboard.jsx';
 
-// Placeholders para los otros dashboards
-const OwnerDashboard = () => <div className="text-white">Dashboard del Dueño</div>;
+// Placeholder para el dashboard del residente
 const ResidenteDashboard = () => <div className="text-white">Dashboard del Residente</div>;
 
 const DashboardRouter = () => {

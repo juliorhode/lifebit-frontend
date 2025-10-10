@@ -1,226 +1,211 @@
-// 1. Importamos React y nuestro nuevo hook inteligente. Las demás importaciones se han ido.
+/**
+ * @description Componente Modal para invitar o editar un residente.
+ * Este es un "componente presentacional" o "tonto". Su única responsabilidad es
+ * renderizar la interfaz del formulario. No contiene lógica de negocio compleja,
+ * sino que la delega completamente al hook `useResidenteForm`.
+ *
+ * @param {Object} props - Las propiedades que recibe del componente padre (`ResidentesPage`).
+ * @param {Function} props.onClose - Función para cerrar el modal.
+ * @param {Function} props.onSuccess - Callback a ejecutar cuando el formulario se envía con éxito.
+ * @param {Function} props.onGuardarBorrador - Callback para delegar la acción de guardar un borrador.
+ * @param {Object|null} props.initialData - Datos de un borrador para precargar el formulario.
+ * @param {Object|null} props.residenteEditando - Datos de un residente para el modo edición.
+ * @param {Array} props.unidadesDisponibles - Lista de unidades disponibles para asignar.
+ * @returns {JSX.Element} El modal con el formulario de invitación/edición.
+ */
 import React from 'react';
 import { useResidenteForm } from '../hooks/useResidenteForm';
 
-/**
- * @description Modal para invitar a un nuevo residente individual
- * Incluye validaciones, auto-guardado de borradores y envío de invitación
- * @param {Object} props - Propiedades del componente
- * @param {Function} props.onClose - Función para cerrar el modal
- * @param {Function} props.onSuccess - Función llamada cuando la invitación es exitosa
- * @param {Object} props.initialData - Datos iniciales para precargar el formulario (opcional)
- * @returns {JSX.Element} Modal de invitación de residente
- */
-const InvitarResidenteModal = ({ onClose, onSuccess, onBorradorGuardado = null, initialData = null, residenteEditando = null }) => {
+const InvitarResidenteModal = ({
+    onClose,
+    onSuccess,
+    onGuardarBorrador,
+    initialData = null,
+    residenteEditando = null,
+    unidadesDisponibles = []
+}) => {
 
-    // 2. Llamamos a nuestro hook inteligente y le pasamos las props que necesita.
-    // Desestructuramos el objeto que nos devuelve para obtener todas las herramientas.
+    // Instanciamos nuestro hook de formulario especializado.
+    // Le pasamos todas las funciones y datos que necesita para operar.
     const {
         register,
         onSubmit,
         errors,
         isSubmitting,
-        unidades,
-        isLoadingUnidades,
+        isDirty,
         handleNombreChange,
         handleApellidoChange,
         handleCedulaChange,
         handleTelefonoChange,
         handleGuardarBorrador,
-        isDirty,
-        puedeGuardarBorrador, // ✅ NUEVO: Nueva lógica para guardar borradores
+        puedeGuardarBorrador,
     } = useResidenteForm({
         onSuccess,
-        onBorradorGuardado, // ✅ NUEVO: Para refrescar panel de borradores
+        onGuardarBorrador,
         residenteEditando,
-        initialData
+        initialData,
+        unidadesDisponibles, // Le pasamos la lista de unidades ya filtrada.
     });
 
-    // Lógica de cierre que depende del estado `isDirty` del hook.
+    // La lógica de cierre se mantiene simple: si el formulario ha sido modificado,
+    // se pide confirmación al usuario para evitar pérdidas de datos accidentales.
     const handleClose = () => {
-        if (isDirty && !confirm('¿Estás seguro? Se perderán los cambios no guardados.')) {
+        if (isDirty && !window.confirm('¿Estás seguro? Se perderán los cambios no guardados.')) {
             return;
         }
-
-        // NOTA: La lógica de limpieza de borradores se manejará en el componente padre (`ResidentesPage`).
-        // El modal solo notifica que debe cerrarse.
         onClose();
     };
 
-    // 3. El componente ahora es "tonto". Solo se encarga de renderizar el JSX.
-    // Toda la lógica compleja vive dentro de `useResidenteForm`.
     return (
         <div className="space-y-6">
-            {/* Botón de cierre que utiliza el handler con lógica de confirmación */}
             <button onClick={handleClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-white z-10">
                 <i className="fas fa-times text-xl"></i>
             </button>
 
-            {/* HEADER: Título y descripción */}
+            {/* HEADER: Título y descripción del modal */}
             <div>
-                {/* Título dinámico según el contexto */}
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                     {residenteEditando ? 'Editar Residente' : 'Invitar Nuevo Residente'}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 text-sm">
-                    Completa los datos para enviar una invitación por email.
-                    El residente podrá acceder a la plataforma una vez que acepte.
+                    {residenteEditando
+                        ? 'Actualiza los datos del residente. Los cambios se reflejarán inmediatamente.'
+                        : 'Completa los datos para enviar una invitación por email. El residente podrá acceder una vez que acepte.'
+                    }
                 </p>
             </div>
 
-            {/* FORM: Formulario de invitación */}
-            {/* El `onSubmit` del formulario ahora viene directamente del hook */}
+            {/* FORMULARIO: El `onSubmit` es manejado por el hook `useResidenteForm` */}
             <form onSubmit={onSubmit} className="space-y-4">
-                {/* NOMBRE Y APELLIDO */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* FILA 1: NOMBRE Y APELLIDO */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Nombre *
-                        </label>
+                        <label className="label-theme">Nombre *</label>
                         <input
                             type="text"
                             {...register('nombre')}
                             onChange={handleNombreChange}
-                            className={`w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                errors.nombre ? 'border-red-500' : ''
-                            }`}
-                            placeholder="Juan"
+                            className={`input-theme ${errors.nombre ? 'border-red-500' : ''}`}
+                            placeholder="Ej: Juan"
                             disabled={isSubmitting}
                             autoComplete="given-name"
                         />
                         {errors.nombre && (
-                            <p className="text-red-400 text-sm mt-1">{errors.nombre.message}</p>
+                            <p className="text-red-500 text-sm mt-1">{errors.nombre.message}</p>
                         )}
                     </div>
-
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Apellido *
-                        </label>
+                        <label className="label-theme">Apellido *</label>
                         <input
                             type="text"
                             {...register('apellido')}
                             onChange={handleApellidoChange}
-                            className={`w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                errors.apellido ? 'border-red-500' : ''
-                            }`}
-                            placeholder="Pérez"
+                            className={`input-theme ${errors.apellido ? 'border-red-500' : ''}`}
+                            placeholder="Ej: Pérez"
                             disabled={isSubmitting}
                             autoComplete="family-name"
                         />
                         {errors.apellido && (
-                            <p className="text-red-400 text-sm mt-1">{errors.apellido.message}</p>
+                            <p className="text-red-500 text-sm mt-1">{errors.apellido.message}</p>
                         )}
                     </div>
                 </div>
 
-                {/* EMAIL */}
+                {/* FILA 2: EMAIL */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Correo Electrónico *
-                    </label>
+                    <label className="label-theme">Correo Electrónico *</label>
                     <input
                         type="email"
                         {...register('email')}
-                        className={`w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                            errors.email ? 'border-red-500' : ''
-                        }`}
+                        className={`input-theme ${errors.email ? 'border-red-500' : ''}`}
                         placeholder="juan.perez@email.com"
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || !!residenteEditando} // El email no se puede editar.
+                        autoComplete="email"
                     />
                     {errors.email && (
-                        <p className="text-red-400 text-sm mt-1">{errors.email.message}</p>
+                        <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+                    )}
+                    {residenteEditando && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">El correo electrónico no puede ser modificado.</p>
                     )}
                 </div>
 
-                {/* CÉDULA Y TELÉFONO */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* FILA 3: CÉDULA Y TELÉFONO */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Cédula
-                        </label>
+                        <label className="label-theme">Cédula (Opcional)</label>
                         <input
                             type="text"
                             {...register('cedula')}
                             onChange={handleCedulaChange}
-                            className={`w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                errors.cedula ? 'border-red-500' : ''
-                            }`}
+                            className={`input-theme ${errors.cedula ? 'border-red-500' : ''}`}
                             placeholder="V12345678"
                             disabled={isSubmitting}
-                            maxLength="9"
+                            maxLength="10"
                         />
                         {errors.cedula && (
-                            <p className="text-red-400 text-sm mt-1">{errors.cedula.message}</p>
+                            <p className="text-red-500 text-sm mt-1">{errors.cedula.message}</p>
                         )}
                     </div>
-
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Teléfono
-                        </label>
+                        <label className="label-theme">Teléfono (Opcional)</label>
                         <input
                             type="tel"
                             {...register('telefono')}
                             onChange={handleTelefonoChange}
-                            className={`w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                errors.telefono ? 'border-red-500' : ''
-                            }`}
+                            className={`input-theme ${errors.telefono ? 'border-red-500' : ''}`}
                             placeholder="04141234567"
                             disabled={isSubmitting}
                             maxLength="13"
                         />
                         {errors.telefono && (
-                            <p className="text-red-400 text-sm mt-1">{errors.telefono.message}</p>
+                            <p className="text-red-500 text-sm mt-1">{errors.telefono.message}</p>
                         )}
                     </div>
                 </div>
 
-                {/* UNIDAD */}
+                {/* FILA 4: UNIDAD */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Unidad *
-                    </label>
+                    <label className="label-theme">Unidad *</label>
                     <select
                         {...register('unidad_id')}
-                        className={`w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                            errors.unidad_id ? 'border-red-500' : ''
-                        }`}
-                        disabled={isSubmitting || isLoadingUnidades}
+                        className={`input-theme ${errors.unidad_id ? 'border-red-500' : ''}`}
+                        disabled={isSubmitting}
                     >
                         <option value="">
-                            {isLoadingUnidades
-                                ? 'Cargando unidades...'
-                                : unidades.length === 0
-                                    ? residenteEditando
-                                        ? 'No hay unidades disponibles'
-                                        : 'No hay unidades disponibles (todas ocupadas)'
-                                    : residenteEditando
-                                        ? 'Selecciona una unidad'
-                                        : 'Selecciona una unidad disponible'
+                            {unidadesDisponibles.length === 0 && !residenteEditando
+                                ? 'No hay unidades disponibles'
+                                : 'Selecciona una unidad'
                             }
                         </option>
-                        {unidades?.map((unidad) => (
+                        {unidadesDisponibles.map((unidad) => (
                             <option key={unidad.id} value={unidad.numero_unidad}>
                                 {unidad.numero_unidad}
                             </option>
                         ))}
+                        {/* 
+                          Lógica para el modo edición: Si la unidad actual del residente
+                          no está en la lista de disponibles (que es lo normal), la añadimos
+                          explícitamente para que aparezca seleccionada y siga siendo una opción.
+                        */}
+                        {residenteEditando && !unidadesDisponibles.some(u => u.numero_unidad === residenteEditando.numero_unidad) && (
+                            <option key={residenteEditando.id_unidad} value={residenteEditando.numero_unidad}>
+                                {residenteEditando.numero_unidad} (Actual)
+                            </option>
+                        )}
                     </select>
                     {errors.unidad_id && (
-                        <p className="text-red-400 text-sm mt-1">{errors.unidad_id.message}</p>
+                        <p className="text-red-500 text-sm mt-1">{errors.unidad_id.message}</p>
                     )}
                 </div>
 
-
                 {/* ACCIONES: Botones del formulario */}
-                <div className="flex gap-3 pt-4">
+                <div className="flex flex-col md:flex-row gap-3 pt-4">
                     <button
                         type="button"
-                        onClick={() => {
-                            handleGuardarBorrador();
-                        }}
+                        onClick={handleGuardarBorrador}
                         disabled={isSubmitting || !puedeGuardarBorrador}
-                        className="flex-1 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full btn-secondary bg-yellow-500 hover:bg-yellow-600 text-white dark:bg-yellow-600 dark:hover:bg-yellow-700"
                     >
                         <i className="fas fa-save mr-2"></i>
                         Guardar Borrador
@@ -229,15 +214,12 @@ const InvitarResidenteModal = ({ onClose, onSuccess, onBorradorGuardado = null, 
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200 disabled:opacity-50"
-                        onClick={() => {
-                            // Lógica de envío se maneja en onSubmit
-                        }}
+                        className="w-full btn-primary"
                     >
                         {isSubmitting ? (
                             <>
                                 <i className="fas fa-spinner fa-spin mr-2"></i>
-                                Enviando...
+                                Procesando...
                             </>
                         ) : (
                             <>
@@ -248,21 +230,6 @@ const InvitarResidenteModal = ({ onClose, onSuccess, onBorradorGuardado = null, 
                     </button>
                 </div>
             </form>
-
-            {/* El texto de auto-guardado se elimina, ya que la funcionalidad ahora es manual */}
-
-            {/* ADVERTENCIA: Sin unidades disponibles */}
-            {!isLoadingUnidades && unidades.length === 0 && (
-                <div className="bg-yellow-50 dark:bg-yellow-900 dark:bg-opacity-50 border border-yellow-200 dark:border-yellow-600 rounded-lg p-3 text-center">
-                    <i className="fas fa-exclamation-triangle text-yellow-600 dark:text-yellow-400 mb-2 text-lg"></i>
-                    <p className="text-yellow-800 dark:text-yellow-200 text-sm">
-                        {residenteEditando
-                            ? "No hay unidades disponibles para cambiar."
-                            : "No hay unidades disponibles. Todas las unidades están ocupadas por residentes activos."
-                        }
-                    </p>
-                </div>
-            )}
         </div>
     );
 };

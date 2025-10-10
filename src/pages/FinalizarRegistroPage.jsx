@@ -58,10 +58,10 @@ const FinalizarRegistroPage = () => {
     // Si la activación fue exitosa, mostramos un mensaje final
     if (success) {
         return (
-            <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-                <div className={`${STYLES.card} text-center max-w-lg`}>
+            <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4 dark">
+                <div className="bg-gray-800 p-8 rounded-lg shadow-2xl text-center max-w-lg">
                     <Logo size={64} className="justify-center mb-6" />
-                    <h2 className={`${STYLES.titleSection} text-green-400 mb-4`}>¡Cuenta Activada!</h2>
+                    <h2 className="text-2xl font-bold text-green-400 mb-4">¡Cuenta Activada!</h2>
                     <p className="text-gray-300">{success}</p>
                     <Link to="/login" className={`${STYLES.buttonPrimary} mt-6`}>
                         Ir a Iniciar Sesión
@@ -74,10 +74,10 @@ const FinalizarRegistroPage = () => {
     // Si no hay token en la URL, mostramos un error
     if (!token) {
         return (
-            <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-                <div className={`${STYLES.card} text-center max-w-lg`}>
+            <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4 dark">
+                <div className="bg-gray-800 p-8 rounded-lg shadow-2xl text-center max-w-lg">
                     <Logo size={64} className="justify-center mb-6" />
-                    <h2 className={`${STYLES.titleSection} text-red-400 mb-4`}>Error de Activación</h2>
+                    <h2 className="text-2xl font-bold text-red-400 mb-4">Error de Activación</h2>
                     <p className="text-gray-300">{error}</p>
                     <Link to="/" className={`${STYLES.buttonLink} mt-6`}>
                         Volver a la página principal
@@ -88,46 +88,49 @@ const FinalizarRegistroPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-            <div className="w-full max-w-lg">
-                <div className="text-center mb-8 flex flex-col items-center">
-                    <Logo size={64} />
-                    <h2 className={`${STYLES.titleSection} mt-6`}>Finaliza tu Registro en LifeBit</h2>
-                    <p className="mt-2 text-gray-400">Estás a un solo paso de activar tu cuenta.</p>
+        <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4 dark">
+            <div className="w-full max-w-md">
+                <div className="flex items-center justify-center h-16 border-b border-gray-200 dark:border-gray-800">
+                    <Logo />
                 </div>
-                <div className={STYLES.card}>
+                <div className="text-center mb-8">
+                    <h2 className="mt-2 text-2xl font-bold">Finaliza tu Registro en LifeBit</h2>
+                    <p className="text-gray-400">Estás a un solo paso de activar tu cuenta.</p>
+                </div>
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 bg-gray-800 p-8 rounded-lg shadow-2xl">
                     {/* --- Opción 1: Formulario Tradicional --- */}
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        <h3 className="font-semibold text-center text-lg text-gray-200">Crea tu contraseña</h3>
-                        <div>
-                            <label className={STYLES.label}>Nueva Contraseña</label>
-                            <input type="password" {...register("password")} className={STYLES.input} autoFocus />
-                            {errors.password && <p className={STYLES.errorText}>{errors.password.message}</p>}
-                        </div>
-                        <div>
-                            <label className={STYLES.label}>Confirmar Contraseña</label>
-                            <input type="password" {...register("confirmPassword")} className={STYLES.input} />
-                            {errors.confirmPassword && <p className={STYLES.errorText}>{errors.confirmPassword.message}</p>}
-                        </div>
-
-                        {error && <p className={`${STYLES.errorText} text-center`}>{error}</p>}
-
-                        <button type="submit" disabled={loading} className={STYLES.buttonPrimary}>
-                            {loading ? <Spinner type="dots" /> : 'Activar Cuenta'}
-                        </button>
-                    </form>
-
-                    {/* --- Separador --- */}
-                    <div className="relative my-6">
-                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-700" /></div>
-                        <div className="relative flex justify-center text-sm"><span className="px-2 bg-gray-800 text-gray-400">O</span></div>
+                    <h3 className="font-semibold text-center text-lg text-white">Crea tu contraseña</h3>
+                    <div>
+                        <label className={STYLES.label}>Nueva Contraseña</label>
+                        <input type="password" {...register("password")} className={STYLES.input} autoFocus />
+                        {errors.password && <p className={STYLES.errorText}>{errors.password.message}</p>}
+                    </div>
+                    <div>
+                        <label className={STYLES.label}>Confirmar Contraseña</label>
+                        <input type="password" {...register("confirmPassword")} className={STYLES.input} />
+                        {errors.confirmPassword && <p className={STYLES.errorText}>{errors.confirmPassword.message}</p>}
                     </div>
 
+                    {error && <p className={`${STYLES.errorText} text-center`}>{error}</p>}
+
+                    <button type="submit" disabled={loading} className={STYLES.buttonPrimary}>
+                        {loading ? <Spinner type="dots" /> : 'Activar Cuenta'}
+                    </button>
+
+                    {/* --- Separador --- */}
+                    {/* <div className="relative my-4">
+                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-600" /></div>
+                        <div className="relative flex justify-center text-sm"><span className="px-2 bg-gray-800 text-gray-400">O continúa con</span></div>
+                    </div> */}
+
                     {/* --- Opción 2: Google --- */}
-                    <a href={`/api/auth/google/vincular?token=${token}`} className={STYLES.buttonGoogle}>
+                    {/* <a href={`/api/auth/google/vincular?token=${token}`} className={STYLES.buttonGoogle}>
                         {ASSETS.googleIconSVG}
                         Continuar con Google
-                    </a>
+                    </a> */}
+                </form>
+                <div className="text-center mt-6">
+                    <Link to="/" className="text-sm text-gray-400 hover:text-blue-500 transition-colors">← Volver a la página principal</Link>
                 </div>
             </div>
         </div>

@@ -22,7 +22,7 @@ Objetivo: Forjar el esqueleto de nuestra aplicación. La base invisible pero ind
 [ ] F0-02 [CORE]: Configurar la librería de internacionalización (i18next) para soporte es/en.
 [x] F0-03 [LÓGICA]: Crear el apiService definitivo con axios, incluyendo withCredentials: true y el interceptor de accessToken.
 [~] F0-04 [UI/UX]: Construir el LayoutPrincipal adaptable (Header/Sidebar) que cambia según el rol del usuario (dueño, admin, residente).
-[ ] F0-05 [UI/UX]: Refactorizar y perfeccionar el componente ThemeToggle para el cambio de tema.
+[x] F0-05 [UI/UX]: Refactorizar y perfeccionar el componente ThemeToggle para el cambio de tema.
 [x] F0-06 [CORE]: Configurar el App.jsx con el BrowserRouter y la estructura de rutas principal.
 
 Epopeya F1: La Puerta de Entrada (Autenticación y Vistas Públicas)
@@ -48,12 +48,12 @@ Objetivo: Empoderarte, Julio, con las herramientas para dirigir tu negocio con t
 
 Epopeya F3: El Primer Vuelo (Onboarding del Administrador)
 Objetivo: Crear una experiencia de configuración inicial tan guiada y gratificante que los nuevos administradores se sientan empoderados desde el primer minuto.
-[~] F3-01 [COMPONENTE]: Construir el orquestador SetupWizard que guiará todo el proceso.
+[x] F3-01 [COMPONENTE]: Construir el orquestador SetupWizard que guiará todo el proceso.
 [x] F3-02 [PÁGINA]: Paso 1: Interfaz de Creación de Unidades (usando el generador flexible).
 [x] F3-03 [PÁGINA]: Paso 2: Módulo de Gestión de Recursos.
-[~] F3-03a [UI/UX]: CRUD para Tipos de Recurso.
+[x] F3-03a [UI/UX]: CRUD para Tipos de Recurso.
 [x] F3-03b [UI/UX]: Interfaces para la creación de inventario (secuencial y carga masiva por Excel).
-[ ] F3-04 [PÁGINA]: Paso 3: Módulo de Invitación de Residentes (individual y carga masiva por Excel).
+[x] F3-04 [PÁGINA]: Paso 3: Módulo de Invitación de Residentes (individual y carga masiva por Excel).
 
 Epopeya F4: La Comunidad Viva (Paneles de Admin y Residente)
 Objetivo: Construir las herramientas del día a día que hacen de LifeBit el centro neurálgico de la comunidad.
@@ -79,3 +79,40 @@ Objetivo: Implementar nuestra killer feature. La herramienta que nos define y no
 [ ] F5-02b [COMPONENTE]: Lienzo para la construcción de reglas.
 [ ] F5-02c [LÓGICA]: Motor de Simulación para previsualizar el impacto de una regla.
 [ ] F5-02d [UI/UX]: Asistente guiado (tour interactivo) para la creación de la primera regla.
+
+
+Misión FE-AUTH-13.1: Construir el Componente de Perfil
+[ ] UI-01: En la página de perfil del usuario, añadir una sección para "Cambiar Dirección de Email".
+Misión FE-AUTH-13.2: Implementar el Modal de Re-autenticación
+[ ] UI-02: Al hacer clic en "Cambiar Email", mostrar un modal que pida al usuario su contraseña actual.
+[ ] API-01: Al enviar, llamar al endpoint POST /api/perfil/verify-password.
+[ ] STATE-01: Si la respuesta es exitosa, guardar en el estado de la aplicación (ej. Zustand) una bandera que indique que el usuario está "re-autenticado" por un corto periodo de tiempo.
+Misión FE-AUTH-13.3: Implementar el Flujo de Cambio
+[ ] UI-03: Tras la re-autenticación exitosa, el modal cambia para mostrar un campo donde el usuario puede introducir y confirmar su nueva dirección de email.
+[ ] API-02: Al enviar, llamar al endpoint POST /api/perfil/request-email-change.
+[ ] UI-04: Mostrar un mensaje de éxito al usuario, instruyéndole que revise su bandeja de entrada en la nueva dirección de correo.
+Misión FE-AUTH-13.4: Página de Verificación
+[ ] PAGE-01: Crear una nueva página/ruta en el frontend, por ejemplo /verify-email-change.
+[ ] API-03: Cuando esta página se carga, debe extraer el token de la URL y hacer una llamada a POST /api/auth/verify-email-change.
+[ ] UI-05: Mostrar un mensaje de éxito ("¡Tu email ha sido cambiado! Por favor, inicia sesión de nuevo.") o de error ("El enlace es inválido o ha expirado.") al usuario.
+
+
+ADR-002: Gestión de Acciones para Usuarios Invitados
+Fecha: 2025-10-08
+Estado: Propuesto
+Contexto:
+Actualmente, los usuarios con estado 'invitado' tienen una representación limitada en la interfaz de administrador. Las acciones de gestión, como "Suspender", no son aplicables a ellos. La única forma de actuar sobre una invitación (por ejemplo, si se envió a un correo incorrecto o el usuario no la recibió) es eliminar al usuario y crear una nueva invitación, lo cual es ineficiente y no intuitivo.
+Decisión:
+Se implementará un conjunto de acciones específicas para usuarios en estado 'invitado' para mejorar la gestión del administrador. Estas acciones serán:
+Reenviar Invitación: Volver a enviar el correo electrónico de invitación al mismo correo. Esto es útil si el correo se perdió o fue a spam.
+Cancelar Invitación: Eliminar permanentemente al usuario 'invitado' y su token de registro. Esto libera la unidad asociada y permite que sea asignada a otra persona.
+Consecuencias:
+Frontend:
+En ListaResidentes.jsx, para las filas donde residente.estado === 'invitado', se renderizará un nuevo conjunto de iconos de acción:
+Un icono para "Reenviar Invitación" (ej. <FiSend />).
+Un icono para "Cancelar Invitación" (ej. <FiXCircle />).
+Se añadirán nuevas funciones (handleReenviarInvitacion, handleCancelarInvitacion) al hook useGestionResidentes para orquestar estas acciones.
+Estas funciones requerirán la creación de modales de confirmación para evitar acciones accidentales, especialmente para "Cancelar Invitación".
+Backend:
+Se debe crear un nuevo endpoint: POST /api/admin/invitaciones/:id/reenviar. Este endpoint buscará al usuario invitado, generará un nuevo token de registro (invalidando el anterior por seguridad), y encolará un nuevo trabajo en cola_de_trabajos para enviar el email.
+Se debe modificar un endpoint existente: El endpoint DELETE /api/admin/residentes/:id debe ser modificado para manejar correctamente la eliminación de un usuario 'invitado'. Actualmente está pensado para un borrado blando (cambiar estado a 'suspendido'). Deberá detectar si el usuario está 'invitado' y, en ese caso, realizar un borrado físico (hard delete) de la base de datos, ya que no hay historial que preservar.

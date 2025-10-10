@@ -41,3 +41,11 @@ Es un sistema de notificaciones no intrusivo. "Toast Notification" (también lla
 
 ## Instalacion
 `npm install react-hot-toast`
+
+# Libreria uuid
+Es una librería que nos permite generar identificadores únicos universales (UUIDs). Estos identificadores son útiles cuando necesitamos un ID que sea único en todo el sistema, como para identificar usuarios, sesiones, transacciones, etc. Los UUIDs son especialmente valiosos en aplicaciones distribuidas donde múltiples sistemas pueden estar generando IDs simultáneamente, ya que la probabilidad de colisión (dos sistemas generando el mismo ID) es extremadamente baja.
+## Instalacion
+`npm install uuid`
+
+## Uso
+Lo usaremos en src/modules/residentes/hooks/useGestionResidentes.js para generar IDs únicos para los borradores de residentes que se almacenan en localStorage. Esto asegura que cada borrador tenga un identificador único, facilitando su gestión (creación, edición, eliminación) sin riesgo de colisiones con otros borradores.

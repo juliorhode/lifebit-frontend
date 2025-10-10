@@ -1,29 +1,30 @@
-// ===============================================
-//          CONSTRUCCIÓN: useResidenteForm.js
-// ===============================================
-
 /**
- * 🐛 PROBLEMA SOLUCIONADO:
+ * @description Hook especializado que encapsula la lógica del formulario de creación/edición de residentes.
+ * Este hook ha sido refactorizado para seguir el principio de Responsabilidad Única. Ya no se encarga
+ * de la obtención de datos (como la lista de unidades) ni de la manipulación directa de borradores
+ * en localStorage. Su única misión es gestionar el estado, la validación y los eventos del formulario.
  *
- * ANTES: Al hacer clic en "Continuar" con un borrador, el formulario se abría vacío
- * porque el hook no manejaba correctamente los datos de localStorage.
+ * ARQUITECTURA "CONTROLLED HOOK":
+ * Este hook ahora opera como un "hook controlado". Esto significa que no tiene estado propio
+ * sobre los datos de la aplicación, sino que los recibe como parámetros (props) y notifica
+ * al exterior sobre los eventos (como guardar un borrador o enviar el formulario) a través de callbacks.
  *
- * SOLUCIÓN IMPLEMENTADA:
- * ✅ Agregado useEffect para manejar initialData de borradores
- * ✅ El formulario ahora se precarga correctamente con datos del borrador
- * ✅ Funciona tanto para creación como para edición
- * ✅ Logging detallado para debugging
+ * RESPONSABILIDADES:
+ * ✅ Gestionar los campos del formulario con `react-hook-form`.
+ * ✅ Validar los datos en tiempo real usando el esquema de Yup.
+ * ✅ Poblar el formulario con datos iniciales para edición o para continuar un borrador.
+ * ✅ Llamar a las funciones `onSuccess` o `onGuardarBorrador` para delegar las acciones
+ *    al hook principal (`useGestionResidentes`).
  *
- * FLUJO COMPLETO:
- * 1. Usuario guarda borrador → localStorage
- * 2. Usuario hace clic "Continuar" → BorradoresPanel.onCargarBorrador()
- * 3. ResidentesPage.handleCargarBorrador() → useGestionResidentes.handleCargarBorrador()
- * 4. ✅ NUEVO: useResidenteForm recibe initialData y precarga formulario
- * 5. Usuario ve formulario con datos precargados
+ * @param {Object} options - Opciones de configuración del hook.
+ * @param {Function} options.onSuccess - Callback a ejecutar tras un envío exitoso.
+ * @param {Function} options.onGuardarBorrador - Callback para notificar que se debe guardar un borrador.
+ * @param {Object | null} options.residenteEditando - Datos del residente para poblar el formulario en modo edición.
+ * @param {Object | null} options.initialData - Datos de un borrador para precargar el formulario.
+ * @param {Array} options.unidadesDisponibles - La lista de unidades disponibles, provista por el hook principal.
+ * @returns {Object} La API pública del hook para ser usada por el componente del formulario.
  */
-
-// --- 1. Importaciones Esenciales ---
-import { useState, useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { residenteSchema } from '../utils/residentes.schemas';
@@ -31,448 +32,259 @@ import * as utils from '../utils/residentes.utils';
 import apiService from '../../../services/apiService';
 import { toast } from 'react-hot-toast';
 
-/**
- * @description Hook personalizado que encapsula TODA la lógica del formulario
- * de creación y edición de residentes.
- *
- * FUNCIONALIDADES:
- * ✅ Creación de nuevos residentes
- * ✅ Edición de residentes existentes
- * ✅ ✅ NUEVO: Carga de borradores desde localStorage
- * ✅ Validación en tiempo real con Yup
- * ✅ Auto-guardado de borradores
- * ✅ Manejo de unidades disponibles
- *
- * FLUJO DE BORRADORES:
- * 1. Usuario llena formulario parcialmente
- * 2. Hace clic en "Guardar Borrador"
- * 3. Datos se guardan en localStorage
- * 4. ✅ NUEVO: Al hacer clic "Continuar", se cargan en el formulario
- * 5. Usuario puede completar y enviar
- *
- * @param {Object} options - Opciones de configuración.
- * @param {Function} options.onSuccess - Callback a ejecutar tras un envío exitoso.
- * @param {Object | null} options.residenteEditando - Datos del residente a editar.
- * @param {Object | null} options.initialData - ✅ NUEVO: Datos de un borrador para precargar el formulario.
- * @returns {Object} La API pública del hook para ser usada por componentes.
- */
-export const useResidenteForm = ({ onSuccess, residenteEditando = null, initialData = null, onBorradorGuardado = null }) => {
+export const useResidenteForm = ({
+	onSuccess,
+	onGuardarBorrador,
+	residenteEditando = null,
+	initialData = null,
+	unidadesDisponibles = [],
+}) => {
+	// =================================================================
+	// GESTIÓN DEL FORMULARIO CON REACT-HOOK-FORM
+	// =================================================================
+	// Se introduce un estado para mantener una copia "congelada" de los datos originales.
+	// Esto es crucial para nuestra nueva lógica de detección de cambios, que es más fiable que `isDirty`.
+	const [originalData, setOriginalData] = useState(null);
+	const {
+		register,
+		handleSubmit,
+		watch,
+		formState: { errors, isDirty, isSubmitting }, // Mantenemos isDirty por si es útil en el futuro
+		setValue,
+		reset,
+	} = useForm({
+		// El resolver conecta `react-hook-form` con nuestro esquema de validación `yup`.
+		// Automáticamente validará los campos del formulario contra las reglas que definimos.
+		resolver: yupResolver(residenteSchema),
+		// Los valores por defecto se establecen en el montaje inicial.
+		defaultValues: residenteEditando || initialData || {},
+		// La validación 'onChange' proporciona feedback al usuario mientras escribe.
+		mode: 'onChange',
+	});
 
-    // --- 2. Estado Interno y Motor del Formulario (Área de Gestión) ---
-    const {
-        register,
-        handleSubmit,
-        watch,
-        formState: { errors, isDirty, isSubmitting },
-        setValue,
-        reset,
-    } = useForm({
-        resolver: yupResolver(residenteSchema),
-        defaultValues: initialData || {},
-        mode: 'onChange' // Validación en tiempo real mientras escribe
-    });
+	// =================================================================
+	// EFECTOS SECUNDARIOS (SINCRONIZACIÓN CON EL EXTERIOR)
+	// =================================================================
 
-    // Estados para la Comunicación Externa
-    const [unidades, setUnidades] = useState([]);
-    const [isLoadingUnidades, setIsLoadingUnidades] = useState(true);
+	// La carga de unidades las recibe como una prop (`unidadesDisponibles`), lo que simplifica
+	// enormemente su lógica y elimina una llamada redundante a la API.
 
-    // ✅ NUEVO: Estado para trackear si se cargó un borrador
-    const [borradorCargado, setBorradorCargado] = useState(false);
+	// Este efecto se encarga de poblar el formulario cuando los datos para edición
+	// o de un borrador están disponibles. Es crucial porque `defaultValues` solo
+	// funciona en el primer render, y estos datos pueden llegar después.
+	useEffect(() => {
+		const dataToLoad = residenteEditando || initialData;
+		if (dataToLoad) {
+			// Se estandariza el objeto de datos que se usará para poblar el formulario.
+			const formData = {
+				id: dataToLoad.id || null,
+				nombre: dataToLoad.nombre || '',
+				apellido: dataToLoad.apellido || '',
+				email: dataToLoad.email || '',
+				cedula: dataToLoad.cedula || '',
+				telefono: dataToLoad.telefono || '',
+				unidad_id: dataToLoad.numero_unidad || dataToLoad.unidad_id || '',
+			};
+			reset(formData);
+			// Se guarda una copia "congelada" de los datos originales para detectar cambios.
+			setOriginalData(formData);
 
-    // ✅ NUEVO: Estado para almacenar la clave del borrador cargado
-    const [borradorKey, setBorradorKey] = useState(null);
+			// NOTA IMPORTANTE:
+			// Se puebla el formulario con los datos recibidos (sea de un borrador o de un residente a editar).
+			// `reset` actualiza los valores y también el estado `isDirty` de react-hook-form.
+			// reset({
+			// 	// Si estamos cargando un borrador, su ID único se mantiene en el estado del formulario.
+			// 	// Esto es CRUCIAL para que al volver a guardar, se sepa que es una actualización.
+			// 	// Mantenemos el ID del borrador si existe, para poder guardarlo de nuevo.
+			// 	id: dataToLoad.id || null,
+			// 	nombre: dataToLoad.nombre || '',
+			// 	apellido: dataToLoad.apellido || '',
+			// 	email: dataToLoad.email || '',
+			// 	cedula: dataToLoad.cedula || '',
+			// 	telefono: dataToLoad.telefono || '',
+			// 	// Para edición, usamos `numero_unidad`, para borradores `unidad_id`.
+			// 	// Esto unifica el campo que usará el select del formulario.
+			// 	unidad_id: dataToLoad.numero_unidad || dataToLoad.unidad_id || '',
+			// });
+		}
+	}, [residenteEditando, initialData, reset]);
 
-    // ✅ NUEVO: Estado para almacenar los datos originales del borrador
-    const [borradorOriginal, setBorradorOriginal] = useState(null);
+	// =================================================================
+	// LÓGICA DE NEGOCIO Y MANEJADORES DE EVENTOS
+	// =================================================================
 
-    // ✅ NUEVO: ID secuencial simple del borrador
-    const [borradorId, setBorradorId] = useState(null);
+	/**
+	 * @description Lógica que se ejecuta al enviar el formulario válido.
+	 * Construye el payload y llama al endpoint correspondiente de la API.
+	 * @param {Object} data - Los datos del formulario validados.
+	 */
+	const onSubmitLogic = async (data) => {
+		try {
+			// Construimos el objeto `payload` solo con los campos que el backend espera,
+			// evitando enviar campos extra del formulario.
+			const payload = {
+				nombre: data.nombre,
+				apellido: data.apellido,
+				email: data.email,
+				// Usamos el operador "spread condicional" para añadir campos opcionales solo si tienen valor.
+				...(data.cedula && { cedula: data.cedula.trim() }),
+				...(data.telefono && { telefono: data.telefono.trim() }),
+			};
 
-    // ✅ NUEVO: Estado para persistir el ID del borrador entre renders
-    const [borradorIdPersistente, setBorradorIdPersistente] = useState(null);
+			if (residenteEditando) {
+				// MODO EDICIÓN: El payload requiere el `numeroUnidad` y hacemos un PATCH.
+				payload.numeroUnidad = data.unidad_id;
+				await apiService.patch(`/admin/residentes/${residenteEditando.id}`, payload);
+			} else {
+				// // MODO CREACIÓN: El payload requiere `idUnidad` y hacemos un POST.
+				// const unidadSeleccionada = unidadesDisponibles.find(
+				// 	(u) => u.numero_unidad === data.unidad_id
+				// );
+				// if (!unidadSeleccionada) {
+				// 	// Esta validación es una salvaguarda, aunque es improbable que ocurra.
+				// 	throw new Error('La unidad seleccionada no es válida o ya no está disponible.');
+				// }
+				// payload.idUnidad = unidadSeleccionada.id;
+				// await apiService.post('/admin/invitaciones/residentes', payload);
+				const allUnits = [...unidadesDisponibles];
+				if (
+					residenteEditando &&
+					!allUnits.some((u) => u.numero_unidad === residenteEditando.numero_unidad)
+				) {
+					allUnits.push({
+						id: residenteEditando.id_unidad,
+						numero_unidad: residenteEditando.numero_unidad,
+					});
+				}
+				const unidadSeleccionada = allUnits.find((u) => u.numero_unidad === data.unidad_id);
+				if (!unidadSeleccionada) throw new Error('La unidad seleccionada no es válida.');
 
-    // --- 3. Lógica de Efectos Secundarios (Área de Comunicación Externa) ---
-    useEffect(() => {
-        const cargarUnidades = async () => {
-            try {
-                setIsLoadingUnidades(true);
-                const [unidadesResponse, residentesResponse] = await Promise.all([
-                    apiService.get('/admin/unidades'),
-                    apiService.get('/admin/residentes')
-                ]);
-                const unidadesData = unidadesResponse.data.data?.unidades || [];
-                const residentesData = residentesResponse.data.data || [];
-                
-                const unidadesOcupadas = new Set(
-                    residentesData
-                        .filter(res => res.estado === 'activo' && res.id !== residenteEditando?.id)
-                        .map(res => res.numero_unidad)
-                );
-                
-                let unidadesFiltradas = unidadesData.filter(u => !unidadesOcupadas.has(u.numero_unidad));
+				payload.idUnidad = unidadSeleccionada.id;
+				await apiService.post('/admin/invitaciones/residentes', payload);
+			}
 
-                if (residenteEditando && residenteEditando.numero_unidad) {
-                    const unidadActual = unidadesData.find(u => u.numero_unidad === residenteEditando.numero_unidad);
-                    if (unidadActual && !unidadesFiltradas.some(u => u.id === unidadActual.id)) {
-                        unidadesFiltradas.push(unidadActual);
-                    }
-                }
-                setUnidades(unidadesFiltradas);
-            } catch (error) {
-                console.error('Error al cargar unidades:', error);
-                toast.error('No se pudieron cargar las unidades.');
-            } finally {
-                setIsLoadingUnidades(false);
-            }
-        };
-        cargarUnidades();
-    }, [residenteEditando]);
-    
-    // Efecto para popular el formulario cuando los datos de edición están disponibles.
-    useEffect(() => {
-        if (residenteEditando) {
-            reset({
-                nombre: residenteEditando.nombre || '',
-                apellido: residenteEditando.apellido || '',
-                email: residenteEditando.email || '',
-                cedula: residenteEditando.cedula || '',
-                telefono: residenteEditando.telefono || '',
-                unidad_id: residenteEditando.numero_unidad || '',
-            });
-        }
-    }, [residenteEditando, reset]);
+			// Si la llamada a la API fue exitosa, notificamos al componente padre.
+			if (onSuccess) {
+				onSuccess();
+			}
+		} catch (error) {
+			console.error('Error al procesar residente:', error);
+			// Proporcionamos feedback específico al usuario según el tipo de error.
+			if (error.response?.status === 409) {
+				toast.error('Ya existe un residente con este email o cédula.');
+			} else {
+				// toast.error(
+				// 	error.message || `Error al ${residenteEditando ? 'actualizar' : 'invitar'}.`
+				// );
+				console.error('Error al procesar residente:', error);
+				toast.error(
+					error.response?.data?.message ||
+						`Error al ${residenteEditando ? 'actualizar' : 'invitar'}.`
+				);
+			}
+		}
+	};
 
-    /**
-     * ✅ NUEVO EFECTO CRÍTICO: Manejo de datos de borrador
-     *
-     * PROBLEMA QUE SOLUCIONA:
-     * Cuando se hace clic en "Continuar" con un borrador, el formulario se abría vacío
-     * porque react-hook-form solo usa defaultValues en el montaje inicial.
-     *
-     * SOLUCIÓN:
-     * Este useEffect detecta cuando llegan nuevos initialData (de un borrador)
-     * y actualiza el formulario usando setValue() para precargar los campos
-     * SIN alterar el estado dirty del formulario.
-     *
-     * CONDICIONES:
-     * - initialData existe (hay datos de borrador)
-     * - !residenteEditando (no estamos editando, es un borrador)
-     * - ✅ NUEVO: unidades.length > 0 (espera a que las unidades se carguen)
-     *
-     * FLUJO:
-     * 1. Usuario hace clic "Continuar borrador"
-     * 2. BorradoresPanel → ResidentesPage → useGestionResidentes
-     * 3. Se establece datosBorrador en el estado del hook
-     * 4. ✅ Este useEffect detecta el cambio y precarga el formulario
-     * 5. Usuario ve el formulario con datos precargados
-     * 6. ✅ Usuario puede modificar campos y guardar (isDirty funciona correctamente)
-     *
-     * DEPENDENCIAS:
-     * - initialData: Se ejecuta cuando cambian los datos del borrador
-     * - residenteEditando: Evita conflicto con edición
-     * - unidades: Espera a que las unidades se carguen
-     * - setValue: Función de react-hook-form para actualizar campos individuales
-     */
-    useEffect(() => {
-        console.log('🔄 useResidenteForm.useEffect - INICIO');
-        console.log('🔄 initialData recibido:', initialData);
-        console.log('🔄 residenteEditando:', residenteEditando);
-        console.log('🔄 unidades.length:', unidades.length);
+	/**
+	 * @description Delega la acción de guardar un borrador al hook padre.
+	 * Este hook ya no sabe "cómo" se guarda un borrador, solo notifica que "debe" guardarse.
+	 */
+	const handleGuardarBorrador = () => {
+		// Obtenemos todos los valores actuales del formulario.
+		const currentValues = watch();
+		// Llamamos a la función que nos pasaron como prop, enviándole los datos.
+		if (onGuardarBorrador) {
+			onGuardarBorrador(currentValues);
+		}
+	};
 
-        if (initialData && !residenteEditando && unidades.length > 0) {
-            console.log('🎯 useResidenteForm: Cargando datos de borrador:', initialData);
-            console.log('🏢 Unidades disponibles:', unidades.map(u => u.numero_unidad));
-            console.log('🎯 Unidad del borrador:', initialData.unidad_id);
-            console.log('🎯 ID del borrador en initialData:', initialData.id);
+	// Handlers para formatear la entrada del usuario en tiempo real.
+	// const handleNombreChange = (e) =>
+	// 	setValue(
+	// 		'nombre',
+	// 		utils.capitalizarTexto(e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')),
+	// 		{ shouldValidate: true } // Dispara la validación tras el cambio.
+	// 	);
+	// const handleApellidoChange = (e) =>
+	// 	setValue(
+	// 		'apellido',
+	// 		utils.capitalizarTexto(e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')),
+	// 		{ shouldValidate: true } // Dispara la validación tras el cambio.
+	// 	);
+	// const handleCedulaChange = (e) =>
+	// 	setValue('cedula', utils.formatearCedula(e.target.value), { shouldValidate: true }); // Dispara la validación tras el cambio.
+	// const handleTelefonoChange = (e) =>
+	// 	setValue('telefono', utils.formatearTelefono(e.target.value), { shouldValidate: true }); // Dispara la validación tras el cambio.
 
-            // ✅ CORRECCIÓN: Usar setValue con shouldValidate para mantener validación activa
-            setValue('nombre', initialData.nombre || '', { shouldValidate: true });
-            setValue('apellido', initialData.apellido || '', { shouldValidate: true });
-            setValue('email', initialData.email || '', { shouldValidate: true });
-            setValue('cedula', initialData.cedula || '', { shouldValidate: true });
-            setValue('telefono', initialData.telefono || '', { shouldValidate: true });
-            setValue('unidad_id', initialData.unidad_id || '', { shouldValidate: true });
+	// Handlers para formatear la entrada y marcar el formulario como "sucio" (`shouldDirty: true`). En cuanto el usuario teclee algo, incluso en un campo que estaba vacío por defecto. Esto asegura que `isDirty` se active incluso si el usuario solo llena campos opcionales.
+	const handleNombreChange = (e) =>
+		setValue(
+			'nombre',
+			utils.capitalizarTexto(e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')),
+			{ shouldValidate: true, shouldDirty: true }
+		);
+	const handleApellidoChange = (e) =>
+		setValue(
+			'apellido',
+			utils.capitalizarTexto(e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')),
+			{ shouldValidate: true, shouldDirty: true }
+		);
+	const handleCedulaChange = (e) =>
+		setValue('cedula', utils.formatearCedula(e.target.value), {
+			shouldValidate: true,
+			shouldDirty: true,
+		});
+	const handleTelefonoChange = (e) =>
+		setValue('telefono', utils.formatearTelefono(e.target.value), {
+			shouldValidate: true,
+			shouldDirty: true,
+		});
 
-            // ✅ NUEVO: Sistema robusto de identificación de borradores
-            setBorradorCargado(true);
-            setBorradorOriginal(initialData); // Almacenar datos completos del borrador
+	/**
+	 * @description Compara los valores actuales del formulario con los datos originales cargados.
+	 * Esta función es la solución robusta al bug de `isDirty`, ya que no depende de la
+	 * lógica interna de react-hook-form y detecta cualquier cambio, sea en campos
+	 * requeridos u opcionales.
+	 * @returns {boolean} `true` si ha habido al menos un cambio en el formulario.
+	 */
+	const hayCambios = useCallback(() => {
+		// Si no hay datos originales con los que comparar, cualquier cosa es un cambio.
+		if (!originalData) return isDirty;
 
-            // ✅ Usar ID del borrador si existe, sino mantener el persistente
-            let idUnico = initialData.id || borradorIdPersistente;
+		const currentValues = watch();
 
-            if (!idUnico) {
-                // Buscar el número más alto de borradores existentes
-                let maxNumero = 0;
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key && key.startsWith('borrador_residente_')) {
-                        try {
-                            const borradorGuardado = JSON.parse(localStorage.getItem(key));
-                            if (borradorGuardado.id && borradorGuardado.id.startsWith('borrador_')) {
-                                const numero = parseInt(borradorGuardado.id.replace('borrador_', ''));
-                                if (!isNaN(numero) && numero > maxNumero) {
-                                    maxNumero = numero;
-                                }
-                            }
-                        } catch (error) {
-                            // Ignorar errores de parsing
-                        }
-                    }
-                }
-                idUnico = `borrador_${maxNumero + 1}`;
-            }
+		// Comparamos campo por campo. Esto es más explícito y seguro que JSON.stringify.
+		return (
+			originalData.nombre !== currentValues.nombre ||
+			originalData.apellido !== currentValues.apellido ||
+			originalData.email !== currentValues.email ||
+			originalData.cedula !== currentValues.cedula ||
+			originalData.telefono !== currentValues.telefono ||
+			originalData.unidad_id !== currentValues.unidad_id
+		);
+	}, [originalData, watch, isDirty]);
 
-            console.log('🎯 Carga de borrador - initialData.id:', initialData.id);
-            console.log('🎯 Carga de borrador - borradorIdPersistente:', borradorIdPersistente);
-            console.log('🎯 Carga de borrador - idUnico final:', idUnico);
-
-            setBorradorId(idUnico);
-            setBorradorIdPersistente(idUnico); // ✅ Mantener persistente
-            console.log('🆔 ID secuencial del borrador:', idUnico);
-
-            // Buscar la clave del borrador cargado para futuras actualizaciones
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.startsWith('borrador_residente_')) {
-                    try {
-                        const borradorGuardado = JSON.parse(localStorage.getItem(key));
-                        // Comparar ID único para identificar el borrador correcto
-                        if (borradorGuardado.id === idUnico) {
-                            setBorradorKey(key);
-                            console.log('🔑 Clave del borrador cargado:', key);
-                            break;
-                        }
-                    } catch (error) {
-                        console.warn('⚠️ Error procesando borrador existente:', error);
-                    }
-                }
-            }
-
-            console.log('✅ Formulario precargado con datos del borrador (isDirty preserved)');
-        } else if (initialData && !residenteEditando && unidades.length === 0) {
-            console.log('⏳ Esperando unidades para cargar borrador...');
-        }
-    }, [initialData, residenteEditando, unidades, setValue]);
-
-
-    // --- 4. Lógica de Negocio (Handlers y Submit) ---
-    const onSubmitLogic = async (data) => {
-        console.log('📤 onSubmitLogic - INICIO');
-        console.log('📤 Data del formulario:', data);
-        console.log('📤 residenteEditando:', residenteEditando);
-        console.log('📤 borradorCargado:', borradorCargado);
-        console.log('📤 borradorId:', borradorId);
-
-        try {
-            const payload = {
-                nombre: data.nombre,
-                apellido: data.apellido,
-                email: data.email,
-                ...(data.cedula && { cedula: data.cedula.trim() }),
-                ...(data.telefono && { telefono: data.telefono.trim() }),
-            };
-
-            console.log('📤 Payload a enviar:', payload);
-
-            if (residenteEditando) {
-                payload.numeroUnidad = data.unidad_id;
-                console.log('📤 Editando residente, PATCH:', `/admin/residentes/${residenteEditando.id}`);
-                await apiService.patch(`/admin/residentes/${residenteEditando.id}`, payload);
-            } else {
-                const unidadSeleccionada = unidades.find(u => u.numero_unidad === data.unidad_id);
-                if (!unidadSeleccionada) throw new Error('Unidad seleccionada no es válida.');
-                payload.idUnidad = unidadSeleccionada.id;
-                console.log('📤 Enviando invitación, POST:', '/admin/invitaciones/residentes');
-                await apiService.post('/admin/invitaciones/residentes', payload);
-            }
-
-            console.log('📤 Invitación enviada exitosamente');
-            console.log('📤 Datos del envío exitoso:', {
-                residenteEditando,
-                borradorCargado,
-                borradorId,
-                currentValues: watch()
-            });
-
-            if(onSuccess) {
-                console.log('📤 Llamando onSuccess callback');
-                onSuccess();
-                console.log('📤 onSuccess callback ejecutado');
-            } else {
-                console.log('📤 No hay onSuccess callback definido');
-            }
-
-        } catch (error) {
-            console.error('📤 Error al procesar residente:', error);
-            if (error.response?.status === 409) {
-                toast.error('Ya existe un residente con este email');
-            } else {
-                toast.error(`Error al ${residenteEditando ? 'actualizar' : 'invitar'}.`);
-            }
-        }
-    };
-    
-    const handleNombreChange = (e) => setValue('nombre', utils.capitalizarTexto(e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')), { shouldValidate: true });
-    const handleApellidoChange = (e) => setValue('apellido', utils.capitalizarTexto(e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')), { shouldValidate: true });
-    const handleCedulaChange = (e) => setValue('cedula', utils.formatearCedula(e.target.value), { shouldValidate: true });
-    const handleTelefonoChange = (e) => setValue('telefono', utils.formatearTelefono(e.target.value), { shouldValidate: true });
-
-    // Lógica para guardar el borrador manualmente.
-    const handleGuardarBorrador = () => {
-        console.log('💾 handleGuardarBorrador - INICIO');
-
-        const currentValues = watch();
-
-        console.log('💾 handleGuardarBorrador - Estado actual:');
-        console.log('- borradorCargado:', borradorCargado);
-        console.log('- borradorId:', borradorId);
-        console.log('- borradorIdPersistente:', borradorIdPersistente);
-        console.log('- borradorKey:', borradorKey);
-        console.log('- borradorOriginal:', borradorOriginal);
-        console.log('- currentValues:', currentValues);
-        console.log('- residenteEditando:', residenteEditando);
-
-        // ✅ ESTRATEGIA DEFINITIVA: Usar ID persistente
-        let idUnico;
-        let esActualizacion = false;
-        let storageKey = `borrador_residente_${Date.now()}`;
-
-        if (borradorIdPersistente) {
-            // ✅ Si existe ID persistente, usar SIEMPRE ese ID
-            idUnico = borradorIdPersistente;
-            console.log('🔄 Usando ID persistente:', idUnico);
-
-            // Buscar el borrador por su ID persistente
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.startsWith('borrador_residente_')) {
-                    try {
-                        const borradorGuardado = JSON.parse(localStorage.getItem(key));
-                        if (borradorGuardado.id === idUnico) {
-                            esActualizacion = true;
-                            storageKey = key;
-                            console.log('✅ Borrador encontrado por ID persistente:', key);
-                            break;
-                        }
-                    } catch (error) {
-                        console.warn('⚠️ Error procesando borrador existente:', error);
-                    }
-                }
-            }
-        } else {
-            // ✅ Si no hay ID persistente, generar uno nuevo
-            let maxNumero = 0;
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.startsWith('borrador_residente_')) {
-                    try {
-                        const borradorGuardado = JSON.parse(localStorage.getItem(key));
-                        if (borradorGuardado.id && borradorGuardado.id.startsWith('borrador_')) {
-                            const numero = parseInt(borradorGuardado.id.replace('borrador_', ''));
-                            if (!isNaN(numero) && numero > maxNumero) {
-                                maxNumero = numero;
-                            }
-                        }
-                    } catch (error) {
-                        // Ignorar errores de parsing
-                    }
-                }
-            }
-            idUnico = `borrador_${maxNumero + 1}`;
-            setBorradorIdPersistente(idUnico); // ✅ Establecer como persistente
-            console.log('🆕 Generando ID persistente para borrador nuevo:', idUnico);
-        }
-
-        console.log('- esActualizacion:', esActualizacion);
-        console.log('- storageKey:', storageKey);
-        console.log('- idUnico:', idUnico);
-
-        const timestampActual = Date.now();
-        const timestampFinal = esActualizacion && borradorOriginal ? borradorOriginal.timestamp : timestampActual;
-
-        console.log('💾 Generando timestamp:', {
-            esActualizacion,
-            timestampActual,
-            timestampOriginal: borradorOriginal?.timestamp,
-            timestampFinal
-        });
-
-        const borrador = {
-            ...currentValues,
-            id: idUnico, // ID constante (original si existe, nuevo si no)
-            timestamp: timestampFinal,
-            // CORRECCIÓN DEL BUG: Adjuntamos el ID de edición si existe.
-            editandoId: residenteEditando ? residenteEditando.id : null,
-        };
-
-        console.log('💾 Borrador final a guardar:', borrador);
-        console.log('💾 ID en borrador final:', borrador.id);
-        console.log('💾 Timestamp en borrador final:', borrador.timestamp);
-
-        console.log('💾 Borrador a guardar:', borrador);
-        console.log('💾 Clave de localStorage:', storageKey);
-
-        // ✅ Guardar usando la clave identificada
-        localStorage.setItem(storageKey, JSON.stringify(borrador));
-        console.log('💾 Borrador guardado en localStorage');
-
-        // ✅ Verificar que se guardó correctamente
-        const borradorVerificado = localStorage.getItem(storageKey);
-        if (borradorVerificado) {
-            const borradorParsed = JSON.parse(borradorVerificado);
-            console.log('✅ Verificación: Borrador guardado correctamente:', borradorParsed);
-        } else {
-            console.error('❌ ERROR: Borrador no se guardó correctamente');
-        }
-
-        const mensaje = esActualizacion ? 'Borrador actualizado exitosamente' : 'Borrador guardado exitosamente';
-        toast.success(mensaje);
-
-        console.log('✅ handleGuardarBorrador - FIN:', { storageKey, esActualizacion, mensaje, id: borrador.id });
-
-        // ✅ NUEVO: Notificar que se guardó un borrador para refrescar el panel
-        if (onBorradorGuardado) {
-            onBorradorGuardado();
-        }
-
-        // ❌ REMOVIDO: No cerrar modal al guardar borrador
-        // El usuario debe poder continuar editando después de guardar
-        // if (onSuccess) {
-        //     onSuccess(); // Esto causaba mensaje incorrecto de "Solicitud enviada"
-        // }
-    };
-
-
-    // ✅ NUEVO: Verificar si los campos requeridos están completos y válidos
-    const camposRequeridosCompletos = () => {
-        const valores = watch();
-        return (
-            valores.nombre?.trim() &&
-            valores.apellido?.trim() &&
-            valores.email?.trim() &&
-            valores.unidad_id &&
-            !errors.nombre &&
-            !errors.apellido &&
-            !errors.email &&
-            !errors.unidad_id
-        );
-    };
-
-    // --- 5. API Pública del Hook ---
-    return {
-        register,
-        onSubmit: handleSubmit(onSubmitLogic),
-        errors,
-        isSubmitting,
-        isDirty,
-        unidades,
-        isLoadingUnidades,
-        handleNombreChange,
-        handleApellidoChange,
-        handleCedulaChange,
-        handleTelefonoChange,
-        handleGuardarBorrador,
-        // ✅ CORRECCIÓN: Solo permitir guardar si campos requeridos están completos y válidos
-        puedeGuardarBorrador: camposRequeridosCompletos(),
-    };
+	// =================================================================
+	// API PÚBLICA DEL HOOK
+	// Devolvemos solo lo estrictamente necesario para que el componente del formulario renderice y funcione.
+	// =================================================================
+	return {
+		register,
+		onSubmit: handleSubmit(onSubmitLogic),
+		errors,
+		isSubmitting,
+		//isDirty, // `isDirty` nos dice si el usuario ha modificado algún campo.
+		handleNombreChange,
+		handleApellidoChange,
+		handleCedulaChange,
+		handleTelefonoChange,
+		handleGuardarBorrador,
+		/**
+		 * @description Determina si el botón "Guardar Borrador" debe estar habilitado.
+		 * La condición es simple y se alinea con el requisito de producto:
+		 * se puede guardar un borrador si el formulario ha sido modificado de alguna manera (`isDirty`).
+		 * Forzamos `shouldDirty: true` en los handlers de cambio para asegurar que funcione.
+		 */
+		puedeGuardarBorrador: hayCambios(),
+	};
 };
