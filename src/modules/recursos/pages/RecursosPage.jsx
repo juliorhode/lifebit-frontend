@@ -67,7 +67,10 @@ const RecursosPage = () => {
             setTiposDeRecurso(response.data.data.tiposRecurso);
         } catch (error) {
             console.error("Error al obtener tipos de recurso:", error);
-            toast.error("No se pudo cargar la lista de tipos de recurso.");
+            // Si es un 401, confiamos en que el interceptor de apiService lo está manejando.
+            if (error.response?.status !== 401) {
+                toast.error('No se pudieron cargar los datos del módulo.');
+            }
         } finally {
             setIsLoadingTipos(false);
         }

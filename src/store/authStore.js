@@ -15,6 +15,8 @@ export const useAuthStore = create((set, get) => ({
 	accessToken: null,
 	usuario: null,
 	error: null,
+	// Se añade un nuevo estado para rastrear específicamente la renovación en segundo plano.
+	isRefreshing: false,
 
 	// 2. DEFINICIÓN DE LAS ACCIONES
 	/**
@@ -127,8 +129,26 @@ export const useAuthStore = create((set, get) => ({
 	 * como el objeto de usuario completo en una sola respuesta.
 	 */
 	refreshToken: async () => {
-		// Ponemos el estado en 'loading' para indicar que estamos verificando.
-		set({ estado: 'loading' });
+		// Se cambia la guarda para usar `isRefreshing`. Si ya hay un refresco en curso,
+		// o si el estado es 'loading' por un login inicial, se evita una nueva ejecución.
+		if (get().isRefreshing || get().estado === 'loading') {
+			console.log(
+				'%c[authStore] refreshToken() abortado: ya hay una operación en curso.',
+				'color: gray;'
+			);
+			return;
+		}
+
+		// Marcamos el inicio de la operación de refresco, pero NO cambiamos el estado principal.
+		set({ isRefreshing: true });
+
+		// --- INICIO DEL BLOQUE DE DEPURACIÓN ---
+		console.log(
+			'%c[authStore] Se ha invocado refreshToken()',
+			'color: orange; font-weight: bold;'
+		);
+		console.trace('Pila de llamadas para refreshToken:');
+		// --- FIN DEL BLOQUE DE DEPURACIÓN ---
 
 		try {
 			// Hacemos la petición al backend. El navegador enviará la cookie HttpOnly.
@@ -138,25 +158,45 @@ export const useAuthStore = create((set, get) => ({
 			const usuario = data?.usuario; // Extraemos el usuario del objeto 'data', si existe
 
 			if (accessToken && usuario) {
-				// --- ACTUALIZACIÓN ATÓMICA ---
-				// Actualizamos el estado con el nuevo token y el objeto de usuario
-				// en una única operación.
-				set({
-					accessToken: accessToken,
-					usuario: usuario,
-					estado: 'loggedIn',
-					error: null,
-				});
-				console.log('Sesión renovada automáticamente al cargar la app.', usuario);
-				
-				
+				// --- ACTUALIZACIÓN ATÓMICA E INTELIGENTE ---
 
-				// esto se suplanta por la actualización atómica arriba
-				// Si tenemos un nuevo accessToken, lo guardamos...
-				// get().setToken(accessToken);
-				// ...y obtenemos el perfil del usuario para completar el login.
-				// await get().getProfile();
-				// `getProfile` se encargará de poner el estado en 'loggedIn'.
+				// Obtenemos el objeto de usuario que está actualmente en el store.
+				const usuarioActual = get().usuario;
+
+				// Comparamos el usuario que acabamos de recibir del backend
+				// con el que ya teníamos. Usamos JSON.stringify para una
+				// comparación profunda simple y efectiva.
+				const hanCambiadoDatosUsuario =
+					JSON.stringify(usuarioActual) !== JSON.stringify(usuario);
+
+				// Creamos un objeto base para la actualización del estado.
+				const newState = {
+					accessToken: accessToken,
+					// estado: 'loggedIn', // No cambiamos el estado aquí para evitar re-render innecesarios
+					error: null,
+					isRefreshing: false, // Marcamos que el refresco ha terminado
+				};
+
+				// SOLO si los datos del usuario han cambiado realmente,
+				// añadimos el nuevo objeto `usuario` a la actualización del estado.
+				if (hanCambiadoDatosUsuario) {
+					newState.usuario = usuario;
+					console.log(
+						'%c[authStore] Datos del usuario actualizados durante el refresh.',
+						'color: violet;'
+					);
+				}
+
+				// Ejecutamos el `set` con el nuevo estado. Si `newState.usuario`
+				// no fue añadido, la referencia al objeto `usuario` en el store
+				// NO cambiará, y los componentes suscritos a él NO se re-renderizarán.
+				set(newState);
+
+				console.log(
+					'%c[authStore] Sesión renovada automáticamente al cargar la app.',
+					'color: green;',
+					hanCambiadoDatosUsuario ? usuario : '(sin cambios en el usuario)'
+				);
 			} else {
 				// Si la respuesta no trae un token (caso improbable), forzamos el logout.
 				throw new Error('Respuesta inválida del servidor al refrescar token.');
@@ -173,6 +213,7 @@ export const useAuthStore = create((set, get) => ({
 				usuario: null,
 				estado: 'loggedOut',
 				error: null,
+				isRefreshing: false, // Aseguramos resetear la bandera.
 			});
 		}
 	},

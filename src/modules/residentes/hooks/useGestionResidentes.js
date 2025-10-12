@@ -55,6 +55,13 @@ export const useGestionResidentes = () => {
 	// Registra la fecha y hora de la última actualización exitosa de datos.
 	const [ultimaActualizacion, setUltimaActualizacion] = useState(null);
 
+	// --- ESTADO PARA LA NUEVA LÓGICA DE POLLING PASIVO ---
+	/**
+	 * @description Bandera que indica si el polling en segundo plano ha detectado
+	 * cambios en la lista de residentes que aún no se han mostrado al usuario.
+	 */
+	const [hayDatosNuevos, setHayDatosNuevos] = useState(false);
+
 	// =================================================================
 	// DEPARTAMENTO DE ESTADO DE LA INTERFAZ DE USUARIO (UI)
 	// Controla los elementos visuales como filtros, modales y estados de acciones.
@@ -80,7 +87,34 @@ export const useGestionResidentes = () => {
 	// =================================================================
 	// LÓGICA DE CARGA Y REFRESCADO DE DATOS
 	// =================================================================
-
+	/**
+	 * @description Lee todas las claves de borradores de `localStorage`, las valida,
+	 * y actualiza el estado `borradores`. Es la única función que lee del storage.
+	 * Usamos `useCallback` para que esta función no se recree en cada render, optimizando rendimiento.
+	 */
+	const cargarBorradoresDesdeStorage = useCallback(() => {
+		const borradoresGuardados = [];
+		for (let i = 0; i < localStorage.length; i++) {
+			const key = localStorage.key(i);
+			if (key?.startsWith('borrador_residente_')) {
+				try {
+					const borrador = JSON.parse(localStorage.getItem(key));
+					// Nos aseguramos de que el objeto guardado tenga la estructura mínima esperada.
+					if (borrador && borrador.id && borrador.timestamp) {
+						// Añadimos la 'key' de localStorage al objeto para poder eliminarlo fácilmente después.
+						borradoresGuardados.push({ ...borrador, key });
+					} else {
+						localStorage.removeItem(key); // Limpieza de datos corruptos.
+					}
+				} catch (error) {
+					// Si el JSON está malformado, lo eliminamos para mantener la higiene.
+					localStorage.removeItem(key);
+				}
+			}
+		}
+		setBorradores(borradoresGuardados);
+	}, []);
+	
 	/**
 	 * @description Orquesta la carga de todos los datos esenciales para el módulo.
 	 * Utiliza Promise.all para ejecutar las llamadas a la API en paralelo, lo cual es
@@ -106,17 +140,57 @@ export const useGestionResidentes = () => {
 			setEstadoCarga('listo');
 		} catch (error) {
 			console.error('Error al cargar datos del módulo de residentes:', error);
-			toast.error('No se pudieron cargar los datos del módulo.');
+			// Si es un 401, confiamos en que el interceptor de apiService lo está manejando.
+			if (error.response?.status !== 401) {
+				toast.error('No se pudieron cargar los datos del módulo.');
+			}
 			setEstadoCarga('error');
 		}
-	}, []); // Dejamos el array de dependencias vacío intencionadamente, se explica más abajo.
+	}, [cargarBorradoresDesdeStorage]); // se coloca cargarBorradoresDesdeStorage como dependencia, porque antes era una dependencia vacia, pero se llama a cargarBorradoresDesdeStorage dentro de cargarDatos, que no está en su array de dependencias. Esto es un bug potencial que eslint-plugin-react-hooks detectaría.
 
 	// Este `useEffect` se ejecuta solo una vez cuando el componente que usa el hook se monta por primera vez.
 	// Su única responsabilidad es iniciar la carga de datos inicial.
 	useEffect(() => {
 		cargarDatos();
-	}, [cargarDatos]); // `cargarDatos` está envuelta en `useCallback` y su referencia no cambia,
+	}, [cargarDatos]);
+	// `cargarDatos` está envuelta en `useCallback` y su referencia no cambia,
 	// por lo que este efecto se ejecuta una sola vez, como se espera.
+
+	/**
+	 * @description Realiza una recarga de datos en segundo plano (polling pasivo).
+	 * Compara los datos nuevos con los existentes. Si hay cambios, NO actualiza la
+	 * tabla directamente, sino que activa la bandera `hayDatosNuevos` para notificar
+	 * al usuario de forma no intrusiva.
+	 */
+	const refrescarPasivamente = useCallback(async () => {
+		try {
+			console.log('[Polling Pasivo] Buscando actualizaciones...');
+			const response = await apiService.get('/admin/residentes');
+			const nuevosResidentes = response.data.data || [];
+
+			// Obtenemos el estado actual de los residentes de una forma segura
+			// sin crear una dependencia en el `useCallback`.
+			const estadoActualResidentes = await new Promise((resolve) => {
+				setResidentes((currentState) => {
+					resolve(currentState);
+					return currentState;
+				});
+			});
+
+			const hanCambiado =
+				nuevosResidentes.length !== estadoActualResidentes.length ||
+				JSON.stringify(nuevosResidentes) !== JSON.stringify(estadoActualResidentes);
+
+			if (hanCambiado) {
+				console.log('[Polling Pasivo] Se detectaron cambios. Activando notificación.');
+				setHayDatosNuevos(true);
+			} else {
+				console.log('[Polling Pasivo] No se detectaron cambios.');
+			}
+		} catch (error) {
+			console.error('Error durante el polling pasivo:', error);
+		}
+	}, []); // Array vacío para una referencia 100% estable.
 
 	// =================================================================
 	// LÓGICA DE DATOS DERIVADOS (CALCULADOS CON useMemo)
@@ -180,34 +254,6 @@ export const useGestionResidentes = () => {
 	// =================================================================
 	// GESTIÓN DE BORRADORES (Lógica centralizada)
 	// =================================================================
-
-	/**
-	 * @description Lee todas las claves de borradores de `localStorage`, las valida,
-	 * y actualiza el estado `borradores`. Es la única función que lee del storage.
-	 * Usamos `useCallback` para que esta función no se recree en cada render, optimizando rendimiento.
-	 */
-	const cargarBorradoresDesdeStorage = useCallback(() => {
-		const borradoresGuardados = [];
-		for (let i = 0; i < localStorage.length; i++) {
-			const key = localStorage.key(i);
-			if (key?.startsWith('borrador_residente_')) {
-				try {
-					const borrador = JSON.parse(localStorage.getItem(key));
-					// Nos aseguramos de que el objeto guardado tenga la estructura mínima esperada.
-					if (borrador && borrador.id && borrador.timestamp) {
-						// Añadimos la 'key' de localStorage al objeto para poder eliminarlo fácilmente después.
-						borradoresGuardados.push({ ...borrador, key });
-					} else {
-						localStorage.removeItem(key); // Limpieza de datos corruptos.
-					}
-				} catch (error) {
-					// Si el JSON está malformado, lo eliminamos para mantener la higiene.
-					localStorage.removeItem(key);
-				}
-			}
-		}
-		setBorradores(borradoresGuardados);
-	}, []);
 
 	/**
 	 * @description Guarda o actualiza un borrador en `localStorage`. Esta función es "consciente del contexto".
@@ -350,6 +396,7 @@ export const useGestionResidentes = () => {
 		borradores,
 		estadoCarga,
 		ultimaActualizacion,
+		hayDatosNuevos, // Nueva bandera para notificar datos nuevos.
 
 		// Estado y Setters de UI
 		searchTerm,
@@ -380,5 +427,6 @@ export const useGestionResidentes = () => {
 
 		// Refresco
 		refrescarDatos: cargarDatos, // Exponemos la función principal de carga.
+		refrescarPasivamente, // Exponemos la función de polling pasivo.
 	};
 };

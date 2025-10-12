@@ -1,53 +1,63 @@
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import Spinner from '../components/ui/Spinner';
+import apiService from '../services/apiService';
 
-/**
- * @description Página de "callback" que se encarga de finalizar el
- * proceso de autenticación de OAuth (ej. Google). Es una página funcional
- * que el usuario apenas debería ver.
- */
 const AuthCallbackPage = () => {
-    // Hooks de React Router para leer la URL y para navegar
-    const location = useLocation();
     const navigate = useNavigate();
+    const location = useLocation();
+    // Necesitamos `set` directamente para una actualización atómica.
+    const set = useAuthStore(state => state.set);
+    // Ya no necesitamos setToken ni getProfile por separado.
 
-    // Acciones de nuestro store de Zustand
-    const setToken = useAuthStore((state) => state.setToken);
-    const getProfile = useAuthStore((state) => state.getProfile);
-
-    // useEffect con [] se ejecuta solo una vez, al montar el componente
     useEffect(() => {
-        // Creamos un objeto para manejar los parámetros de la URL fácilmente
-        const params = new URLSearchParams(location.search);
-        const token = params.get('token'); // Buscamos el parámetro 'token'
-
         const handleAuth = async () => {
+            const params = new URLSearchParams(location.search);
+            const token = params.get('token');
+            const redirectTo = params.get('redirect_to') || '/dashboard';
+
             if (token) {
-                // 1. Guardamos el token en nuestro estado global
-                setToken(token);
-                // 2. Usamos el token guardado para pedir el perfil del usuario
-                await getProfile();
-                // 3. Redirigimos al dashboard
-                navigate('/dashboard');
+                try {
+                    // En lugar de llamar a setToken y getProfile,
+                    // vamos a establecer el token y LLAMAR DIRECTAMENTE a /perfil/me.
+                    // Esto evita la condición de carrera con otros componentes.
+
+                    // 1. Establecemos el token para que la siguiente llamada a la API funcione.
+                    useAuthStore.setState({ accessToken: token, estado: 'loading' });
+
+                    // 2. Hacemos la llamada a getProfile NOSOTROS MISMOS, aquí y ahora.
+                    const response = await apiService.get('/perfil/me');
+                    const usuario = response.data.data.user;
+
+                    if (!usuario) {
+                        throw new Error("No se pudo obtener el perfil del usuario.");
+                    }
+
+                    // 3. ACTUALIZACIÓN ATÓMICA FINAL:
+                    // Ahora que tenemos el token Y el usuario, actualizamos el store de una sola vez.
+                    useAuthStore.setState({ usuario: usuario, estado: 'loggedIn' });
+
+                    // 4. Navegamos.
+                    navigate(redirectTo, { replace: true });
+
+                } catch (error) {
+                    console.error("Error en el flujo de callback:", error);
+                    useAuthStore.setState({ estado: 'loggedOut', accessToken: null, usuario: null });
+                    navigate('/login?error=auth-failed', { replace: true });
+                }
             } else {
-                // Si no hay token, algo salió mal. Redirigimos al login con un error.
-                // TODO: Pasar el mensaje de error al LoginPage.
-                navigate('/login');
+                navigate('/login?error=no-token', { replace: true });
             }
         };
 
         handleAuth();
-    }, [location, navigate, setToken, getProfile]);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Mientras la lógica se ejecuta, mostramos un mensaje de carga.
-    // El usuario apenas debería ver esto por más de un segundo.
     return (
-        <div className="flex h-screen w-full items-center justify-center bg-gray-950">
-            <div className="text-center">
-                <p className="text-2xl font-semibold text-white">Autenticando...</p>
-                <p className="mt-2 text-gray-400">Por favor, espera un momento.</p>
-            </div>
+        <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
+            <Spinner type="ring1" />
+            <p className="mt-4 text-lg">Finalizando sesión...</p>
         </div>
     );
 };
