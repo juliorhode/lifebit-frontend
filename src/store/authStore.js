@@ -132,10 +132,10 @@ export const useAuthStore = create((set, get) => ({
 		// Se cambia la guarda para usar `isRefreshing`. Si ya hay un refresco en curso,
 		// o si el estado es 'loading' por un login inicial, se evita una nueva ejecución.
 		if (get().isRefreshing || get().estado === 'loading') {
-			console.log(
-				'%c[authStore] refreshToken() abortado: ya hay una operación en curso.',
-				'color: gray;'
-			);
+			// console.log(
+			// 	'%c[authStore] refreshToken() abortado: ya hay una operación en curso.',
+			// 	'color: gray;'
+			// );
 			return;
 		}
 
@@ -143,11 +143,11 @@ export const useAuthStore = create((set, get) => ({
 		set({ isRefreshing: true });
 
 		// --- INICIO DEL BLOQUE DE DEPURACIÓN ---
-		console.log(
-			'%c[authStore] Se ha invocado refreshToken()',
-			'color: orange; font-weight: bold;'
-		);
-		console.trace('Pila de llamadas para refreshToken:');
+		// console.log(
+		// 	'%c[authStore] Se ha invocado refreshToken()',
+		// 	'color: orange; font-weight: bold;'
+		// );
+		// console.trace('Pila de llamadas para refreshToken:');
 		// --- FIN DEL BLOQUE DE DEPURACIÓN ---
 
 		try {
@@ -181,10 +181,10 @@ export const useAuthStore = create((set, get) => ({
 				// añadimos el nuevo objeto `usuario` a la actualización del estado.
 				if (hanCambiadoDatosUsuario) {
 					newState.usuario = usuario;
-					console.log(
-						'%c[authStore] Datos del usuario actualizados durante el refresh.',
-						'color: violet;'
-					);
+					// console.log(
+					// 	'%c[authStore] Datos del usuario actualizados durante el refresh.',
+					// 	'color: violet;'
+					// );
 				}
 
 				// Ejecutamos el `set` con el nuevo estado. Si `newState.usuario`
@@ -192,11 +192,11 @@ export const useAuthStore = create((set, get) => ({
 				// NO cambiará, y los componentes suscritos a él NO se re-renderizarán.
 				set(newState);
 
-				console.log(
-					'%c[authStore] Sesión renovada automáticamente al cargar la app.',
-					'color: green;',
-					hanCambiadoDatosUsuario ? usuario : '(sin cambios en el usuario)'
-				);
+				// console.log(
+				// 	'%c[authStore] Sesión renovada automáticamente al cargar la app.',
+				// 	'color: green;',
+				// 	hanCambiadoDatosUsuario ? usuario : '(sin cambios en el usuario)'
+				// );
 			} else {
 				// Si la respuesta no trae un token (caso improbable), forzamos el logout.
 				throw new Error('Respuesta inválida del servidor al refrescar token.');

@@ -16,10 +16,9 @@ import ResidentesPage from './modules/residentes/pages/ResidentesPage';
 
 
 // Componente placeholder para el dashboard
-const DashboardPlaceholder = () => <h1 className="text-3xl font-bold text-white">Dashboard Principal</h1>;
-const ContratosPlaceholder = () => <h1 className="text-3xl font-bold text-white">Página de Contratos</h1>;
-const AyudaPlaceholder = () => <h1 className="text-3xl font-bold text-white">Página de Ayuda</h1>;
-const AdminMainDashboard = () => <h1 className="text-3xl font-bold text-white">Dashboard Principal del Administrador</h1>;
+const ContratosPlaceholder = () => <h1 className="text-3xl font-bold text-gray-700 dark:text-white">Página de Contratos</h1>;
+const AyudaPlaceholder = () => <h1 className="text-3xl font-bold text-gray-700 dark:text-white">Página de Ayuda</h1>;
+
 
 // NOTA: Este es el punto de entrada de nuestros componentes y rutas.
 // React Router DOM maneja qué página se muestra según la URL.

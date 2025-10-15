@@ -48,13 +48,16 @@ export const STYLES = {
 	buttonCancel: 'w-[95px] h-[50px] flex justify-center items-center bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-lg text- transition-colors disabled:bg-red-800 disabled:cursor-not-allowed',
 	buttonGoogle:
 		'w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg transition-colors',
+	buttonGooglePerfil:
+		'inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-400 dark:border-gray-600 text-sm font-medium rounded-md shadow-sm text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors',
 	buttonLink: 'text-sm text-blue-500 hover:underline focus:outline-none',
 
 	// --- TARJETAS Y CONTENEDORES ---
 	card: 'bg-gray-50 dark:bg-gray-800 p-8 rounded-lg shadow-lg',
 
 	// --- TEXTOS ---
-	titlePage: 'text-3xl font-bold text-gray-900 dark:text-white',
+	titlePage: 'text-3xl font-bold text-gray-700 dark:text-white',
+	subTitlePage: 'text-gray-600 dark:text-gray-400 mt-2',
 	lifeBit: 'text-3xl font-bold text-blue-500 hover:text-blue-400 transition-colors',
 	titleSection: 'text-2xl font-bold text-gray-700 dark:text-white',
 

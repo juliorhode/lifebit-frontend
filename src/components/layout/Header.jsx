@@ -56,6 +56,7 @@ const Header = ({ onMenuClick, className='' }) => {
     // Creamos variables para manejar el caso en que el usuario aún no ha cargado.
     const userName = `${usuario.nombre} ${usuario.apellido}`;
     const userRole = usuario?.rol;
+    
 
     const userAvatarUrl = usuario?.avatar_url || `https://ui-avatars.com/api/?name=${userName.replace(' ', '+')}&background=0D8ABC&color=fff`;
 
@@ -76,7 +77,7 @@ const Header = ({ onMenuClick, className='' }) => {
 
                 <div className="flex-1">
                     <h1 className="hidden text-xl font-semibold text-gray-900 dark:text-white lg:block">
-                        Dashboard
+                        {usuario.nombre_edificio}
                     </h1>
                 </div>
 

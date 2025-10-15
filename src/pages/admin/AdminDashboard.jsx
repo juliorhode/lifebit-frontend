@@ -4,6 +4,7 @@ import { useAuthStore } from '../../store/authStore.js';
 import { SETUP_STATES } from '../../config/constants.js';
 import SetupNotification from '../../components/ui/SetupNotification.jsx';
 import IndicadorProgresoResidentes from '../../components/ui/IndicadorProgresoResidentes.jsx';
+import { STYLES } from '../../utils/styleConstants.jsx';
 
 /**
  * @description Dashboard principal del administrador
@@ -60,10 +61,10 @@ const AdminDashboard = () => {
             {/* INDICADOR DE PROGRESO DE RESIDENTES: Aparece cuando setup completo pero faltan residentes */}
             <IndicadorProgresoResidentes />
 
-            <h1 className="text-3xl font-bold text-gray-700 dark:text-white">
+            <h1 className={STYLES.titlePage}>
                 Dashboard Principal del Administrador
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className={STYLES.subTitlePage}>
                 Bienvenido, {usuario?.nombre}. Aquí verás un resumen de la actividad de tu edificio.
             </p>
             {/* Aquí irá el resto del contenido del dashboard... */}

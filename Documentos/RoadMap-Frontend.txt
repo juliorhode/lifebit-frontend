@@ -116,3 +116,57 @@ Estas funciones requerirán la creación de modales de confirmación para evitar
 Backend:
 Se debe crear un nuevo endpoint: POST /api/admin/invitaciones/:id/reenviar. Este endpoint buscará al usuario invitado, generará un nuevo token de registro (invalidando el anterior por seguridad), y encolará un nuevo trabajo en cola_de_trabajos para enviar el email.
 Se debe modificar un endpoint existente: El endpoint DELETE /api/admin/residentes/:id debe ser modificado para manejar correctamente la eliminación de un usuario 'invitado'. Actualmente está pensado para un borrado blando (cambiar estado a 'suspendido'). Deberá detectar si el usuario está 'invitado' y, en ese caso, realizar un borrado físico (hard delete) de la base de datos, ya que no hay historial que preservar.
+
+ADR-003: Gestión del Ciclo de Vida de Invitaciones de Residentes
+Fecha: 2025-10-09
+Estado: Aceptado
+Contexto:
+El flujo actual para residentes en estado 'invitado' es incompleto. Si una invitación expira, no hay un mecanismo en la UI para que el administrador tome una acción. Adicionalmente, las acciones disponibles para un invitado no son claras ni específicas para su estado.
+Decisión:
+Se implementará un sistema completo para gestionar el ciclo de vida de las invitaciones, desde su envío hasta su expiración o cancelación.
+Exposición de la Fecha de Expiración (Backend):
+El endpoint GET /api/admin/residentes será modificado. La consulta SQL (OBTENER_RESIDENTES_POR_EDIFICIO) debe incluir la columna token_registro_expira para los usuarios.
+Diferenciación de Estados en la UI (Frontend):
+En ListaResidentes.jsx, se implementará una lógica para diferenciar entre un residente 'invitado' (con token válido) y uno cuyo token_registro_expira ya ha pasado.
+Se creará un nuevo estado visual para "Expirado" (ej. un badge rojo) en la función getEstadoBadge.
+Acciones Contextuales Específicas (Frontend y Backend):
+Para estado 'invitado' (Válido):
+UI: Se mostrará un único botón de acción: "Cancelar Invitación" (<FiXCircle />).
+Acción: Este botón, tras una confirmación en un Modal, llamará al endpoint DELETE /api/admin/residentes/:id.
+Backend (eliminarResidente): Este controlador será modificado. SI el usuario a eliminar tiene estado = 'invitado', se realizará un borrado físico (DELETE FROM usuarios...). Si tiene cualquier otro estado (activo, suspendido), se mantendrá el borrado blando (UPDATE ... SET estado = 'suspendido').
+Para estado 'expirado':
+UI: Se mostrará un único botón de acción: "Reenviar Invitación" (<FiSend />).
+Acción: Este botón llamará a un nuevo endpoint: POST /api/admin/invitaciones/:id/reenviar.
+Backend (Nuevo Controlador reenviarInvitacion): Este controlador buscará al usuario por su id, generará un nuevo token_registro y token_registro_expira, los actualizará en la BD, y encolará un nuevo trabajo para enviar el email de invitación.
+Consecuencias:
+El administrador tendrá un control total y claro sobre el estado de las invitaciones.
+La UX se vuelve más intuitiva, presentando solo acciones relevantes.
+Se previene la existencia de "invitaciones zombie" en la base de datos.
+Esta misión se ejecutará después de completar la funcionalidad del módulo de Perfil.
+
+ADR-004: Funcionalidad de Subida de Avatar de Usuario
+Fecha: 2025-10-09
+Estado: Propuesto (Pendiente de implementación en Backend)
+Contexto:
+Actualmente, los usuarios que se registran a través del método tradicional (email/contraseña) no tienen forma de personalizar su imagen de perfil. El sistema les asigna un avatar genérico de ui-avatars.com. Esto degrada la personalización y la identidad del usuario dentro de la plataforma. Los usuarios autenticados con Google sí muestran su avatar de Google.
+Decisión:
+Se implementará una funcionalidad que permita a los usuarios con cuenta tradicional (no-Google) subir y actualizar su propia imagen de avatar.
+Reutilización de Endpoint (Backend):
+No se creará un nuevo endpoint. Se modificará la ruta existente PATCH /api/perfil/me para que pueda aceptar peticiones de tipo multipart/form-data.
+Middleware de Subida (Backend):
+Se utilizará la fábrica crearUploadMiddleware existente para crear una instancia de multer configurada para guardar archivos en el subdirectorio /uploads/avatars.
+Este middleware se aplicará a la ruta PATCH /api/perfil/me y esperará un único archivo en un campo llamado avatar. Se configurarán validaciones de tipo de archivo (ej. image/jpeg, image/png) y tamaño máximo (ej. 2MB).
+Adaptación del Controlador (Backend):
+El controlador perfilController.actualizarPerfil será modificado para detectar la presencia de req.file.
+Si req.file existe, el controlador extraerá la ruta del archivo guardado y la usará como el nuevo valor para la columna avatar_url en la consulta ACTUALIZAR_PERFIL_USUARIO.
+Interfaz de Usuario Condicional (Frontend):
+En SeccionPerfil.jsx, la funcionalidad para cambiar el avatar solo será visible y accesible para los usuarios cuyo google_id en el objeto usuario sea null.
+La interfaz consistirá en un overlay o botón sobre el avatar actual que activará un input de tipo archivo.
+La subida se realizará mediante una petición PATCH a /api/perfil/me con un objeto FormData.
+Actualización de Estado (Frontend):
+Tras una subida exitosa, el frontend invocará la acción getProfile() del authStore para re-sincronizar el estado del usuario y mostrar el nuevo avatar en toda la aplicación (Header, Perfil, etc.).
+Consecuencias:
+Los usuarios tradicionales ganan una funcionalidad clave de personalización.
+Se mejora la identidad visual y el sentido de pertenencia dentro de la aplicación.
+El backend reutiliza la infraestructura existente, manteniendo el código limpio y DRY.
+Se establece una clara diferenciación en la UI entre usuarios de Google (gestionan su avatar en Google) y usuarios tradicionales (gestionan su avatar en LifeBit).

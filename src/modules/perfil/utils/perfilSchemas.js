@@ -15,12 +15,12 @@ export const perfilSchema = yup.object().shape({
 		.string()
 		.required('El nombre es obligatorio.')
 		.matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'El nombre solo puede contener letras.')
-		.min(2, 'El nombre debe tener al menos 2 caracteres.'),
+		.min(3, 'El nombre debe tener al menos 3 caracteres.'),
 	apellido: yup
 		.string()
 		.required('El apellido es obligatorio.')
 		.matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'El apellido solo puede contener letras.')
-		.min(2, 'El apellido debe tener al menos 2 caracteres.'),
+		.min(3, 'El apellido debe tener al menos 3 caracteres.'),
 	cedula: yup
 		.string()
 		.notRequired()

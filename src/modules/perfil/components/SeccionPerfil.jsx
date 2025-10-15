@@ -1,39 +1,60 @@
+/**
+ * @description Componente que gestiona la visualización y edición de la información del perfil del usuario.
+ * Es un componente presentacional que delega toda su lógica al hook `usePerfilForm`.
+ *
+ * @returns {JSX.Element} La sección completa del perfil de usuario, interactiva y dinámica.
+ */
 import React, { useState } from 'react';
 import { useAuthStore } from '../../../store/authStore';
-import { STYLES } from '../../../utils/styleConstants';
-import { usePerfilForm } from '../hooks/usePerfilForm'; 
+import { STYLES, ASSETS } from '../../../utils/styleConstants';
+import { usePerfilForm } from '../hooks/usePerfilForm';
+import { getBadgeClasses } from '../utils/perfil.utils'; // Se importa la función de utilidades.
+import Spinner from '../../../components/ui/Spinner';
+import Modal from '../../../components/ui/Modal'; // Se importa el Modal para la confirmación.
 
 const SeccionPerfil = () => {
+  // --- ESTADO ---
   const usuario = useAuthStore(state => state.usuario);
-  const estado = useAuthStore(state => state.estado);
- // Estado local para controlar si estamos en modo "vista" o "edición".
+  const estadoAuth = useAuthStore(state => state.estado);
   const [isEditing, setIsEditing] = useState(false);
 
-    // --- HOOK DE FORMULARIO ---
-    // Instanciamos nuestro hook, pasándole el usuario actual y un callback para cuando la actualización sea exitosa.
-    const {
-      register,
-      handleSubmit,
-      errors,
-      isSubmitting,
-      isDirty,
-      cancelarEdicion,
-    } = usePerfilForm(usuario, () => {
-      // Este callback se ejecuta cuando `onUpdateSuccess` es llamado desde el hook.
-      // Simplemente, volvemos al modo de vista.
+  // --- HOOK DE FORMULARIO ---
+  const {
+    register,
+    handleSubmit,
+    errors,
+    isSubmitting,
+    hayCambios, // Usamos nuestra función de detección de cambios.
+    reset,
+    isConfirmCancelOpen,
+    openConfirmCancelModal,
+    closeConfirmCancelModal,
+  } = usePerfilForm(usuario, () => {
+    // Callback de éxito: se ejecuta después de guardar los cambios.
+    setIsEditing(false);
+  });
+
+  // --- MANEJADORES DE EVENTOS ---
+  const handleCancelClick = () => {
+    // Si no hay cambios, simplemente salimos del modo edición.
+    if (!hayCambios) {
       setIsEditing(false);
-    });
-  
-    // --- MANEJADORES DE EVENTOS ---
-    const handleCancel = () => {
-      cancelarEdicion(); // Llama a la función del hook para revertir los cambios en el formulario.
-      setIsEditing(false); // Vuelve al modo de vista.
-    };
-  
+      return;
+    }
+    // Si hay cambios, abrimos el modal para pedir confirmación.
+    openConfirmCancelModal();
+  };
+
+  const handleConfirmCancel = () => {
+    reset(); // Descarta los cambios en el formulario.
+    closeConfirmCancelModal(); // Cierra el modal.
+    setIsEditing(false); // Vuelve al modo de vista.
+  };
+
   // --- RENDERIZADO CONDICIONAL ---
 
   // Estado de Carga: Muestra un esqueleto mientras se obtiene la información.
-  if (estado === 'loading' || !usuario) {
+  if (estadoAuth === 'loading' || !usuario) {
     return (
       <section className="card-theme animate-pulse" aria-labelledby="profile-heading">
         <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-1/4 mb-6"></div>
@@ -48,22 +69,12 @@ const SeccionPerfil = () => {
     );
   }
 
-  console.log(usuario.rol);
-  // Función para obtener colores de badge según valor
-  const getBadgeClasses = (value) => {
-    console.log(value);
-    
-    
-    
-    if (value === 'activo') return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-    if (value === 'dueño_app') return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-    if (value === 'administrador') return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
-    if (value === 'residente') return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
-    return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-  };
+  // console.log(usuario.rol);
+
 
   /// --- RENDERIZADO PRINCIPAL ---
-    return (
+  return (
+    <>
       <section className="card-theme" aria-labelledby="profile-heading">
         <div className="flex justify-between items-center mb-6">
           <h2 id="profile-heading" className="text-primary text-xl font-semibold">
@@ -76,7 +87,7 @@ const SeccionPerfil = () => {
             </button>
           )}
         </div>
-  
+
         {/* --- AVATAR Y DATOS BÁSICOS (NO CAMBIAN CON EL MODO) --- */}
         <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6 mb-6">
           <img
@@ -99,13 +110,13 @@ const SeccionPerfil = () => {
             </div>
           </div>
         </div>
-  
-        <div className="border-t border-theme-light pt-6 mt-6">
-          {/* 
+
+        {/* 
             RENDERIZADO CONDICIONAL:
             - Si `isEditing` es true, mostramos el formulario.
             - Si `isEditing` es false, mostramos la vista de solo lectura.
           */}
+        <div className="border-t border-theme-light pt-6 mt-6">
           {isEditing ? (
             // --- MODO EDICIÓN: FORMULARIO ---
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -133,13 +144,11 @@ const SeccionPerfil = () => {
                   {errors.telefono && <p className="text-red-500 text-sm mt-1">{errors.telefono.message}</p>}
                 </div>
               </div>
-  
-              {/* Botones de acción del formulario */}
               <div className="flex justify-end gap-4 pt-4">
-                <button type="button" onClick={handleCancel} className="btn-secondary">
+                <button type="button" onClick={handleCancelClick} className="btn-secondary">
                   Cancelar
                 </button>
-                <button type="submit" className="btn-primary" disabled={isSubmitting || !isDirty}>
+                <button type="submit" className="btn-primary" disabled={isSubmitting || !hayCambios}>
                   {isSubmitting ? <Spinner type="dots" /> : 'Guardar Cambios'}
                 </button>
               </div>
@@ -164,21 +173,48 @@ const SeccionPerfil = () => {
                 <div className="flex justify-between border-b border-theme-light pb-2">
                   <span className="text-secondary font-medium">Teléfono:</span>
                   <span className="text-primary">{usuario.telefono || 'No especificado'}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-theme-light pb-2">
-                    <span className="text-secondary font-medium">Correo:</span>
-                    <span className="text-primary">{usuario.email || 'No especificado'}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-theme-light pb-2">
-                    <span className="text-secondary font-medium">Edificio:</span>
-                    <span className="text-primary">{usuario.nombre_edificio || 'No especificado'}</span>
-                  </div>
+                </div>
+                <div className="flex justify-between border-b border-theme-light pb-2">
+                  <span className="text-secondary font-medium">Correo:</span>
+                  <span className="text-primary">{usuario.email || 'No especificado'}</span>
+                </div>
+                <div className="flex justify-between border-b border-theme-light pb-2">
+                  <span className="text-secondary font-medium">Edificio:</span>
+                  <span className="text-primary">{usuario.nombre_edificio || 'No especificado'}</span>
+                </div>
               </div>
             </div>
           )}
         </div>
       </section>
-    );
+      {/* --- MODAL DE CONFIRMACIÓN PARA CANCELAR --- */}
+      <Modal
+        isOpen={isConfirmCancelOpen}
+        onClose={closeConfirmCancelModal}
+        title="Descartar Cambios"
+      >
+        <div className="text-center">
+          <p className="text-lg mb-6 text-secondary">
+            Tienes cambios sin guardar. ¿Estás seguro de que quieres descartarlos?
+          </p>
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={closeConfirmCancelModal}
+              className="btn-secondary"
+            >
+              No, continuar editando
+            </button>
+            <button
+              onClick={handleConfirmCancel}
+              className="btn-primary bg-red-600 hover:bg-red-700"
+            >
+              Sí, descartar
+            </button>
+          </div>
+        </div>
+      </Modal>
+    </>
+  );
 };
 
 export default SeccionPerfil;

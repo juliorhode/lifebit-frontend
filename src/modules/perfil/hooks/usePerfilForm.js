@@ -1,20 +1,13 @@
 /**
  * @description Hook especializado para gestionar el formulario de edición del perfil de usuario.
- * Encapsula la lógica de estado, validación y envío de datos a la API, manteniendo
- * el componente de la interfaz limpio y centrado en la presentación.
+ * Encapsula la lógica de estado, validación, envío de datos a la API y la gestión
+ * de modales de confirmación, manteniendo el componente de la UI limpio.
  *
- * RESPONSABILIDADES:
- * ✅ Gestionar los campos del formulario (nombre, apellido, etc.) con `react-hook-form`.
- * ✅ Validar los datos del formulario con un esquema de Yup.
- * ✅ Inicializar el formulario con los datos actuales del usuario provenientes del `authStore`.
- * ✅ Manejar el estado de envío (isSubmitting) para dar feedback al usuario.
- * ✅ Orquestar la llamada a la API (`PATCH /api/perfil/me`) para actualizar los datos.
- * ✅ Sincronizar el estado global de la aplicación (`authStore`) tras una actualización exitosa.
- *
- * @param {object} usuarioActual - El objeto de usuario actual del `authStore`, usado para los valores por defecto.
+ * @param {object} usuarioActual - El objeto de usuario actual del `authStore`.
  * @param {function} onUpdateSuccess - Callback a ejecutar cuando el perfil se actualiza exitosamente.
  * @returns {object} La API pública del hook para ser usada por el componente del formulario.
  */
+import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useAuthStore } from '../../../store/authStore';
@@ -23,19 +16,24 @@ import { toast } from 'react-hot-toast';
 import { perfilSchema } from '../utils/perfilSchemas';
 
 export const usePerfilForm = (usuarioActual, onUpdateSuccess) => {
-	// Obtenemos la acción `getProfile` del authStore. La necesitaremos para
-	// refrescar el estado global después de una actualización exitosa.
 	const getProfile = useAuthStore((state) => state.getProfile);
+	// console.log('Usuario actual en usePerfilForm:', usuarioActual);
+	
+
+	// --- ESTADO LOCAL DEL HOOK ---
+	// Se guarda una copia "congelada" de los datos iniciales para una detección de cambios fiable.
+	const [originalData, setOriginalData] = useState(null);
+	// Estado para controlar la visibilidad del modal de confirmación para cancelar.
+	const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false);
 
 	const {
 		register,
 		handleSubmit,
-		formState: { errors, isSubmitting, isDirty },
-		reset, // Necesitaremos `reset` para cancelar la edición.
+		formState: { errors, isSubmitting },
+		reset,
+		watch, // Se necesita `watch` para la detección de cambios en tiempo real.
 	} = useForm({
 		resolver: yupResolver(perfilSchema),
-		// Los valores por defecto del formulario se toman del objeto de usuario
-		// que pasamos como parámetro. Esto puebla el formulario cuando se inicializa.
 		defaultValues: {
 			nombre: usuarioActual?.nombre || '',
 			apellido: usuarioActual?.apellido || '',
@@ -45,26 +43,46 @@ export const usePerfilForm = (usuarioActual, onUpdateSuccess) => {
 		mode: 'onChange',
 	});
 
+	// Efecto para inicializar el estado `originalData` cuando el usuario carga.
+	useEffect(() => {
+		if (usuarioActual) {
+			const initialData = {
+				nombre: usuarioActual.nombre || '',
+				apellido: usuarioActual.apellido || '',
+				cedula: usuarioActual.cedula || '',
+				telefono: usuarioActual.telefono || '',
+			};
+			setOriginalData(initialData);
+			// `reset` asegura que el formulario se pueble con los datos correctos.
+			reset(initialData);
+		}
+	}, [usuarioActual, reset]);
+
 	/**
-	 * @description Lógica que se ejecuta al enviar el formulario válido.
-	 * @param {object} formData - Los datos del formulario ya validados por Yup.
+	 * @description Compara los valores actuales del formulario con los datos originales.
+	 * Es más robusto que `isDirty` para detectar cualquier cambio.
+	 * @returns {boolean} `true` si ha habido al menos un cambio en el formulario.
 	 */
+	const hayCambios = useCallback(() => {
+		if (!originalData) return false;
+		const currentValues = watch();
+		// Compara cada campo con su valor original.
+		return (
+			originalData.nombre !== currentValues.nombre ||
+			originalData.apellido !== currentValues.apellido ||
+			originalData.cedula !== currentValues.cedula ||
+			originalData.telefono !== currentValues.telefono
+		);
+	}, [originalData, watch]);
+
+	// --- MANEJADORES DE ACCIONES ---
+
 	const onSubmit = async (formData) => {
 		const toastId = toast.loading('Actualizando tu perfil...');
 		try {
-			// Llamamos al endpoint del backend para actualizar el perfil.
 			await apiService.patch('/perfil/me', formData);
-
-			// CRUCIAL: Después de una actualización exitosa en la base de datos,
-			// le pedimos al authStore que vuelva a buscar el perfil del usuario.
-			// Esto asegura que toda la aplicación (incluido el Header) refleje
-			// los nuevos datos de forma consistente.
 			await getProfile();
-
 			toast.success('Perfil actualizado exitosamente.', { id: toastId });
-
-			// Notificamos al componente que el proceso fue exitoso,
-			// para que pueda, por ejemplo, cambiar de nuevo al modo de "vista".
 			if (onUpdateSuccess) {
 				onUpdateSuccess();
 			}
@@ -75,26 +93,22 @@ export const usePerfilForm = (usuarioActual, onUpdateSuccess) => {
 		}
 	};
 
-	/**
-	 * @description Restaura el formulario a sus valores originales, descartando cualquier cambio.
-	 */
-	const cancelarEdicion = () => {
-		reset({
-			nombre: usuarioActual?.nombre || '',
-			apellido: usuarioActual?.apellido || '',
-			cedula: usuarioActual?.cedula || '',
-			telefono: usuarioActual?.telefono || '',
-		});
-	};
+	const openConfirmCancelModal = () => setIsConfirmCancelOpen(true);
+	const closeConfirmCancelModal = () => setIsConfirmCancelOpen(false);
 
-	// Devolvemos todas las herramientas que el componente de la interfaz necesitará.
+	// --- API PÚBLICA DEL HOOK ---
 	return {
 		register,
 		handleSubmit: handleSubmit(onSubmit),
 		errors,
 		isSubmitting,
-		isDirty, // `isDirty` es útil para saber si el botón "Guardar" debe habilitarse.
-		cancelarEdicion,
-		reset, // Exponemos 'reset' para que el componente pueda llamarlo directamente.
+		// En lugar de `isDirty`, exponemos nuestra función de detección de cambios más fiable.
+		hayCambios: hayCambios(),
+		// Funciones y estado para que el componente controle el modal de cancelación.
+		isConfirmCancelOpen,
+		openConfirmCancelModal,
+		closeConfirmCancelModal,
+		// Exponemos `reset` para que el componente pueda descartar los cambios tras la confirmación.
+		reset,
 	};
 };
