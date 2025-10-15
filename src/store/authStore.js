@@ -139,8 +139,15 @@ export const useAuthStore = create((set, get) => ({
 			return;
 		}
 
-		// Marcamos el inicio de la operación de refresco, pero NO cambiamos el estado principal.
-		set({ isRefreshing: true });
+		// Si el estado es 'initial', es la primera carga. SÍ queremos mostrar un loader global.
+		// Por lo tanto, ponemos el estado principal en 'loading'.
+		if (get().estado === 'initial') {
+			set({ estado: 'loading' });
+		} else {
+			// Si el estado ya es 'loggedIn', es un refresco en segundo plano.
+			// Solo activamos la bandera 'isRefreshing' para no causar parpadeos.
+			set({ isRefreshing: true });
+		}
 
 		// --- INICIO DEL BLOQUE DE DEPURACIÓN ---
 		// console.log(
@@ -172,7 +179,7 @@ export const useAuthStore = create((set, get) => ({
 				// Creamos un objeto base para la actualización del estado.
 				const newState = {
 					accessToken: accessToken,
-					// estado: 'loggedIn', // No cambiamos el estado aquí para evitar re-render innecesarios
+					estado: 'loggedIn', // No cambiamos el estado aquí para evitar re-render innecesarios
 					error: null,
 					isRefreshing: false, // Marcamos que el refresco ha terminado
 				};
