@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { FiGrid, FiFileText, FiUsers, FiSettings, FiHelpCircle, FiLogOut, FiCpu } from 'react-icons/fi';
 import { FaFileContract } from "react-icons/fa";
 import { useAuthStore } from '../../store/authStore';
+import { navLinksConfig, bottomLinksConfig } from '../../config/navigation';
 import Logo from '../ui/Logo';
 
 // NOTA: Los datos de los enlaces son estáticos por ahora para construir la UI.
@@ -26,9 +27,23 @@ const bottomLinks = [
  */
 
 const Sidebar = ({ isOpen, onLinkClick }) => {
+    const rolUsuario = useAuthStore((state) => state.usuario?.rol);
     // Obtenemos la acción de logout desde el store
     const logout = useAuthStore((state) => state.logout);
 
+    // --- LÓGICA DE FILTRADO DE ENLACES ---
+    // Filtramos los enlaces basándonos en si el rol del usuario está en la lista de `rolesPermitidos`.
+    // Si `rolUsuario` es undefined durante la carga inicial, el filtro devolverá un array vacío,
+    // y los enlaces aparecerán correctamente cuando el rol se cargue y el componente se re-renderice.
+    const filteredNavLinks = navLinksConfig.filter(link =>
+        rolUsuario && link.rolesPermitidos.includes(rolUsuario)
+    );
+    const filteredBottomLinks = bottomLinksConfig.filter(link =>
+        rolUsuario && link.rolesPermitidos.includes(rolUsuario)
+    );
+
+
+    // --- ESTILOS ---
     // Definimos un único estilo base que ya incluye las variantes dark:
     const linkStyle = "flex items-center space-x-4 px-4 py-3 rounded-lg transition-colors duration-200 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white";
     const activeLinkStyle = "bg-blue-600 text-white font-semibold dark:bg-blue-600 dark:text-white"; // El activo es igual en ambos modos
@@ -54,7 +69,7 @@ const Sidebar = ({ isOpen, onLinkClick }) => {
             </div>
             {/* Contenedor principal de la navegación que ocupa el espacio restante */}
             <div className="flex-1 flex flex-col overflow-y-auto">
-                <nav className="flex-1 p-4 space-y-2">
+                {/* <nav className="flex-1 p-4 space-y-2">
                     {navLinks.map(link => (
                         <NavLink
                             key={link.to}
@@ -69,7 +84,27 @@ const Sidebar = ({ isOpen, onLinkClick }) => {
                             <span className="truncate">{link.text}</span>
                         </NavLink>
                     ))}
+                </nav> */}
+
+                {/* NAVEGACIÓN PRINCIPAL */}
+                <nav className="flex-1 p-4 space-y-2">
+                    {filteredNavLinks.map(link => {
+                        const Icon = link.IconComponent;
+                        return (
+                            <NavLink
+                                key={link.to}
+                                to={link.to}
+                                end={link.exact}
+                                className={({ isActive }) => `${linkStyle} ${isActive && activeLinkStyle}`}
+                                onClick={onLinkClick}
+                            >
+                                <Icon size={20} />
+                                <span className="truncate">{link.text}</span>
+                            </NavLink>
+                        );
+                    })}
                 </nav>
+
                 {/* ---  SEPARADOR --- 
                 <div className="px-4">: Creamos un contenedor exterior que tiene el mismo padding horizontal (px-4) que nuestros enlaces. Esto asegura que la línea del separador no llegue hasta los bordes de la Sidebar.
                 border-t: Le dice a Tailwind que cree un borde solo en la parte superior (top) del div.
@@ -81,7 +116,7 @@ const Sidebar = ({ isOpen, onLinkClick }) => {
                     <div className="border-t border-gray-200 dark:border-gray-800"></div>
                 </div>
                 {/* Enlaces de la parte inferior (mi cuenta, ayuda, salir) */}
-                <div className="p-4 space-y-2">
+                {/* <div className="p-4 space-y-2">
                     {bottomLinks.map(link => {
                         // --- Renderizado condicional ---
                         // Si el elemento que estamos renderizando es el de logout, devolvemos un <button> que llama a logout en el onClick. Si no, devolvemos el <NavLink> normal.
@@ -109,6 +144,37 @@ const Sidebar = ({ isOpen, onLinkClick }) => {
                             >
                                 {link.icon}
                                 <span className="truncate">{link.text}</span>
+                            </NavLink>
+                        );
+                    })}
+                </div> */}
+                
+                {/* NAVEGACIÓN SECUNDARIA */}
+                <div className="p-4 space-y-2">
+                    {filteredBottomLinks.map(item => {
+                        const Icon = item.IconComponent;
+                        if (item.type === 'action' && item.action === 'logout') {
+                            return (
+                                <button
+                                    key={item.text}
+                                    onClick={logout}
+                                    className={`${linkStyle} w-full`}
+                                >
+                                    <Icon size={20} />
+                                    <span className="truncate">{item.text}</span>
+                                </button>
+                            );
+                        }
+
+                        return (
+                            <NavLink
+                                key={item.to}
+                                to={item.to}
+                                className={({ isActive }) => `${linkStyle} ${isActive && activeLinkStyle}`}
+                                onClick={onLinkClick}
+                            >
+                                <Icon size={20} />
+                                <span className="truncate">{item.text}</span>
                             </NavLink>
                         );
                     })}

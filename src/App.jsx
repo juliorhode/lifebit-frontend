@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import LayoutPrincipal from './components/layout/LayoutPrincipal';
@@ -13,6 +13,7 @@ import { Toaster } from 'react-hot-toast';
 import RecursosPage from './modules/recursos/pages/RecursosPage';
 import MiCuentaPage from './modules/perfil/pages/MiCuentaPage';
 import ResidentesPage from './modules/residentes/pages/ResidentesPage';
+import AccesoDenegadoPage from './pages/AccesoDenegadoPage';
 
 
 // Componente placeholder para el dashboard
@@ -65,37 +66,53 @@ function App() {
       />
 
 
-      {/* El componente <Routes> envuelve todas nuestras rutas. */}
       <Routes>
+        {/* --- Rutas Públicas --- */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/finalizar-registro" element={<FinalizarRegistroPage />} />
 
-        {/* Grupo de Rutas Protegidas */}
+        {/* --- Rutas Protegidas --- */}
+        {/* Un único guardia de autenticación envuelve todo lo que requiere login */}
         <Route element={<RutaProtegida />}>
-          {/*
-        Así es como se anidan rutas. El componente LayoutPrincipal se renderizará
-        y el <Outlet /> dentro de él será reemplazado por el `element` de la ruta hija
-        que coincida con la URL.
-        */}
-          <Route path="/dashboard/*" element={<LayoutPrincipal />}>
-            {/*
-            La ruta "index" es la que se muestra por defecto cuando se accede al path del padre.
-            En este caso, cuando navegues a /dashboard, se mostrará DashboardPlaceholder.
-            */}
-            <Route index element={<DashboardRouter />} />
-            <Route path="setup" element={<SetupWizard />} />
 
-            <Route path="contratos" element={<ContratosPlaceholder />} />
-            <Route path="residentes" element={<ResidentesPage />} />
+          {/* GRUPO DE RUTAS PRINCIPALES DEL DASHBOARD */}
+          <Route path="/dashboard" element={<LayoutPrincipal />}>
+            <Route index element={<DashboardRouter />} />
+
+            {/* Grupo Administrador */}
+            <Route element={<RutaProtegida rolesPermitidos={['administrador']} />}>
+              <Route path="residentes" element={<ResidentesPage />} />
+              <Route path="recursos" element={<RecursosPage />} />
+              <Route path="setup" element={<SetupWizard />} />
+            </Route>
+
+            {/* Grupo Dueño */}
+            <Route element={<RutaProtegida rolesPermitidos={['dueño_app']} />}>
+              <Route path="contratos" element={<ContratosPlaceholder />} />
+            </Route>
+
+            {/* Rutas Comunes */}
             <Route path="mi-cuenta" element={<MiCuentaPage />} />
             <Route path="ayuda" element={<AyudaPlaceholder />} />
-            <Route path="recursos" element={<RecursosPage />} />
-            {/* Aquí añadiremos el resto de rutas protegidas */}
+
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>
+
+          {/* 
+            RUTA DE ACCESO DENEGADO:
+            La sacamos del anidamiento de `/dashboard` y le damos su propia ruta.
+            Sigue estando protegida por el guardia de autenticación padre, 
+            pero ahora renderizará su propio layout (el fondo oscuro),
+            en lugar de intentar meterse dentro del `<Outlet />` del dashboard.
+          */}
+          <Route path="/acceso-denegado" element={<AccesoDenegadoPage />} />
+
         </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </SessionVerifier>
   );
