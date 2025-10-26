@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import apiService from '../../../services/apiService';
 import { useAuthStore } from '../../../store/authStore';
 import { SETUP_STATES } from '../../../config/constants';
@@ -11,6 +11,8 @@ import CargarArchivoModal from '../components/CargarArchivoModal';
 import { toast } from 'react-hot-toast';
 import FormularioEditarTipoRecurso from '../components/FormularioEditarTipoRecurso';
 import ConfirmacionEliminarTipo from '../components/ConfirmacionEliminarTipo';
+import FormularioEstructuraEdificio from '../components/FormularioEstructuraEdificio';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * @description Página principal del módulo de recursos
@@ -19,8 +21,67 @@ import ConfirmacionEliminarTipo from '../components/ConfirmacionEliminarTipo';
  * @returns {JSX.Element} Componente de la página de recursos
  */
 const RecursosPage = () => {
+    // Instanciamos el hook de navegación
+    const navigate = useNavigate();
     // SETUP WIZARD: Hook para acceder al estado de autenticación y configuración
     const { usuario, getProfile } = useAuthStore();
+
+    // --- LÓGICA DE ESTRUCTURA DEL EDIFICIO (MOVIDA AQUÍ) ---
+    const { pisos_sotano, incluye_azotea, total_pisos } = usuario || {};
+    const [isEstructuraModalOpen, setIsEstructuraModalOpen] = useState(false);
+    const [isSubmittingEstructura, setIsSubmittingEstructura] = useState(false);
+
+    // `useMemo` recalcula si la estructura está definida solo cuando los datos del usuario cambian.
+    const isEstructuraDefinida = useMemo(() => pisos_sotano != null && incluye_azotea != null, [pisos_sotano, incluye_azotea]);
+
+    // --- DATOS DERIVADOS ---
+    // Generamos la lista de ubicaciones basándonos en la estructura del edificio.
+    const listaUbicaciones = useMemo(() => {
+        if (!isEstructuraDefinida) return [];
+        const ubicaciones = [];
+        for (let i = pisos_sotano || 0; i >= 1; i--) { ubicaciones.push(`Sótano ${i}`); }
+        ubicaciones.push('Planta Baja');
+        for (let i = 1; i <= total_pisos || 0; i++) { ubicaciones.push(`Piso ${i}`); }
+        if (incluye_azotea) { ubicaciones.push('Azotea'); }
+        return ubicaciones;
+    }, [isEstructuraDefinida, total_pisos, pisos_sotano, incluye_azotea]);
+
+    // El `useEffect` que comprueba la estructura ahora vive aquí, en el componente orquestador.
+    // Se ejecuta cuando el componente se monta o cuando `isEstructuraDefinida` cambia.
+    useEffect(() => {
+        // Si la estructura no está definida y el usuario ya ha cargado, abrimos el modal.
+        if (usuario && !isEstructuraDefinida) {
+            setIsEstructuraModalOpen(true);
+        }
+    }, [usuario, isEstructuraDefinida]);
+
+    const guardarEstructuraEdificio = async (data) => {
+        setIsSubmittingEstructura(true);
+        try {
+            await apiService.patch('/admin/unidades/edificio', data);
+            await getProfile(); // Refrescamos el estado global del usuario.
+            toast.success('Estructura guardada exitosamente.');
+            setIsEstructuraModalOpen(false); // Cerramos el modal.
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'No se pudo guardar la estructura.');
+        } finally {
+            setIsSubmittingEstructura(false);
+        }
+    };
+
+    /**
+     * @description Maneja el cierre del modal de estructura.
+     * Si el usuario cierra el modal sin completar la información, es redirigido
+     * al dashboard para prevenir que continúe en un estado de configuración incompleto.
+     */
+    const handleCerrarModalEstructura = () => {
+        if (isSubmittingEstructura) return; // No permitir cerrar si está procesando.
+
+        setIsEstructuraModalOpen(false);
+        // 3. Redirigimos al usuario al dashboard.
+        navigate('/dashboard');
+        toast.info('Completa la estructura del edificio para poder gestionar el inventario.');
+    };
 
     const [tiposDeRecurso, setTiposDeRecurso] = useState([]);
     const [tipoSeleccionadoId, setTipoSeleccionadoId] = useState(null);
@@ -239,18 +300,33 @@ const RecursosPage = () => {
                         tipoSeleccionado={tipoSeleccionado}
                         onGenerarClick={() => setIsGeneradorModalOpen(true)}
                         onCargarClick={() => setIsCargarModalOpen(true)}
-                        // AQUI VA EL CAMBIO: Conectamos el handler al panel.
                         onInventarioChange={handleInventarioActualizado}
+                        listaUbicaciones={listaUbicaciones}
                     />
                 </div>
             </div>
 
             {/* --- MODALES --- */}
 
+            {/* Modal para definir la estructura del edificio */}
+            <Modal
+                isOpen={isEstructuraModalOpen}
+                // 4. Conectamos el `onClose` a nuestro nuevo handler.
+                onClose={handleCerrarModalEstructura}
+                title="Completar Información del Edificio"
+            >
+                <FormularioEstructuraEdificio
+                    onSubmit={guardarEstructuraEdificio}
+                    isSubmitting={isSubmittingEstructura}
+                />
+            </Modal>
+
+            {/* Modal para crear nuevos tipos de recurso */}
             <Modal isOpen={isCreateModalOpen} onClose={handleModalCancel} title="Añadir Nuevos Tipos de Recurso">
                 <CrearTipoRecursoModal onClose={handleModalCancel} onRecursosCreados={handleModalSuccess} />
             </Modal>
 
+            {/* Modal para editar tipos de recurso */}
             {tipoAEditar && (
                 <Modal isOpen={!!tipoAEditar} onClose={handleModalCancel} title={`Modificar "${tipoAEditar.nombre}"`}>
                     <FormularioEditarTipoRecurso
@@ -261,6 +337,7 @@ const RecursosPage = () => {
                 </Modal>
             )}
 
+            {/* Modal para confirmar eliminación de tipos de recurso */}
             {tipoAEliminar && (
                 <Modal isOpen={!!tipoAEliminar} onClose={handleModalCancel} title="Confirmar Eliminación">
                     <ConfirmacionEliminarTipo
@@ -273,6 +350,7 @@ const RecursosPage = () => {
 
             {tipoSeleccionado && (
                 <>
+                    {/* Modal para generar inventario secuencial */}
                     <Modal
                         isOpen={isGeneradorModalOpen}
                         onClose={() => setIsGeneradorModalOpen(false)}
@@ -285,6 +363,7 @@ const RecursosPage = () => {
                         />
                     </Modal>
 
+                    {/* Modal para cargar inventario desde archivo */}
                     <Modal isOpen={isCargarModalOpen} onClose={() => setIsCargarModalOpen(false)} title={`Cargar Inventario para ${tipoSeleccionado.nombre}`}>
                         <CargarArchivoModal
                             onClose={() => setIsCargarModalOpen(false)}
@@ -361,4 +440,3 @@ const RecursosPage = () => {
 };
 
 export default RecursosPage;
- 

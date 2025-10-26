@@ -25,7 +25,7 @@ export const toTitleCase = (str) => {
 	if (!str) return str;
 	return str.replace(
 		/\w\S*/g,
-		(txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+		(txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase() 
 	);
 };
 
@@ -72,6 +72,7 @@ export const generadorInventarioSchema = yup.object().shape({
 		.integer('Debe ser un número entero.')
 		.min(1, 'El número de inicio no puede ser menor que 1.')
 		.required('El número de inicio es obligatorio.'),
+	
 });
 
 /**
@@ -116,4 +117,18 @@ export const editarTipoRecursoSchema = yup.object().shape({
 		.required('Debes seleccionar un tipo.'),
 });
 
+/**
+ * @description Esquema de validación para el formulario de definición de estructura del edificio.
+ * Valida los campos para sótanos y azotea.
+ */
+export const estructuraEdificioSchema = yup.object().shape({
+    pisosSotano: yup
+        .number()
+        .typeError('Debe ser un valor numérico.')
+        .min(0, 'El número de sótanos no puede ser negativo.')
+        .integer('Debe ser un número entero.')
+        .required(),
+    incluyeAzotea: yup
+        .boolean(),
+});
 

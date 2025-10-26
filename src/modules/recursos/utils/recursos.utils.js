@@ -37,3 +37,37 @@ export const generateExamples = (pattern, quantity, startNumber) => {
 
 	return examples;
 };
+
+
+/**
+ * @description Genera la configuración de estilo para un badge de estado del recurso.
+ * @param {string} estado - El estado del recurso ('operativo', 'en_mantenimiento', 'no_operativo', etc.).
+ * @returns {{color: string, texto: string, icono: string}} Objeto con clases de CSS, texto y clase de icono.
+ */
+export const getEstadoBadge = (estado) => {
+    switch (estado) {
+		case 'operativo':
+			return {
+				bg: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+				color: 'bg-green-100 text-green-800 border-green-200',
+				texto: 'Operativo',
+				icono: 'fas fa-check-circle',
+			};
+		case 'en_mantenimiento':
+			return {
+				color: 'bg-red-100 text-red-800 border-red-200',
+				texto: 'En Mantenimiento',
+				icono: 'fas fa-tools',
+			};
+		case 'no_operativo':
+		default: // 'pendiente' y cualquier otro estado se manejarán como el caso por defecto.
+			return {
+				color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+				texto: 'Pendiente',
+				icono: 'fas fa-exclamation-triangle',
+			};
+	}
+};
+
+
+

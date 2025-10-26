@@ -16,7 +16,6 @@ import AccesoDenegadoPage from '../pages/AccesoDenegadoPage';
  */
 
 const RutaProtegida = ({ rolesPermitidos }) => {
-    console.log('Roles permitidos:', rolesPermitidos);
     // Leemos el estado de autenticación de nuestra única fuente de verdad.
     const estado = useAuthStore((state) => state.estado);
     const rolUsuario = useAuthStore((state) => state.usuario?.rol);
@@ -42,11 +41,11 @@ const RutaProtegida = ({ rolesPermitidos }) => {
     
     // CASO 3: La ruta requiere roles específicos, pero el usuario no cumple.
     if (rolesPermitidos && rolesPermitidos.length > 0) {
-        console.log('[RBAC] Verificando roles para la ruta protegida...');
+        // console.log('[RBAC] Verificando roles para la ruta protegida...');
         
         if (!rolUsuario || !rolesPermitidos.includes(rolUsuario)) {
             // El usuario está logueado pero no tiene el rol correcto para esta ruta.
-            console.warn(`[RBAC] Acceso denegado a la ruta. Rol del usuario: '${rolUsuario}'. Roles permitidos: [${rolesPermitidos.join(', ')}]`);
+            // console.warn(`[RBAC] Acceso denegado a la ruta. Rol del usuario: '${rolUsuario}'. Roles permitidos: [${rolesPermitidos.join(', ')}]`);
             return <Navigate to="/acceso-denegado" replace />;
         }
     }
