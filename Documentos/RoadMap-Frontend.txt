@@ -1,3 +1,10 @@
+Checklist de Accesibilidad: 
+¿Tiene buen contraste?
+¿Funciona solo con teclado?
+¿Tiene etiquetas y nombres claros?
+¿La información se transmite por más de una vía (no solo color)?
+
+
 Roadmap Maestro del Frontend de LifeBit (v2.0 - Consolidado)
 Nuestra Estrella Polar: "Construir la plataforma SaaS más intuitiva, potente y adictiva para la gestión de condominios, transformando tareas complejas en experiencias simples y gratificantes."
 Documento Fundacional: Este roadmap se rige por nuestro Manifiesto de Diseño y Experiencia de LifeBit, que prioriza el modo oscuro, la psicología del comportamiento, el benchmarking de aplicaciones de clase mundial y la internacionalización (i18n).

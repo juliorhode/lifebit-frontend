@@ -39,6 +39,7 @@ export const STYLES = {
 	inputFile: 'w-full p-3 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100',
 
 	// --- BOTONES ---
+	buttonStandar: 'mt-6 bg-blue-600 hover:bg-blue-800 text-white font-bold py-3 px-4 rounded-lg text-transition-colors',
 	buttonPrimary:
 		'w-full h-[54px] flex justify-center items-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition-colors disabled:bg-blue-800 disabled:cursor-not-allowed',
 	buttonPrimaryAuto: 'h-[52px] flex justify-center items-center bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-lg transition-colors disabled:bg-blue-800 disabled:cursor-not-allowed',

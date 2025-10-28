@@ -82,6 +82,19 @@ const GestionInventarioVisual = ({ tipoRecurso, onGoBack, onSuccess, listaUbicac
         });
     }, [items, filtroEstado, filtroUbicacion, terminoBusqueda]);
 
+    /**
+     * @description Handler que orquesta el guardado final.
+     * Llama a la función de guardado del hook y, si esta tiene éxito,
+     * propaga la señal de éxito al componente padre (`RecursosPage`)
+     * a través de la prop `onSuccess`.
+     */
+    const handleGuardadoFinal = async () => {
+        const exito = await guardarCambios();
+        if (exito && onSuccess) {
+            onSuccess(); // Notificamos al padre para que refresque su propia data.
+        }
+    };
+
     if (isLoading) {
         return <p className="text-center text-secondary p-8">Cargando inventario...</p>;
     }
@@ -138,7 +151,7 @@ const GestionInventarioVisual = ({ tipoRecurso, onGoBack, onSuccess, listaUbicac
                 {hayCambiosSinGuardar && (
                     <div className={`flex justify-end gap-4 ${selectedIds.size > 0 ? 'mt-4' : ''}`}>
                         <button onClick={descartarCambios} className="btn-secondary">Descartar Cambios</button>
-                        <button onClick={guardarCambios} className="btn-primary">Guardar Cambios</button>
+                        <button onClick={handleGuardadoFinal} className="btn-primary">Guardar Cambios</button>
                     </div>
                 )}
             </div>

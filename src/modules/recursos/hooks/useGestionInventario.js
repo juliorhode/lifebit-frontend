@@ -19,8 +19,6 @@ export const useGestionInventario = (tipoRecurso) => {
 	const [selectedIds, setSelectedIds] = useState(new Set());
 	const [sesionGuardadaDetectada, setSesionGuardadaDetectada] = useState(false);
 
-	
-
 	// --- LÓGICA DE PERSISTENCIA EN LOCALSTORAGE ---
 	const localStorageKey = useMemo(
 		() => (tipoRecurso ? `lifebit-unsaved-inventario-${tipoRecurso.id}` : null),
@@ -47,7 +45,7 @@ export const useGestionInventario = (tipoRecurso) => {
 		setIsLoading(true);
 		try {
 			const response = await apiService.get(`/admin/recursos/por-tipo/${tipoRecurso.id}`);
-			
+
 			const itemsDesdeAPI = response.data.data.recursos
 				.map((item) => ({
 					id: item.id,
@@ -115,21 +113,24 @@ export const useGestionInventario = (tipoRecurso) => {
 	 * @description Limpia la selección actual, reseteando el estado visual de los ítems
 	 * a su estado base y vaciando el set de IDs seleccionados.
 	 */
-	const clearSelection = useCallback(() => {
-		setWorkingItems((prevItems) => {
-			const itemsSinSeleccion = prevItems.map((item) => {
-				// Si un ítem estaba seleccionado, revierte su estado visual a 'disponible'.
-				if (selectedIds.has(item.id)) {
-					return { ...item, estado: 'disponible' };
+	const clearSelection = useCallback(
+		(_options = { save: true }) => {
+			setWorkingItems((prevItems) => {
+				const itemsSinSeleccion = prevItems.map((item) => {
+					if (selectedIds.has(item.id)) {
+						return { ...item, estado: 'disponible' };
+					}
+					return item;
+				});
+				// Solo guardamos si la opción `save` es true.
+				if (_options.save) {
+					saveSessionToLS(itemsSinSeleccion);
 				}
-				return item;
+				return itemsSinSeleccion;
 			});
-			// Guardamos la sesión con la selección ya limpia.
-			saveSessionToLS(itemsSinSeleccion);
-			return itemsSinSeleccion;
-		});
-		setSelectedIds(new Set());
-	}, [selectedIds, saveSessionToLS]); // Depende de `selectedIds` para saber qué limpiar.
+			setSelectedIds(new Set());
+		},
+		[selectedIds, saveSessionToLS]); // Depende de `selectedIds` para saber qué limpiar.
 
 	const handleMoverUbicacion = useCallback(
 		(nuevaUbicacion) => {
@@ -195,19 +196,8 @@ export const useGestionInventario = (tipoRecurso) => {
 			);
 		});
 
-		if (cambios.length === 0) {
-			toast.info('No hay cambios que guardar.');
-			if (localStorageKey) {
-				localStorage.removeItem(localStorageKey);
-			}
-			return false;
-		}
-
-		const payload = cambios.map((c) => ({
-			id: c.id,
-			ubicacion: c.ubicacion,
-			estado_operativo: c.estado_operativo,
-		}));
+		// Transformamos los valores a un array
+		const payload = cambios.map((c) => [c.id, c.ubicacion, c.estado_operativo]);
 
 		const toastId = toast.loading(`Guardando ${cambios.length} cambio(s)...`);
 
@@ -217,20 +207,29 @@ export const useGestionInventario = (tipoRecurso) => {
 			// Se asume un endpoint masivo que acepta un array de cambios.
 			// await apiService.patch('/admin/recursos/inventario/batch', { cambios: payload });
 
-			console.log('Payload a enviar al backend:', payload);
-			toast.success(`${cambios.length} cambio(s) guardado(s) exitosamente (Simulado).`, {
+			const respuesta = await apiService.patch('/admin/recursos/inventario', {
+				cambios: payload,
+			});
+
+			toast.success(`${respuesta.data.message}`, {
 				id: toastId,
 			});
 
+			// Solo borramos el borrador de localStorage si el backend confirma que afectó registros.
+			console.log('Registros afectados:', respuesta.data.data.registrosAfectados);
+
 			if (localStorageKey) {
+				console.log('Borrando sesión guardada en localStorage con clave:', localStorageKey);
 				localStorage.removeItem(localStorageKey);
 			}
-			clearSelection();
-			await fetchInventario();
+
+			clearSelection({ save: false }); // 
 			return true;
 		} catch (error) {
-			toast.error('Error al guardar los cambios.', { id: toastId });
-			return false;
+			toast.error(error.response?.data?.message || 'Error al guardar los cambios.', {
+				id: toastId,
+			});
+			return false; // Indicamos que la operación falló.
 		}
 	};
 

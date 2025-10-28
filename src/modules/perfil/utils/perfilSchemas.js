@@ -38,3 +38,23 @@ export const perfilSchema = yup.object().shape({
 			excludeEmptyString: true,
 		}),
 });
+
+/**
+ * @description Esquema de validación para el paso de verificación de contraseña.
+ * Simplemente requiere que el campo no esté vacío.
+ */
+export const verificarPasswordSchema = yup.object().shape({
+  contraseña: yup.string().required('Tu contraseña actual es obligatoria.'),
+});
+
+/**
+ * @description Esquema de validación para el nuevo correo electrónico.
+ * Asegura que el campo sea un email válido.
+ */
+export const nuevoEmailSchema = yup.object().shape({
+  nuevoEmail: yup
+    .string()
+    .email('Por favor, introduce un formato de correo válido.')
+	.max(255, 'El email es demasiado largo')
+	.required('La nueva dirección de correo es obligatoria.'),
+});

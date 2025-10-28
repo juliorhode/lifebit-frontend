@@ -1,16 +1,20 @@
 /**
+ * @file SeccionSeguridad.jsx
  * @description Componente presentacional que gestiona las opciones de seguridad de la cuenta del usuario.
- * Utiliza el hook `useSeguridadPerfil` para obtener toda la lógica y el estado.
- *
- * @returns {JSX.Element} La sección de seguridad con lógica para vinculación de cuentas y placeholders para futuras funcionalidades.
+ * Utiliza el hook `useSeguridadPerfil` para la lógica de vinculación/desvinculación de cuentas.
+ * También gestiona la apertura del modal para el flujo de cambio de correo.
+ * @returns {JSX.Element} La sección de seguridad completa con sus modales asociados.
  */
-import React from 'react';
+import React, { useState } from 'react';
 import { useSeguridadPerfil } from '../hooks/useSeguridadPerfil';
 import { STYLES, ASSETS } from '../../../utils/styleConstants';
 import Spinner from '../../../components/ui/Spinner';
 import Modal from '../../../components/ui/Modal';
+import CambiarEmailModal from './CambiarEmailModal';
 
 const SeccionSeguridad = () => {
+  // --- CONSUMO DE HOOKS ---
+  // `useSeguridadPerfil` nos da la lógica para la vinculación con Google.
   const {
     usuario,
     isGoogleLinked,
@@ -21,6 +25,14 @@ const SeccionSeguridad = () => {
     handleDesvincularConfirmado,
   } = useSeguridadPerfil();
 
+  // --- ESTADO LOCAL ---
+  // Este estado simple controla si el `CambiarEmailModal` debe mostrarse o no.
+  // Es la única pieza de lógica que `SeccionSeguridad` necesita manejar para este flujo.
+  const [isCambiarEmailModalOpen, setCambiarEmailModalOpen] = useState(false);
+
+  // --- RENDERIZADO DE CARGA ---
+  // Si la información del usuario aún no ha llegado, mostramos un esqueleto (skeleton)
+  // para mejorar la percepción de rendimiento y evitar parpadeos en la UI.
   if (!usuario) {
     return (
       <section className="card-theme animate-pulse">
@@ -30,7 +42,9 @@ const SeccionSeguridad = () => {
     );
   }
 
+  // --- RENDERIZADO PRINCIPAL ---
   return (
+    // React Fragments `<>` nos permiten devolver múltiples elementos sin añadir un nodo extra al DOM.
     <>
       <section className="card-theme" aria-labelledby="security-heading">
         <h2 id="security-heading" className="text-primary text-xl font-semibold mb-4">
@@ -38,7 +52,7 @@ const SeccionSeguridad = () => {
         </h2>
         <div className="space-y-8"> {/* Aumentamos el espacio para separar mejor las secciones */}
 
-          {/* --- SECCIÓN DE CUENTAS VINCULADAS --- */}
+          {/* Sub-sección para Cuentas Vinculadas (Google) */}
           <div>
             <h3 className="text-lg font-medium text-primary">Cuentas Vinculadas</h3>
             <p className="text-secondary mt-1 text-sm">
@@ -48,6 +62,7 @@ const SeccionSeguridad = () => {
             </p>
             <div className="mt-4">
               {isGoogleLinked ? (
+                // Si está vinculado, mostramos la información y el botón de desvincular.
                 <div className="flex items-center justify-between p-3 bg-surface-secondary rounded-lg border border-theme-light">
                   <div className="flex items-center gap-3">
                     {ASSETS.googleIconSVG}
@@ -80,29 +95,27 @@ const SeccionSeguridad = () => {
             </div>
           </div>
 
-          {/* --- NUEVA SECCIÓN: CAMBIO DE CORREO ELECTRÓNICO (VISUAL) --- */}
+          {/* Sub-sección para el Cambio de Correo Electrónico */}
           <div className="border-t border-theme-light pt-6">
             <h3 className="text-lg font-medium text-primary">Correo Electrónico</h3>
             <p className="text-secondary mt-1 text-sm">
               Tu correo electrónico actual es <strong className="text-primary">{usuario.email}</strong>.
             </p>
             <div className="mt-4">
-              {/* 
-                  El botón está visualmente deshabilitado. `opacity-50` y `cursor-not-allowed`
-                  comunican claramente al usuario que esta acción no está disponible todavía.
-                  El `title` explica el porqué al pasar el mouse.
-                */}
+              {/* Este es el botón que activa nuestro nuevo flujo.
+                  Al hacer clic, simplemente cambia el estado local `isCambiarEmailModalOpen` a `true`,
+                  lo que causará que el `CambiarEmailModal` se renderice. */}
               <button
-                disabled
-                className="btn-secondary opacity-50 cursor-not-allowed"
+                className={STYLES.buttonGooglePerfil}
                 title="Funcionalidad de cambio de correo en desarrollo."
+                onClick={() => setCambiarEmailModalOpen(true)}
               >
                 Cambiar Correo Electrónico
               </button>
             </div>
           </div>
 
-          {/* --- SECCIÓN DE CONTRASEÑA --- */}
+          {/* Sub-sección de Contraseña */}
           <div className="border-t border-theme-light pt-6">
             <h3 className="text-lg font-medium text-primary">Contraseña</h3>
             <p className="text-secondary mt-1 text-sm">
@@ -113,12 +126,15 @@ const SeccionSeguridad = () => {
         </div>
       </section>
 
-      {/* --- MODAL DE CONFIRMACIÓN PARA DESVINCULAR --- */}
+      {/* --- ZONA DE RENDERIZADO DE MODALES --- */}
+      {/* Mantenemos todos los modales al final del componente para mayor claridad.
+          No se renderizan en el DOM a menos que su prop `isOpen` sea `true`. */}
       <Modal
         isOpen={isConfirmModalOpen}
         onClose={closeConfirmModal}
         title="Confirmar Desvinculación"
       >
+        {/* El contenido de este modal está directamente aquí porque es simple y no se reutiliza. */}
         <div className="text-center">
           <p className="text-lg mb-4 text-secondary">
             ¿Estás seguro de que deseas desvincular tu cuenta de Google?
@@ -147,6 +163,14 @@ const SeccionSeguridad = () => {
           </div>
         </div>
       </Modal>
+
+      {/* Modal para el cambio de correo.
+          Su visibilidad está ligada a nuestro estado `isCambiarEmailModalOpen`.
+          La función `onClose` simplemente actualiza ese estado a `false`. */}
+      <CambiarEmailModal
+        isOpen={isCambiarEmailModalOpen}
+        onClose={() => setCambiarEmailModalOpen(false)}
+      />
     </>
   );
 };

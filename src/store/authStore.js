@@ -117,6 +117,9 @@ export const useAuthStore = create((set, get) => ({
 				estado: 'loggedOut',
 				error: null,
 			});
+			// Escribimos un item en localStorage. Usamos un timestamp para asegurarnos
+			// de que el evento 'storage' se dispare de forma fiable en todas las pestañas.
+			window.localStorage.setItem('logout-event', Date.now());
 		}
 		// Opcional: removemos el token de localStorage si lo hubiéramos guardado.
 	},

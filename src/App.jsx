@@ -14,6 +14,9 @@ import RecursosPage from './modules/recursos/pages/RecursosPage';
 import MiCuentaPage from './modules/perfil/pages/MiCuentaPage';
 import ResidentesPage from './modules/residentes/pages/ResidentesPage';
 import AccesoDenegadoPage from './pages/AccesoDenegadoPage';
+import VerificarCambioEmailPage from './pages/VerificarCambioEmailPage';
+import Sandbox from './pages/Sandbox';
+import { useTabSync } from './hooks/useTabSync';
 
 
 // Componente placeholder para el dashboard
@@ -25,6 +28,8 @@ const AyudaPlaceholder = () => <h1 className="text-3xl font-bold text-gray-700 d
 // React Router DOM maneja qué página se muestra según la URL.
 
 function App() {
+  // Llama al hook aquí. No devuelve nada visual, solo activa el listener.
+  useTabSync();
   return (
     <SessionVerifier>
 
@@ -73,6 +78,10 @@ function App() {
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/finalizar-registro" element={<FinalizarRegistroPage />} />
+        <Route path="/verify-email-change" element={<VerificarCambioEmailPage />} />
+        
+        {/* Ruta para pruebas */}
+        <Route path="/sandbox" element={<Sandbox />} />
 
         {/* --- Rutas Protegidas --- */}
         {/* Un único guardia de autenticación envuelve todo lo que requiere login */}

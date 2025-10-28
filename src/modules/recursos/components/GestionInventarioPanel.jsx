@@ -97,7 +97,7 @@ const GestionInventarioPanel = forwardRef(({ tipoSeleccionado, onGenerarClick, o
 
     return (
         <div className={`${STYLES.card} h-full flex flex-col`}>
-            <h2 className={STYLES.titleSection}>Inventario de: <span className="text-blue-400">{tipoSeleccionado.nombre}</span></h2>
+            <h2 className={STYLES.titleSection}>Inventario de: <span className="text-blue-400 ">{tipoSeleccionado.nombre}</span></h2>
 
             <SearchBar
                 value={terminoBusqueda}
@@ -131,7 +131,7 @@ const GestionInventarioPanel = forwardRef(({ tipoSeleccionado, onGenerarClick, o
             )}
             {/* Los botones de 'Generar' se muestra si el tipo es 'inventario' */}
             {tipoSeleccionado.tipo === 'inventario' && (
-                <div className="flex flex-col sm:flex-row my-2">
+                <div className="flex flex-col sm:flex-row my-2 ">
                     <button onClick={onGenerarClick} className={`${STYLES.buttonPrimary} w-full sm:w-auto flex-1`}>
                         <FiCpu className="mr-2" />
                         Generar Secuencialmente
