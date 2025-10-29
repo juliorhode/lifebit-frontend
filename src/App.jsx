@@ -17,6 +17,7 @@ import AccesoDenegadoPage from './pages/AccesoDenegadoPage';
 import VerificarCambioEmailPage from './pages/VerificarCambioEmailPage';
 import Sandbox from './pages/Sandbox';
 import { useTabSync } from './hooks/useTabSync';
+import SolicitudesPage from './modules/solicitudes/pages/SolicitudesPage'
 
 
 // Componente placeholder para el dashboard
@@ -101,6 +102,7 @@ function App() {
             {/* Grupo Dueño */}
             <Route element={<RutaProtegida rolesPermitidos={['dueño_app']} />}>
               <Route path="contratos" element={<ContratosPlaceholder />} />
+              <Route path="solicitudes" element={<SolicitudesPage />} />
             </Route>
 
             {/* Rutas Comunes */}

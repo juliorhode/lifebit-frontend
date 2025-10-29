@@ -11,7 +11,7 @@
  * - type: (Opcional) 'link' o 'action'. Por defecto es 'link'.
  * - exact: (Opcional) Booleano para la coincidencia exacta de ruta en NavLink.
  */
-import { FiGrid, FiUsers, FiCpu, FiSettings, FiHelpCircle, FiLogOut } from 'react-icons/fi';
+import { FiGrid, FiUsers, FiCpu, FiSettings, FiHelpCircle, FiLogOut, FiInbox } from 'react-icons/fi';
 import { FaFileContract } from 'react-icons/fa';
 
 // --- ENLACES DE NAVEGACIÓN PRINCIPAL ---
@@ -27,6 +27,12 @@ export const navLinksConfig = [
 		to: '/dashboard/contratos',
 		IconComponent: FaFileContract,
 		text: 'Contratos',
+		rolesPermitidos: ['dueño_app'],
+	},
+	{
+		to: '/dashboard/solicitudes',
+		IconComponent: FiInbox,
+		text: 'Solicitudes',
 		rolesPermitidos: ['dueño_app'],
 	},
 	{

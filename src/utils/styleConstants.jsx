@@ -44,7 +44,8 @@ export const STYLES = {
 		'w-full h-[54px] flex justify-center items-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition-colors disabled:bg-blue-800 disabled:cursor-not-allowed',
 	buttonPrimaryAuto: 'h-[52px] flex justify-center items-center bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-lg transition-colors disabled:bg-blue-800 disabled:cursor-not-allowed',
 	
-	buttonSecondary:'px-4 py-2 text-sm text-red-400 hover:bg-red-900/50 rounded-md whitespace-nowrap',
+	buttonSecondary: 'px-4 py-2 text-sm text-red-400 hover:bg-red-900/50 rounded-md whitespace-nowrap',
+	buttonSecondaryGeneric: 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-medium px-4 py-2 rounded-lg transition-colors',
 
 	buttonCancel: 'w-[95px] h-[50px] flex justify-center items-center bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-lg text- transition-colors disabled:bg-red-800 disabled:cursor-not-allowed',
 	buttonGoogle:
@@ -55,6 +56,7 @@ export const STYLES = {
 
 	// --- TARJETAS Y CONTENEDORES ---
 	card: 'bg-gray-50 dark:bg-gray-800 p-8 rounded-lg shadow-lg',
+	cardCompact: 'bg-gray-50 dark:bg-gray-800 p-4 rounded-lg shadow-md border border-gray-200 dark:border-gray-700',
 
 	// --- TEXTOS ---
 	titlePage: 'text-3xl font-bold text-gray-700 dark:text-white',

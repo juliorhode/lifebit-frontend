@@ -31,7 +31,7 @@
 *Objetivo: Empoderarte con herramientas para dirigir tu negocio con total control.*
 
 - `[ ]` **F2-01 [PÁGINA]:** Construir el Dashboard Principal del Dueño (Resúmenes, Notificaciones).
-- `[ ]` **F2-02 [PÁGINA]:** Módulo de Gestión de Solicitudes (Listar, Aprobar/Rechazar).
+- `[~]` **F2-02 [PÁGINA]:** Módulo de Gestión de Solicitudes (Listar, Aprobar/Rechazar).
 - `[ ]` **F2-03 [PÁGINA]:** Módulo de Gestión de Contratos (CRUD completo).
 - `[ ]` **F2-04 [PÁGINA]:** Módulo CMS para la Landing Page (con drag-and-drop).
 
