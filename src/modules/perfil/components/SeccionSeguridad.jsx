@@ -1,12 +1,13 @@
 /**
  * @file SeccionSeguridad.jsx
- * @description Componente presentacional que gestiona las opciones de seguridad de la cuenta del usuario.
- * Utiliza el hook `useSeguridadPerfil` para la lógica de vinculación/desvinculación de cuentas.
- * También gestiona la apertura del modal para el flujo de cambio de correo.
- * @returns {JSX.Element} La sección de seguridad completa con sus modales asociados.
+ * @description Componente presentacional para las opciones de seguridad de la cuenta.
+ * **Refactorizado para implementar el flujo de "Soft Logout"** al desvincular Google,
+ * añadiendo un modal de éxito informativo para mejorar la experiencia del usuario.
+ * @returns {JSX.Element}
  */
 import React, { useState } from 'react';
 import { useSeguridadPerfil } from '../hooks/useSeguridadPerfil';
+import { FiCheckCircle } from 'react-icons/fi';
 import { STYLES, ASSETS } from '../../../utils/styleConstants';
 import Spinner from '../../../components/ui/Spinner';
 import Modal from '../../../components/ui/Modal';
@@ -23,6 +24,8 @@ const SeccionSeguridad = () => {
     openConfirmModal,
     closeConfirmModal,
     handleDesvincularConfirmado,
+    isSuccessModalOpen, //controlarán el flujo de "Soft Logout
+    handleFinalLogout, // controlarán el flujo de "Soft Logout
   } = useSeguridadPerfil();
 
   // --- ESTADO LOCAL ---
@@ -158,7 +161,7 @@ const SeccionSeguridad = () => {
               className="btn-primary bg-red-600 hover:bg-red-700"
               disabled={isSubmitting}
             >
-              {isSubmitting ? <Spinner type="dots" /> : 'Sí, Desvincular'}
+              {isSubmitting ? <Spinner /> : 'Sí, Desvincular'}
             </button>
           </div>
         </div>
@@ -171,6 +174,38 @@ const SeccionSeguridad = () => {
         isOpen={isCambiarEmailModalOpen}
         onClose={() => setCambiarEmailModalOpen(false)}
       />
+
+      {/**
+       * @description Modal de Éxito Post-Desvinculación ("Soft Logout").
+       * Su visibilidad está controlada por `isSuccessModalOpen` del hook.
+       * Su única acción es llamar a `handleFinalLogout` para completar el proceso.
+       */}
+      <Modal
+        isOpen={isSuccessModalOpen}
+        onClose={handleFinalLogout} // El cierre del modal (por 'X' o fondo) también ejecuta el logout.
+        title="Desvinculación Exitosa"
+      >
+        <div className="text-center">
+          <FiCheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
+          <p className="text-lg text-secondary mb-6">
+            Tu cuenta de Google ha sido desvinculada correctamente.
+          </p>
+          <div className="bg-blue-500/10 border border-blue-500/30 text-blue-200 text-sm p-3 rounded-md mb-8">
+            <p className="font-semibold">Siguiente Paso</p>
+            <p className="mt-1">
+              Por razones de seguridad, tu sesión actual debe reiniciarse. Serás redirigido a la página de inicio de sesión.
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <button
+              onClick={handleFinalLogout}
+              className="btn-primary w-full sm:w-auto"
+            >
+              Entendido, ir a Login
+            </button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 };

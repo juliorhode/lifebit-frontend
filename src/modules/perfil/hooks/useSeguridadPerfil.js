@@ -105,8 +105,9 @@ export const useSeguridadPerfil = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   // `isConfirmModalOpen` gestiona la visibilidad del modal de confirmación ("¿Estás seguro?").
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  // **NUEVO ESTADO**: `isSuccessModalOpen` gestiona la visibilidad del modal de éxito post-desvinculación.
+  // `isSuccessModalOpen` gestiona la visibilidad del modal de éxito post-desvinculación.
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  
 
   // --- DATOS DERIVADOS ---
   // `useMemo` recalcula `isGoogleLinked` solo cuando el objeto `usuario` cambia, optimizando el rendimiento.
@@ -149,8 +150,8 @@ export const useSeguridadPerfil = () => {
       // 3. Mostramos un toast de éxito inmediato para feedback rápido.
       toast.success('Cuenta de Google desvinculada exitosamente.', { id: toastId });
       
-      // 4. **LA CLAVE DEL CAMBIO**: Abrimos el nuevo modal de éxito.
-      openSuccessModal();
+      // 4. Abrimos el nuevo modal de éxito.
+      setIsSuccessModalOpen(true);
 
     } catch (error) {
       // En caso de error, el comportamiento no cambia.
